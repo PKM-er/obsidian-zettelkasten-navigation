@@ -8,7 +8,7 @@ interface MyPluginSettings {
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
-}
+} 
 
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
@@ -113,7 +113,7 @@ class SampleSettingTab extends PluginSettingTab {
 	constructor(app: App, plugin: MyPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
-	}
+	} 
 
 	display(): void {
 		const {containerEl} = this;
