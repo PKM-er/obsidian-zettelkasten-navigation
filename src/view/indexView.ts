@@ -232,7 +232,9 @@ export class ZKIndexView extends ItemView{
         indexLinkDiv.createEl('span',{text:`Current Index: `});
         let indexFile = this.app.vault.getFileByPath(
             `${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
-        if(indexFile !== null){
+        if(indexFile == null){
+            new Notice(`index:${index} can be found!`)
+        }else{
             let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
             link.addEventListener("click",()=>{
                 this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
@@ -246,51 +248,51 @@ export class ZKIndexView extends ItemView{
                     targetEl: link,
                     sourcePath: indexFile.path,
                   })
-            }); 
-        }
+            });         
         
-        let mermaid = await loadMermaid();
-        
-        for(let i=0;i< branchEntranceNodeArr.length;i++){
-            let branchAllNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);   
+            let mermaid = await loadMermaid();
             
-            allShowNodes = allShowNodes.concat(branchAllNodes);        
-            let branchMermaidStr = await this.genericIndexMermaidStr(branchAllNodes, branchEntranceNodeArr[i]);
-            let zkGraph = indexMermaidDiv.createEl("div", {cls:"zk-index-mermaid"});
-            zkGraph.id = `zk-index-mermaid-${i}`
-            let {svg} = await mermaid.render(zkGraph.id, branchMermaidStr);
-            zkGraph.innerHTML = svg;
-            indexMermaidDiv.appendChild(zkGraph);            
-        }
-        let indexMermaid= document.getElementById("zk-index-mermaid-container")
-                    
-        if(indexMermaid !== null){
-
-            let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
-            let nodeArr = indexMermaid.getElementsByClassName("nodeLabel");
+            for(let i=0;i< branchEntranceNodeArr.length;i++){
+                let branchAllNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);   
+                
+                allShowNodes = allShowNodes.concat(branchAllNodes);        
+                let branchMermaidStr = await this.genericIndexMermaidStr(branchAllNodes, branchEntranceNodeArr[i]);
+                let zkGraph = indexMermaidDiv.createEl("div", {cls:"zk-index-mermaid"});
+                zkGraph.id = `zk-index-mermaid-${i}`
+                let {svg} = await mermaid.render(zkGraph.id, branchMermaidStr);
+                zkGraph.innerHTML = svg;
+                indexMermaidDiv.appendChild(zkGraph);            
+            }
+            let indexMermaid= document.getElementById("zk-index-mermaid-container")
                         
-            for(let i=0;i<nodeArr.length;i++){
-                let link = document.createElement('a');
-                link.addClass("internal-link");
-                let nodePosStr = nodeGArr[i].id.split('-')[1];
-                let node = allShowNodes.filter(n=>n.position == Number(nodePosStr))[0];
-                link.textContent = nodeArr[i].innerHTML;                       
-                nodeArr[i].textContent = "";
-                nodeArr[i].appendChild(link);
-                nodeArr[i].addEventListener("click", () => {
-                    this.app.workspace.openLinkText(node.file.basename, node.file.path, 'tab');                
-                })
+            if(indexMermaid !== null){
 
-                nodeArr[i].addEventListener(`mouseover`,(event:MouseEvent) => {
-                    this.app.workspace.trigger(`hover-link`, {
-                        event,
-                        source: ZK_NAVIGATION,
-                        hoverParent: this,
-                        linktext: node.file.basename,
-                        targetEl: link,
-                        sourcePath: node.file.path,
+                let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
+                let nodeArr = indexMermaid.getElementsByClassName("nodeLabel");
+                            
+                for(let i=0;i<nodeArr.length;i++){
+                    let link = document.createElement('a');
+                    link.addClass("internal-link");
+                    let nodePosStr = nodeGArr[i].id.split('-')[1];
+                    let node = allShowNodes.filter(n=>n.position == Number(nodePosStr))[0];
+                    link.textContent = nodeArr[i].innerHTML;                       
+                    nodeArr[i].textContent = "";
+                    nodeArr[i].appendChild(link);
+                    nodeArr[i].addEventListener("click", () => {
+                        this.app.workspace.openLinkText(node.file.basename, node.file.path, 'tab');                
                     })
-                }); 
+
+                    nodeArr[i].addEventListener(`mouseover`,(event:MouseEvent) => {
+                        this.app.workspace.trigger(`hover-link`, {
+                            event,
+                            source: ZK_NAVIGATION,
+                            hoverParent: this,
+                            linktext: node.file.basename,
+                            targetEl: link,
+                            sourcePath: node.file.path,
+                        })
+                    }); 
+                }
             }
         }
     }
@@ -309,7 +311,7 @@ export class ZKIndexView extends ItemView{
 
                 const indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${index}.md`);
                 
-                if(indexFile){
+                if(indexFile !== null){
                     const resolvedLinks = this.app.metadataCache.resolvedLinks;
                     let frontLinks: string[] = Object.keys(resolvedLinks[indexFile.path])
                     .filter(l=>l.endsWith("md"));                
