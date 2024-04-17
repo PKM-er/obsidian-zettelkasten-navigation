@@ -1,0 +1,12 @@
+{
+  "FolderOfMainNotes": "zettles",
+  "FolderOfIndexes": "indexes",
+  "SelectIndex": "笔记系统",
+  "StartingPoint": "father",
+  "DisplayLevel": "end",
+  "NodeText": "id",
+  "TitleField": "aliases",
+  "FamilyGraphToggle": true,
+  "InlinksGraphToggle": true,
+  "OutlinksGraphToggle": true
+}
