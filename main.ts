@@ -48,13 +48,16 @@ export default class ZKNavigationPlugin extends Plugin{
         await this.loadSettings();
         this.addSettingTab(new ZKNavigationSettngTab(this.app, this));
 
+        
+        this.registerView(ZK_INDEX_TYPE, (leaf) => new ZKIndexView(leaf,this));
+        
+        this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf,this));
+
         this.addRibbonIcon("ghost", "open zk-index-graph", () => {
-            this.registerView(ZK_INDEX_TYPE, (leaf) => new ZKIndexView(leaf,this));
 			this.openIndexView();
         });
 
         this.addRibbonIcon("network", "open zk-local-graph", () => {
-            this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf,this));
 			this.openGraphView();
         });
 
@@ -66,29 +69,32 @@ export default class ZKNavigationPlugin extends Plugin{
             },
         );
         
+        
         //refresh index mermaid
         this.app.workspace.onLayoutReady(async () => {
-            
-            await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);
 
-		    let leaf = this.app.workspace.getLeaf(true);
-            if(leaf != null){
-                await leaf.setViewState({
-                    type: ZK_INDEX_TYPE
-                })
-            }            
+            if(this.app.workspace.getActiveViewOfType(ZKIndexView) !== null){
+                await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);
 
+                let leaf = this.app.workspace.getLeaf(true);
+                if(leaf != null){
+                    await leaf.setViewState({
+                        type: ZK_INDEX_TYPE
+                    })
+                }  
+            }
         })
-
         // refresh graph mermaid
         this.app.workspace.onLayoutReady(async () => {
-            await this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
+            if(this.app.workspace.getActiveViewOfType(ZKGraphView) !== null){
+                await this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
 
-            let leaf = this.app.workspace.getRightLeaf(false);
-            if(leaf != null){
-                await leaf.setViewState({
-                    type: ZK_GRAPH_TYPE
-                })
+                let leaf = this.app.workspace.getRightLeaf(false);
+                if(leaf != null){
+                    await leaf.setViewState({
+                        type: ZK_GRAPH_TYPE
+                    })
+                }
             }
         })
 	}

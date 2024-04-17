@@ -145,7 +145,7 @@ export class ZKIndexView extends ItemView{
         
         indexMermaidDiv.empty();
 
-        //this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
+        this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
 
         const indexButtonDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
         const indexButton = new ButtonComponent(indexButtonDiv).setClass("zk-index-toolbar-button");

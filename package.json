@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-zettelkasten-navigation",
-	"version": "0.0.1",
+	"version": "0.0.3",
 	"description": "Luhmann-style notes ID and indexes",
 	"main": "main.js",
 	"scripts": {
