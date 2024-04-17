@@ -1,6 +1,6 @@
 # Obsidian Zettelkasten Navigation
 
-This plugin provides 2 customViews for navigation a zettelkasten using Luhmann-style IDs and key word indexes.
+This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-style IDs and key word indexes.
 
 ## Main function
 
