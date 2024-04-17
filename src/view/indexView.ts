@@ -235,20 +235,19 @@ export class ZKIndexView extends ItemView{
             
             let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
             
-                link.addEventListener("click",() =>{
-                    this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
-                });
-                link.addEventListener(`mouseover`,(event:MouseEvent) => {
-                    this.app.workspace.trigger(`hover-link`, {
-                        event,
-                        source: ZK_NAVIGATION,
-                        hoverParent: link,
-                        linktext: indexFile.basename,
-                        targetEl: link,
-                        sourcePath: indexFile.path,
-                    })
-                });
-                    
+            link.addEventListener("click",() =>{
+                this.app.workspace.openLinkText(indexFile?indexFile.basename:'',indexFile?indexFile.path:'','tab');
+            });
+            link.addEventListener(`mouseover`,(event:MouseEvent) => {
+                this.app.workspace.trigger(`hover-link`, {
+                    event,
+                    source: ZK_NAVIGATION,
+                    hoverParent: link,
+                    linktext: indexFile.basename,
+                    targetEl: link,
+                    sourcePath: indexFile.path,
+                })
+            });                   
         
             let mermaid = await loadMermaid();
             
