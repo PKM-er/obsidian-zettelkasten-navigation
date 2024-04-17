@@ -230,23 +230,25 @@ export class ZKIndexView extends ItemView{
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
         indexLinkDiv.empty();
         indexLinkDiv.createEl('span',{text:`Current Index: `});
-        let indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
+        const indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
         if(indexFile){
             
-            let link = indexLinkDiv.createEl('a',{text:indexFile?.basename});
-            link.addEventListener("click",() =>{
-                this.app.workspace.openLinkText(indexFile?.basename,indexFile?.path,'tab');
-            });
-            link.addEventListener(`mouseover`,(event:MouseEvent) => {
-                this.app.workspace.trigger(`hover-link`, {
-                    event,
-                    source: ZK_NAVIGATION,
-                    hoverParent: link,
-                    linktext: indexFile?.basename,
-                    targetEl: link,
-                    sourcePath: indexFile?.path,
-                  })
-            });         
+            let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
+            
+                link.addEventListener("click",() =>{
+                    this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
+                });
+                link.addEventListener(`mouseover`,(event:MouseEvent) => {
+                    this.app.workspace.trigger(`hover-link`, {
+                        event,
+                        source: ZK_NAVIGATION,
+                        hoverParent: link,
+                        linktext: indexFile.basename,
+                        targetEl: link,
+                        sourcePath: indexFile.path,
+                    })
+                });
+                    
         
             let mermaid = await loadMermaid();
             
