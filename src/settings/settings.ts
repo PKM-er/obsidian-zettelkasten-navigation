@@ -20,7 +20,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab{
         new Setting(this.containerEl)
         .setName("Main notes folder location")
         .addSearch((cb) => {
-            new FolderSuggest(cb.inputEl);
+            new FolderSuggest(this.app, cb.inputEl);
             cb.setPlaceholder("Example: folder1/folder2")
             .setValue(this.plugin.settings.FolderOfMainNotes)
             .onChange((new_folder) => {
@@ -43,7 +43,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab{
         new Setting(this.containerEl)
         .setName("Indexes folder location")
         .addSearch((cb) => {
-            new FolderSuggest(cb.inputEl);
+            new FolderSuggest(this.app, cb.inputEl);
             cb.setPlaceholder("Example: folder1/folder2")
             .setValue(this.plugin.settings.FolderOfIndexes)
             .onChange((new_folder) => {

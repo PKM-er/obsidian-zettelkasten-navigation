@@ -16,6 +16,7 @@ interface ZKNavigationSettings{
     InlinksGraphToggle: boolean;
     OutlinksGraphToggle: boolean;
 }
+
 //Default value for setting field
 const DEFAULT_SETTINGS: ZKNavigationSettings = {
 	FolderOfMainNotes: '',
@@ -45,6 +46,7 @@ export default class ZKNavigationPlugin extends Plugin{
     async onload() {
 
         await this.loadSettings();
+        
         this.addSettingTab(new ZKNavigationSettngTab(this.app, this));
 
         this.registerView(ZK_INDEX_TYPE, (leaf) => new ZKIndexView(leaf,this));
