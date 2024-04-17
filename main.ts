@@ -3,7 +3,6 @@ import { ZKNavigationSettngTab } from "src/settings/settings";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
 import { ZKIndexView, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
 
-
 //settings fields
 interface ZKNavigationSettings{
 	FolderOfMainNotes: string;
@@ -48,7 +47,6 @@ export default class ZKNavigationPlugin extends Plugin{
         await this.loadSettings();
         this.addSettingTab(new ZKNavigationSettngTab(this.app, this));
 
-        
         this.registerView(ZK_INDEX_TYPE, (leaf) => new ZKIndexView(leaf,this));
         
         this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf,this));
@@ -68,8 +66,7 @@ export default class ZKNavigationPlugin extends Plugin{
                 default: true,
             },
         );
-        
-        
+
         //refresh index mermaid
         this.app.workspace.onLayoutReady(async () => {
 
@@ -124,7 +121,7 @@ export default class ZKNavigationPlugin extends Plugin{
             this.app.workspace.revealLeaf(leaf);
         } 
 	}
-
+    
 	async onunload(){
 
         this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
