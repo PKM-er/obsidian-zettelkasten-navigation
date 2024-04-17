@@ -1,0 +1,10 @@
+{
+	"id": "obsidian-zettelkasten-navigation",
+	"name": "Zettelkasten Navigation",
+	"version": "0.0.2",
+	"minAppVersion": "1.5.7",
+	"description": "2 Navigation Views for a zettelkasten with Luhmann-style IDs and key word indexes.",
+	"author": "terrychenzw",
+	"authorUrl": "https://github.com/terrychenzw",
+	"isDesktopOnly": true
+}
