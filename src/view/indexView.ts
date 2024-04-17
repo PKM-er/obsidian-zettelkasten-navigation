@@ -56,15 +56,18 @@ export class ZKIndexView extends ItemView{
                     displayText:'',
                 }
 
-                let nodeFrontmatter = this.app.metadataCache.getFileCache(note)?.frontmatter;
-            
-                if(typeof nodeFrontmatter !== 'undefined' && this.plugin.settings.TitleField !== ""){
+                let nodeCache = this.app.metadataCache.getFileCache(note);
+
+                if(nodeCache !== null){
+                    if(typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.TitleField !== ""){
                 
-                    let title = nodeFrontmatter[this.plugin.settings.TitleField];
-                    if(typeof title !== 'undefined'){
-                        node.title = title;
+                        let title = nodeCache.frontmatter[this.plugin.settings.TitleField];
+                        if(typeof title !== 'undefined'){
+                            node.title = title;
+                        }
                     }
-                }
+                }           
+                
 
                 switch(this.plugin.settings.NodeText){
                     case "id":
