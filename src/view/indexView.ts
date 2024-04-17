@@ -234,7 +234,7 @@ export class ZKIndexView extends ItemView{
         if(indexFile !== null){
             
             let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
-            link.addEventListener("click",()=>{
+            link.addEventListener("click",():void =>{
                 this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
             });
             link.addEventListener(`mouseover`,(event:MouseEvent) => {
@@ -319,10 +319,10 @@ export class ZKIndexView extends ItemView{
                             let branchFile = this.app.vault.getFileByPath(link);  
 
                             if(branchFile !== null){
-                                let node = this.MainNotes.find(l=>l.file.path == branchFile.path);  
+                                let nodes = this.MainNotes.filter(l=>l.file.path == branchFile.path);  
                                                         
-                                if(typeof node !== 'undefined'){
-                                    branchNodeArr.push(node);
+                                if(nodes.length > 0){
+                                    branchNodeArr.push(nodes[0]);
                                 }
                             }
                         }

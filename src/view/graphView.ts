@@ -265,11 +265,11 @@ export class ZKGraphView extends ItemView{
                 let fatherArr = currentNode.IDArr.slice(0,currentNode.IDArr.length-1);
 
                 let fatherNode = this.MainNotes
-                    .find(n=>n.IDStr == fatherArr.toString());
+                    .filter(n=>n.IDStr == fatherArr.toString());
                     
-                if(fatherNode !== undefined){
+                if(fatherNode.length > 0){
                     
-                    familyNodeArr = this.MainNotes.filter(n=>n.IDStr.startsWith(fatherNode.IDStr))
+                    familyNodeArr = this.MainNotes.filter(n=>n.IDStr.startsWith(fatherNode[0].IDStr))
                                     .filter(n=>n.IDArr.length <=  currentNode.IDArr.length ||
                                         (n.IDStr.startsWith(currentNode.IDStr) && n.IDArr.length == currentNode.IDArr.length + 1)
                                     );
