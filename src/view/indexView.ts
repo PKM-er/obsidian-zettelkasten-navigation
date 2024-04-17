@@ -16,13 +16,10 @@ export interface ZKNode{
     displayText:string;
 }
 
-
 export class ZKIndexView extends ItemView{
 
     plugin: ZKNavigationPlugin;
     MainNotes: ZKNode[];
-
-    
 
     constructor(leaf:WorkspaceLeaf, plugin:ZKNavigationPlugin ){
         super(leaf);
@@ -41,9 +38,8 @@ export class ZKIndexView extends ItemView{
     }
 
     async mainNoteFilesInit(){
-        if(this.plugin.settings.FolderOfMainNotes == ""){
-            //new Notice("Main note folder not set!");
-        }else{
+        if(this.plugin.settings.FolderOfMainNotes !== ""){
+            
             this.MainNotes = [];
             const mainNoteFiles = this.app.vault.getMarkdownFiles() 
             .filter(f=>f.path.replace(f.name, "").startsWith(this.plugin.settings.FolderOfMainNotes));
@@ -303,31 +299,39 @@ export class ZKIndexView extends ItemView{
         if(this.plugin.settings.FolderOfMainNotes == ""){
             new Notice("Main note folder not set!");
         }else{
-            const indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${index}.md`);
-            
-            if(indexFile){
-                const resolvedLinks = this.app.metadataCache.resolvedLinks;
-                let frontLinks: string[] = Object.keys(resolvedLinks[indexFile.path])
-                .filter(l=>l.endsWith("md"));                
 
-                if(frontLinks.length > 0){
-                  for(let link of frontLinks){
-                    let branchFile = this.app.vault.getFileByPath(link);  
+            if(this.plugin.settings.FolderOfIndexes == ""){
+                new Notice("Index folder not set!");
+            }else{
 
-                    if(branchFile){
-                        let node = this.MainNotes.find(l=>l.file.path == branchFile.path);  
-                                                
-                        if(typeof node !== 'undefined'){
-                            branchNodeArr.push(node);
+                const indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${index}.md`);
+                
+                if(indexFile){
+                    const resolvedLinks = this.app.metadataCache.resolvedLinks;
+                    let frontLinks: string[] = Object.keys(resolvedLinks[indexFile.path])
+                    .filter(l=>l.endsWith("md"));                
+
+                    if(frontLinks.length > 0){
+                        for(let link of frontLinks){
+                            let branchFile = this.app.vault.getFileByPath(link);  
+
+                            if(branchFile){
+                                let node = this.MainNotes.find(l=>l.file.path == branchFile.path);  
+                                                        
+                                if(typeof node !== 'undefined'){
+                                    branchNodeArr.push(node);
+                                }
+                            }
                         }
-                    }
-                  }
-                } 
-            }                       
+                    } 
+                }  
+               
+                if(branchNodeArr.length == 0){
+                    new Notice(`Index: "${index}" has no valid branch`);
+                }    
+            }              
         }
-        if(branchNodeArr.length == 0){
-            new Notice(`Index: "${index}" has no valid branch`);
-        }
+        
         return branchNodeArr;
     }
 

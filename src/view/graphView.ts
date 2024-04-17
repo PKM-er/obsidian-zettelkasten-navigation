@@ -8,7 +8,7 @@ export const ZK_GRAPH_VIEW:string = "zk-local-graph"
 export class ZKGraphView extends ItemView{
 
     plugin: ZKNavigationPlugin;
-    MainNotes:ZKNode[];
+    MainNotes:ZKNode[] = [];
 
     constructor(leaf:WorkspaceLeaf, plugin:ZKNavigationPlugin ){
         super(leaf);
@@ -60,6 +60,8 @@ export class ZKGraphView extends ItemView{
                     
                     familyTreeDiv.id = "zk-family-tree";
                     
+                    
+
                     let {svg} = await mermaid.render(`zk-family-tree`, `${familyMermaidStr}`);
                     familyTreeDiv.innerHTML = svg;
                     graphMermaidDiv.appendChild(familyTreeDiv);
@@ -101,7 +103,7 @@ export class ZKGraphView extends ItemView{
                     const inlinksGraphTextDiv = inlinksGraphContainer.createDiv("zk-graph-text");
 
                     inlinksGraphTextDiv.empty();
-                    let familyText = inlinksGraphTextDiv.createEl('span',{text:`inlinks`});
+                    inlinksGraphTextDiv.createEl('span',{text:`inlinks`});
 
                     const inlinksDiv = inlinksGraphContainer.createEl("div", {cls:"zk-graph-mermaid"});                    
                     inlinksDiv.id = "zk-inlinks";
@@ -359,12 +361,14 @@ export class ZKGraphView extends ItemView{
     }
 
     async genericLinksMermaidStr(currentFile:TFile, linkArr:TFile[], direction:string='in'){
-
+        
         let mermaidStr:string = `%%{ init: { 'flowchart': { 'cruve': '' },
         'themeVariables':{ 'fontSize': '10px'}}}%% flowchart TB;\n`
         
 
         let currentNode = this.MainNotes.find(n=>n.file == currentFile);
+        
+
         if(typeof currentNode !== 'undefined'){
             mermaidStr = mermaidStr + `${linkArr.length}("${currentNode.displayText}");
             style ${linkArr.length} fill:#ffa,stroke:#333,stroke-width:1px \n`;;
