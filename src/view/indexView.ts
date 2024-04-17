@@ -233,18 +233,18 @@ export class ZKIndexView extends ItemView{
         let indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
         if(indexFile){
             
-            let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
+            let link = indexLinkDiv.createEl('a',{text:indexFile?.basename});
             link.addEventListener("click",() =>{
-                this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
+                this.app.workspace.openLinkText(indexFile?.basename,indexFile?.path,'tab');
             });
             link.addEventListener(`mouseover`,(event:MouseEvent) => {
                 this.app.workspace.trigger(`hover-link`, {
                     event,
                     source: ZK_NAVIGATION,
                     hoverParent: link,
-                    linktext: indexFile.basename,
+                    linktext: indexFile?.basename,
                     targetEl: link,
-                    sourcePath: indexFile.path,
+                    sourcePath: indexFile?.path,
                   })
             });         
         
@@ -319,7 +319,7 @@ export class ZKIndexView extends ItemView{
                             let branchFile = this.app.vault.getFileByPath(link);  
 
                             if(branchFile){
-                                let nodes = this.MainNotes.filter(l=>l.file.path == branchFile.path);                       
+                                let nodes = this.MainNotes.filter(l=>l.file.path == branchFile?.path);                       
                                 if(nodes.length > 0){
                                     branchNodeArr.push(nodes[0]);
                                 }
