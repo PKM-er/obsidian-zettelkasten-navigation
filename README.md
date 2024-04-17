@@ -1,8 +1,5 @@
 # Obsidian Zettelkasten Navigation
 
-> [!warning]
-> The Zettelkasten Navigation plugin **is not open-source**. However, the Obsidian team has the authority to review the source code of Zettelkasten Navigation.
-
 This plugin provides 2 customViews for navigation a zettelkasten using Luhmann-style IDs and key word indexes.
 
 ## Main function
@@ -16,7 +13,7 @@ This plugin provides 2 customViews for navigation a zettelkasten using Luhmann-s
 	- Folgezettel (such as: 13.8c1c1b3. more detials please refer to [How to Use Folgezettel in Your Zettelkasten](https://writing.bobdoto.computer/how-to-use-folgezettel-in-your-zettelkasten-everything-you-need-to-know-to-get-started/))
 	- Antinet(such as: 3306/2A/12. more detials please refer to [Introducing the Antinet Zettelkasten](https://zettelkasten.de/posts/introduction-antinet-zettelkasten/))
 2. **luhmann-style key word indexes**.
-	- Each keyword index is with a few notes (branch enterance). (more detials please refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/schlagwortregister))
+	- Each keyword index is with a few notes (branch enterance). (more detials plase refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/schlagwortregister))
 	- In this plugin, a valid keyword index is created as a single file with a few main note linkage.
 
 ## Plugin Settings
