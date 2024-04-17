@@ -3,18 +3,21 @@
 This plugin provides 2 customViews for navigation a zettelkasten using Luhmann-style IDs and key word indexes.
 
 ## Main function
+
 1. zk-index-graph-view
 2. zk-local-graph-view
 
 ## Prerequisites
 
-1. **Luhmann-style IDs**. below style IDs are supported by this plugin: (As '/' is not allowed in file name on computer, you can change to '-'/'.'/',')
-	- 100% Luhmann IDs (such as: 21/3a1p5c4aA11 , 12.5.1. more detials please refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/inhaltsuebersicht#ZK_1_editor_I_1))
-	- Folgezettel (such as: 13.8c1c1b3. more detials please refer to [How to Use Folgezettel in Your Zettelkasten](https://writing.bobdoto.computer/how-to-use-folgezettel-in-your-zettelkasten-everything-you-need-to-know-to-get-started/))
-	- Antinet(such as: 3306/2A/12. more detials please refer to [Introducing the Antinet Zettelkasten](https://zettelkasten.de/posts/introduction-antinet-zettelkasten/))
-2. **luhmann-style key word indexes**.
-	- Each keyword index is with a few notes (branch enterance). (more detials plase refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/schlagwortregister))
-	- In this plugin, a valid keyword index is created as a single file with a few main note linkage.
+1. **Luhmann-style IDs**. below style IDs are supported by this plugin:
+	- **100% Luhmann IDs**: such as 21/3a1p5c4aA11 , 12.5.1. (more detials please refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/inhaltsuebersicht#ZK_1_editor_I_1))
+	- **Folgezettel**: such as 13.8c1c1b3. (more detials please refer to [How to Use Folgezettel in Your Zettelkasten](https://writing.bobdoto.computer/how-to-use-folgezettel-in-your-zettelkasten-everything-you-need-to-know-to-get-started/))
+	- **Antinet**: such as 3306/2A/12. (more detials please refer to [Introducing the Antinet Zettelkasten](https://zettelkasten.de/posts/introduction-antinet-zettelkasten/))
+	- (As '/' is not allowed in file name on computer, it must be changed to '-', '.' or ',')
+
+2. **Luhmann-style key word indexes**.
+	- Each key word index contains a few notes (branch enterance). (more detials plase refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/schlagwortregister))
+	- In this plugin, a valid key word index is a single file contains a few main note linkages.
 
 ## Plugin Settings
 
