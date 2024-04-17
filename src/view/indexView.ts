@@ -230,11 +230,9 @@ export class ZKIndexView extends ItemView{
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
         indexLinkDiv.empty();
         indexLinkDiv.createEl('span',{text:`Current Index: `});
-        let indexFile = this.app.vault.getFileByPath(
-            `${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
-        if(indexFile == null){
-            new Notice(`index:${index} can be found!`)
-        }else{
+        let indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
+        if(indexFile instanceof TFile){
+            
             let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
             link.addEventListener("click",()=>{
                 this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
@@ -320,7 +318,7 @@ export class ZKIndexView extends ItemView{
                         for(let link of frontLinks){
                             let branchFile = this.app.vault.getFileByPath(link);  
 
-                            if(branchFile){
+                            if(branchFile !== null){
                                 let node = this.MainNotes.find(l=>l.file.path == branchFile.path);  
                                                         
                                 if(typeof node !== 'undefined'){
