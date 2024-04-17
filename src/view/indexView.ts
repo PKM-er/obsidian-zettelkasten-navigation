@@ -231,10 +231,10 @@ export class ZKIndexView extends ItemView{
         indexLinkDiv.empty();
         indexLinkDiv.createEl('span',{text:`Current Index: `});
         let indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
-        if(indexFile !== null){
+        if(indexFile){
             
             let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
-            link.addEventListener("click",():void =>{
+            link.addEventListener("click",() =>{
                 this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
             });
             link.addEventListener(`mouseover`,(event:MouseEvent) => {
@@ -318,9 +318,8 @@ export class ZKIndexView extends ItemView{
                         for(let link of frontLinks){
                             let branchFile = this.app.vault.getFileByPath(link);  
 
-                            if(branchFile !== null){
-                                let nodes = this.MainNotes.filter(l=>l.file.path == branchFile.path);  
-                                                        
+                            if(branchFile){
+                                let nodes = this.MainNotes.filter(l=>l.file.path == branchFile.path);                       
                                 if(nodes.length > 0){
                                     branchNodeArr.push(nodes[0]);
                                 }
