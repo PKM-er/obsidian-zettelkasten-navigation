@@ -5,4 +5,90 @@ available in the app when your plugin is enabled.
 
 If your plugin does not need CSS, delete this file.
 
+
 */
+
+.zk-index-toolbar{
+background-color: rgba(var(--color-blue-rgb), 0.2);
+margin:10px;
+margin-bottom: 5px;
+border-radius: 5px;
+}
+
+.zk-index-toolbar-block{
+float:left;
+align-items: center;
+padding: 5px;
+}
+
+.zk-index-mermaid-container{
+ overflow:auto;
+}
+
+.zk-index-mermaid{
+ background-color: rgba(var(--color-blue-rgb), 0.1);
+ max-width: 100%; 
+ margin: 10px;
+ margin-top: 5px;
+ border-radius: 5px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+}
+
+.zk-index-mermaid svg { 
+  margin: 5px;
+  max-width: 100%; 
+  min-height: 250px;
+  max-height: 550px;  
+}
+
+.zk-index-link{
+  position: fixed;
+  background-color: rgba(var(--color-blue-rgb), 0.2);
+  margin:10px;
+  margin-bottom: 5px;
+  margin-top: 0px;
+  border-radius: 5px;
+  padding: 5px;
+  width: 300px;
+  float:left;
+}
+
+
+.zk-graph-mermaid { 
+  background-color: rgba(var(--color-blue-rgb), 0.1);
+  margin: 5px;
+  border-radius: 5px;
+  height: 200px; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%; 
+}
+
+.zk-graph-mermaid svg { 
+  margin: 5px;
+  height: 200px;  
+}
+
+.zk-graph-link {  
+  position: fixed;
+  background-color: rgba(var(--color-blue-rgb), 0.2);
+  margin:5px;
+  border-radius: 5px;
+  padding: 5px;
+  width: auto;
+  float:left;
+}
+
+.zk-graph-text {  
+  position: fixed;
+  background-color: rgba(var(--color-blue-rgb), 0.2);
+  margin:5px;
+  margin-top: 0px;
+  border-radius: 5px;
+  padding: 5px;
+  width: auto;
+  float:left;
+}
