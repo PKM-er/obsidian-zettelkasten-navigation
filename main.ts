@@ -56,7 +56,6 @@ export default class ZKNavigationPlugin extends Plugin{
         this.addRibbonIcon("ghost", "open zk-index-graph", () => {
 			this.openIndexView();
         });
-
         this.addRibbonIcon("network", "open zk-local-graph", () => {
 			this.openGraphView();
         });
