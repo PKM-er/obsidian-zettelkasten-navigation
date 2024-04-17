@@ -267,7 +267,8 @@ export class ZKGraphView extends ItemView{
                 let fatherNode = this.MainNotes
                     .find(n=>n.IDStr == fatherArr.toString());
                     
-                if(typeof fatherNode !== 'undefined'){
+                if(fatherNode !== undefined){
+                    
                     familyNodeArr = this.MainNotes.filter(n=>n.IDStr.startsWith(fatherNode.IDStr))
                                     .filter(n=>n.IDArr.length <=  currentNode.IDArr.length ||
                                         (n.IDStr.startsWith(currentNode.IDStr) && n.IDArr.length == currentNode.IDArr.length + 1)

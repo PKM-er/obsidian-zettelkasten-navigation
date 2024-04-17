@@ -231,7 +231,7 @@ export class ZKIndexView extends ItemView{
         indexLinkDiv.empty();
         indexLinkDiv.createEl('span',{text:`Current Index: `});
         let indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
-        if(indexFile instanceof TFile){
+        if(indexFile !== null){
             
             let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
             link.addEventListener("click",()=>{
