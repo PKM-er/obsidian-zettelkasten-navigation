@@ -1,6 +1,6 @@
 {
 	"name": "zettelkasten-navigation",
-	"version": "0.0.7",
+	"version": "0.0.21",
 	"description": "Luhmann-style notes ID and indexes",
 	"main": "main.js",
 	"scripts": {
