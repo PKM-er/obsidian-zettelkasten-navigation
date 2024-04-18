@@ -236,7 +236,7 @@ export class ZKIndexView extends ItemView{
             let link = indexLinkDiv.createEl('a',{text:indexFile.basename});
             
             link.addEventListener("click",() =>{
-                this.app.workspace.openLinkText(indexFile?indexFile.basename:'',indexFile?indexFile.path:'','tab');
+                this.app.workspace.openLinkText(indexFile.basename,indexFile.path,'tab');
             });
             link.addEventListener(`mouseover`,(event:MouseEvent) => {
                 this.app.workspace.trigger(`hover-link`, {
