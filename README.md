@@ -25,9 +25,10 @@ This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-s
 2. folder location for keyword index files(mandatory)
 3. others settings(optional)
 
+
 MIT License
 
-Copyright (c) [year] [fullname]
+Copyright (c) [2024] [Obsidian Zettelkasten Navigation](https://github.com/terrychenzw/obsidian-zettelkasten-navigation)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
