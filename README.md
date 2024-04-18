@@ -16,7 +16,7 @@ This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-s
 	- (As '/' is not allowed in file name on computer, it must be changed to '-', '.' or ',')
 
 2. **Luhmann-style key word indexes**.
-	- Each key word index contains a few notes (branch enterance). (more detials plase refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/schlagwortregister))
+	- Each key word index contains a few notes (branch entrance). (more detials plase refer to [Niklas Luhmann-Archiv](https://niklas-luhmann-archiv.de/bestand/zettelkasten/schlagwortregister))
 	- In this plugin, a valid key word index is a single file contains a few main note linkages.
 
 ## Plugin Settings
