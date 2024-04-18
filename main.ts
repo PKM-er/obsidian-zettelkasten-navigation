@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     StartingPoint: 'father',
     DisplayLevel: 'next',
     NodeText: "id",
-    TitleField: "aliases",
+    TitleField: '',
     FamilyGraphToggle: true,
     InlinksGraphToggle: true,
     OutlinksGraphToggle: true,

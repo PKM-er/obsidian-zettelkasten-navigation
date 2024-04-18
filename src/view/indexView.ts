@@ -66,8 +66,7 @@ export class ZKIndexView extends ItemView{
                             node.title = title;
                         }
                     }
-                }           
-                
+                }     
 
                 switch(this.plugin.settings.NodeText){
                     case "id":
@@ -201,7 +200,8 @@ export class ZKIndexView extends ItemView{
                 this.plugin.settings.NodeText = NodeText;
                 this.plugin.saveData(this.plugin.settings);
                 this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
-                this.plugin.openGraphView();
+            
+                //this.plugin.openGraphView();
         });
 
         
@@ -329,7 +329,7 @@ export class ZKIndexView extends ItemView{
                     } 
                 }  
                
-                if(branchNodeArr.length == 0){
+                if(this.plugin.settings.SelectIndex !== '' && branchNodeArr.length == 0){
                     new Notice(`Index: "${index}" has no valid branch`);
                 }    
             }              
