@@ -1,6 +1,6 @@
 {
 	"id": "zettelkasten-navigation",
-	"name": "obsidian Zettelkasten Navigation",
+	"name": "zettelkasten navigation",
 	"version": "0.0.19",
 	"minAppVersion": "1.5.7",
 	"description": "2 customViews for a zettelkasten using Luhmann-style IDs and key word indexes.",
