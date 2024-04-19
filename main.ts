@@ -25,7 +25,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     StartingPoint: 'father',
     DisplayLevel: 'next',
     NodeText: "id",
-    TitleField: "aliases",
+    TitleField: '',
     FamilyGraphToggle: true,
     InlinksGraphToggle: true,
     OutlinksGraphToggle: true,
@@ -123,10 +123,10 @@ export default class ZKNavigationPlugin extends Plugin{
         } 
 	}
     
-	async onunload(){
+	onunload() {
 
-        this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
-        this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);
+        //this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
+        //this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);
         (this.app.workspace as any).unregisterHoverLinkSource(
             ZK_NAVIGATION
         );
