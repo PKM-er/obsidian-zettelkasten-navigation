@@ -141,13 +141,14 @@ export class ZKIndexView extends ItemView{
         const indexMermaidDiv = containerEl.createDiv("zk-index-mermaid-container");
         indexMermaidDiv.id = "zk-index-mermaid-container";
         
+        
         indexMermaidDiv.empty();
 
         this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
 
         const indexButtonDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
         const indexButton = new ButtonComponent(indexButtonDiv).setClass("zk-index-toolbar-button");
-        indexButton.setButtonText("📖Index Book");
+        indexButton.setButtonText("📖Index");
         indexButton.setCta();
         indexButton.onClick(() => {
             new indexModal(this.app, this.plugin, (index) => {
