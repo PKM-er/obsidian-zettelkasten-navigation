@@ -63,7 +63,7 @@ export class ZKGraphView extends ItemView{
                     
 
                     let {svg} = await mermaid.render(`zk-family-tree`, `${familyMermaidStr}`);
-                    familyTreeDiv.innerHTML = svg;
+                    familyTreeDiv.insertAdjacentHTML('beforeend', svg);
                     graphMermaidDiv.appendChild(familyTreeDiv);
 
                     let nodeGArr = familyTreeDiv.querySelectorAll("[id^='flowchart-']");
@@ -74,7 +74,7 @@ export class ZKGraphView extends ItemView{
                         link.addClass("internal-link");
                         let nodePosStr = nodeGArr[i].id.split('-')[1];
                         let node = familyNodeArr.filter(n=>n.position == Number(nodePosStr))[0];
-                        link.textContent = nodeArr[i].innerHTML;                       
+                        link.textContent = nodeArr[i].getText();                 
                         nodeArr[i].textContent = "";
                         nodeArr[i].appendChild(link);
                         nodeArr[i].addEventListener("click", () => {
@@ -108,7 +108,7 @@ export class ZKGraphView extends ItemView{
                     const inlinksDiv = inlinksGraphContainer.createEl("div", {cls:"zk-graph-mermaid"});                    
                     inlinksDiv.id = "zk-inlinks";
                     let {svg} = await mermaid.render(`zk-inlinks`, inlinkMermaidStr);
-                    inlinksDiv.innerHTML = svg;
+                    inlinksDiv.insertAdjacentHTML('beforeend', svg);
                     graphMermaidDiv.appendChild(inlinksDiv);
 
                     let nodeGArr = inlinksDiv.querySelectorAll("[id^='flowchart-']");
@@ -119,8 +119,8 @@ export class ZKGraphView extends ItemView{
                         let link = document.createElement('a');
                         link.addClass("internal-link");
                         let nodePosStr = nodeGArr[i].id.split('-')[1];
-                        let node = inlinkArr[Number(nodePosStr)];
-                        link.textContent = nodeArr[i].innerHTML;                       
+                        let node = inlinkArr[Number(nodePosStr)];      
+                        link.textContent = nodeArr[i].getText();                       
                         nodeArr[i].textContent = "";
                         nodeArr[i].appendChild(link);
                         nodeArr[i].addEventListener("click", () => {
@@ -158,7 +158,7 @@ export class ZKGraphView extends ItemView{
                     const outlinksDiv = outlinksGraphContainer.createEl("div", {cls:"zk-graph-mermaid"});
                     outlinksDiv.id = "zk-outlinks";
                     let {svg} = await mermaid.render(`zk-outlinks`, outlinkMermaidStr);
-                    outlinksDiv.innerHTML = svg;
+                    outlinksDiv.insertAdjacentHTML('beforeend', svg);
                     graphMermaidDiv.appendChild(outlinksDiv);
 
                     let nodeGArr = outlinksDiv.querySelectorAll("[id^='flowchart-']");
@@ -168,8 +168,8 @@ export class ZKGraphView extends ItemView{
                         let link = document.createElement('a');
                         link.addClass("internal-link");
                         let nodePosStr = nodeGArr[i].id.split('-')[1];
-                        let node = outlinkArr[Number(nodePosStr)];
-                        link.textContent = nodeArr[i].innerHTML;                       
+                        let node = outlinkArr[Number(nodePosStr)];    
+                        link.textContent = nodeArr[i].getText();                        
                         nodeArr[i].textContent = "";
                         nodeArr[i].appendChild(link);
                         nodeArr[i].addEventListener("click", () => {
