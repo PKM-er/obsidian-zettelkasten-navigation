@@ -66,8 +66,7 @@ export class ZKIndexView extends ItemView{
                             node.title = title;
                         }
                     }
-                }           
-                
+                }     
 
                 switch(this.plugin.settings.NodeText){
                     case "id":
@@ -201,7 +200,8 @@ export class ZKIndexView extends ItemView{
                 this.plugin.settings.NodeText = NodeText;
                 this.plugin.saveData(this.plugin.settings);
                 this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
-                this.plugin.openGraphView();
+            
+                //this.plugin.openGraphView();
         });
 
         
@@ -259,7 +259,7 @@ export class ZKIndexView extends ItemView{
                 let zkGraph = indexMermaidDiv.createEl("div", {cls:"zk-index-mermaid"});
                 zkGraph.id = `zk-index-mermaid-${i}`
                 let {svg} = await mermaid.render(zkGraph.id, branchMermaidStr);
-                zkGraph.innerHTML = svg;
+                zkGraph.insertAdjacentHTML('beforeend', svg);
                 indexMermaidDiv.appendChild(zkGraph);            
             }
             let indexMermaid= document.getElementById("zk-index-mermaid-container")
@@ -274,7 +274,8 @@ export class ZKIndexView extends ItemView{
                     link.addClass("internal-link");
                     let nodePosStr = nodeGArr[i].id.split('-')[1];
                     let node = allShowNodes.filter(n=>n.position == Number(nodePosStr))[0];
-                    link.textContent = nodeArr[i].innerHTML;                       
+                    //link.textContent = nodeArr[i].innerHTML;    
+                    link.textContent = nodeArr[i].getText();
                     nodeArr[i].textContent = "";
                     nodeArr[i].appendChild(link);
                     nodeArr[i].addEventListener("click", () => {
@@ -329,7 +330,7 @@ export class ZKIndexView extends ItemView{
                     } 
                 }  
                
-                if(branchNodeArr.length == 0){
+                if(this.plugin.settings.SelectIndex !== '' && branchNodeArr.length == 0){
                     new Notice(`Index: "${index}" has no valid branch`);
                 }    
             }              
