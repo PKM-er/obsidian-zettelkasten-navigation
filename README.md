@@ -3,7 +3,7 @@
 This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-style IDs and key word indexes.
 ![Demo](https://github.com/terrychenzw/obsidian-zettelkasten-navigation/blob/35981ab539718b3248afd5d7c9e844d987dfa209/attachments/Demo.gif)
 
-## Main function
+## Main functionalities
 
 1. zk-index-graph-view
 2. zk-local-graph-view
