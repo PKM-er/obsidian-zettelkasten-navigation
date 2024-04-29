@@ -12,6 +12,7 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/d3": "^7.4.3",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
@@ -23,6 +24,8 @@
 	},
 	"dependencies": {
 		"@popperjs/core": "^2.11.8",
-		"node": "^18.20.2"
+		"d3": "^7.9.0",
+		"node": "^18.20.2",
+		"svg-pan-zoom": "^3.6.1"
 	}
 }

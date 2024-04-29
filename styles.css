@@ -37,10 +37,9 @@ padding: 5px;
 }
 
 .zk-index-mermaid svg { 
-  margin: 5px;
+  margin: 20px;
   max-width: 100%; 
-  min-height: 250px;
-  max-height: 550px;  
+  max-height: 510px;  
 }
 
 .zk-index-link{
@@ -48,7 +47,7 @@ padding: 5px;
   background-color: rgba(var(--color-blue-rgb), 0.2);
   margin:10px;
   margin-bottom: 5px;
-  margin-top: 0px;
+  margin-top: 5px;
   border-radius: 5px;
   padding: 5px;
   width: 300px;
