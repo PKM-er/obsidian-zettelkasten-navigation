@@ -1,16 +1,18 @@
-// Credits go to Liam's Periodic Notes Plugin: https://github.com/liamcain/obsidian-periodic-notes
+import { AbstractInputSuggest, App } from "obsidian";
 
-import { TFile } from "obsidian";
-import { TextInputSuggest } from "./suggest";
+export class TagSuggest extends AbstractInputSuggest<string> {
 
-export class TagSuggest extends TextInputSuggest<string> {
-    
-    getSuggestions(inputStr: string): string[] {        
-        
+    inputEl: HTMLInputElement;
+
+    constructor(app: App, inputEl: HTMLInputElement) {
+        super(app, inputEl);
+        this.inputEl = inputEl
+    }
+    getSuggestions(inputStr: string): string[] {
+
         // @ts-expect-error
         return Object.keys(this.app.metadataCache.getTags());
     }
-
 
     renderSuggestion(tag: string, el: HTMLElement): void {
         el.setText(tag);
