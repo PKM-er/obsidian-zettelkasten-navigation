@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Notice, OpenViewState, TFile, WorkspaceLeaf, getAllTags, loadMermaid } from "obsidian";
+import { ButtonComponent, DropdownComponent, ItemView, Notice, TFile, WorkspaceLeaf, loadMermaid } from "obsidian";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
 import * as d3 from "d3";
 
@@ -207,7 +207,7 @@ export class ZKIndexView extends ItemView {
         indexButton.setCta();
         indexButton.onClick(() => {
             if (this.plugin.settings.SuggestMode === "keywordOrder") {
-                new indexModal(this.app, this.plugin, (index) => {
+                new indexModal(this.app, this.plugin, this.MainNotes, (index) => {
                     this.plugin.settings.SelectIndex = index;
                     this.plugin.settings.FoldNodeArr = [];
                     this.plugin.saveData(this.plugin.settings);
@@ -268,7 +268,6 @@ export class ZKIndexView extends ItemView {
                 this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
             });
 
-
     }
 
     async onOpen() {
@@ -292,9 +291,6 @@ export class ZKIndexView extends ItemView {
 
     }
 
-
-
-
     async refreshIndexMermaid(index: string, indexMermaidDiv: HTMLElement) {
 
         await this.mainNoteFilesInit();
@@ -311,7 +307,7 @@ export class ZKIndexView extends ItemView {
 
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
         indexLinkDiv.empty();
-        indexLinkDiv.createEl('span', { text: `Current Index: ` });
+        indexLinkDiv.createEl('span', { text: `Current index: ` });
         const indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
         if (indexFile) {
 

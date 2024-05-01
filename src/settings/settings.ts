@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting } from "obsidian";
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 
@@ -17,7 +17,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         const { containerEl } = this;
         this.containerEl.empty();
 
-        containerEl.createEl("h3", { text: "ZK main notes settings" });
+        new Setting(this.containerEl).setName("ZK main notes").setHeading();
         new Setting(this.containerEl)
             .setName("Main notes folder location")
             .setDesc("Specify a folder location to identify main notes")
@@ -47,9 +47,9 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setName("Note ID field options")
             .setDesc("")
             .addDropdown(options => options
-                .addOption("1", "option 1: filename as note ID")
-                .addOption("2", "option 2: metadata as note ID")
-                .addOption("3", "option 3: prefix of filename as note ID")
+                .addOption("1", "Option 1: Filename is note ID")
+                .addOption("2", "Option 2: Metadata is note ID")
+                .addOption("3", "Option 3: Prefix of filename is note ID")
                 .setValue(this.plugin.settings.IDFieldOption)
                 .onChange((value) => {
                     this.plugin.settings.IDFieldOption = value;
@@ -83,7 +83,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 break;
             case "3":
                 new Setting(this.containerEl)
-                    .setName("Specify a separator to split ID and title")
+                    .setName("Specify a separator for splitting ID and title")
                     .addDropdown(options => options
                         .addOption(" ", `" "(blank)`)
                         .addOption("-", `"-"(hyphen)`)
@@ -100,7 +100,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             //do nothing.
         }
 
-        containerEl.createEl("h3", { text: "ZK index file settings" });
+        new Setting(this.containerEl).setName("ZK index file").setHeading();
         new Setting(this.containerEl)
             .setName("Indexes folder location")
             .addSearch((cb) => {
@@ -112,8 +112,8 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         this.plugin.saveData(this.plugin.settings);
                     })
             });
-
-        containerEl.createEl("h3", { text: "zk-index-graph-view settings" });
+        
+        new Setting(this.containerEl).setName("zk-index-graph-view").setHeading();        
 
         new Setting(this.containerEl)
             .setName("Name of index button")
@@ -157,7 +157,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             );
 
-        containerEl.createEl("h3", { text: "zk-local-graph-view settings" });
+        new Setting(this.containerEl).setName("zk-local-graph-view").setHeading(); 
         new Setting(this.containerEl)
             .setName("Open close-relative graph")
             .setDesc("Mermaid graph to display father, siblings and sons")
