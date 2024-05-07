@@ -30,7 +30,7 @@ This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-s
 ## Why Mermaid?
 Because Obsidian supports Mermaid.js natively.
 
-This plugin uses [Obsidian API: loadMermaid()](https://docs.obsidian.md/Reference/TypeScript+API/loadMermaid) to generate flowcharts and uses [d3.js](https://github.com/d3/d3) for zooming mermaid flowcharts.
+This plugin uses [Obsidian API: loadMermaid()](https://docs.obsidian.md/Reference/TypeScript+API/loadMermaid) to generate graphs and uses [svg-pan-zoom](https://github.com/bumbu/svg-pan-zoom) for Panning and zooming mermaid graphs.
 
 ## Prerequisites
 1. **Luhmann-style IDs**. below style IDs are supported by this plugin:
