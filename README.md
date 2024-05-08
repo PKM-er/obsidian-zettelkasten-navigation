@@ -23,14 +23,14 @@ This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-s
 > 
 > Base on my understanding, the aspect of order in Luhmann's zettelkasten is composed of his note IDs(folgezettel) and keyword index(register).
 > 
-> As so far, I don't find any note-taking apps provide the graph view functionality basing on Luhmann-style IDs and his keyword index——And this is the reason why I created this plugin.
+> As so far, I don't find any note-taking apps or plugins provide the graph view functionality basing on Luhmann-style IDs and his keyword index——And this is the reason why I created this plugin.
 > 
 > This plugin provides a different graph view to visualize and navigate a zettelkasten with Luhmann-style IDs and his keyword index. I think this is the real Luhmann way to retrive thoughts and navigate notes in a digital zettelkasten.
 
 ## Why Mermaid?
 Because Obsidian supports Mermaid.js natively.
 
-This plugin uses [Obsidian API: loadMermaid()](https://docs.obsidian.md/Reference/TypeScript+API/loadMermaid) to generate graphs and uses [svg-pan-zoom](https://github.com/bumbu/svg-pan-zoom) for Panning and zooming mermaid graphs.
+This plugin uses [Obsidian API: loadMermaid()](https://docs.obsidian.md/Reference/TypeScript+API/loadMermaid) to generate graphs and uses [svg-pan-zoom](https://github.com/bumbu/svg-pan-zoom) for panning and zooming mermaid graphs.
 
 ## Prerequisites
 1. **Luhmann-style IDs**. below style IDs are supported by this plugin:
