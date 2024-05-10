@@ -9,17 +9,23 @@ This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-s
 1. zk-index-graph-view
 2. zk-local-graph-view
 
-## Why this plugin?
+## Why I created this plugin?
 > [!important] 
 > **What kind of graph view can be generated basing on Luhmann-style IDs and his keyword index**
 > 
 > Many note-taking apps like Obsidian provide the graph view functionality to visualize the relation of notes. But this kind of graph view only bases on linkages/references between notes. It is hard to recognize a specific long COT(chain of thoughts)——the starting point, the path and the end. Different COTs crossing in the graph view makes it more chaotic.
 > 
-> Luhmann's zettelkasten is a "combination of disorder and order, of clustering and unpredictable combinations emerging from ad hoc selection."
+> Luhmann's zettelkasten is a
+>
+> > "combination of disorder and order, of clustering and unpredictable combinations emerging from ad hoc selection."
+> > 
+> > Johannes F.K. Schmidt, [Niklas Luhmann’s Card Index: The Fabrication of Serendipity](https://sociologica.unibo.it/article/view/8350/8270)
 > 
 > The graph view, basing on linkages/references between notes, in some ways can represent the aspect of disorder of a zettelkasten. But what is the aspect of order?
 > 
-> "The absence of a fixed system of order and, in consequence, a table of contents turned the index into the key tool for using the file – how else should one be able to find certain notes again and thus gain access to the system of references? Not wanting to rely on pure chance requires being able to identify at least one point from which the respective web of references can be accessed. This is the purpose of the keyword index."
+> > "The absence of a fixed system of order and, in consequence, a table of contents turned the index into the key tool for using the file – how else should one be able to find certain notes again and thus gain access to the system of references? Not wanting to rely on pure chance requires being able to identify at least one point from which the respective web of references can be accessed. This is the purpose of the keyword index."
+> > 
+> > Johannes F.K. Schmidt, [Niklas Luhmann’s Card Index: The Fabrication of Serendipity](https://sociologica.unibo.it/article/view/8350/8270)
 > 
 > Base on my understanding, the aspect of order in Luhmann's zettelkasten is composed of his note IDs(folgezettel) and keyword index(register).
 > 
