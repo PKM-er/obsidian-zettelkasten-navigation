@@ -352,23 +352,19 @@ export class ZKIndexView extends ItemView {
                     dblClickZoomEnabled: false,
                     zoomScaleSensitivity: 0.2,
                 })
-                let setSvg = document.getElementById(`${zkGraph.id}-svg`);                
-                               
-                let svgHeight = Number(setSvg?.getAttribute("height"))
+                
+                let setSvg = document.getElementById(`${zkGraph.id}-svg`)
+                if(setSvg !== null){
 
-                let totalHeight = this.plugin.settings.FixedHeight - 40;
-
-                if(svgHeight<totalHeight){            
-
-                    panZoomTiger.pan({x:0,y:(totalHeight-svgHeight)/2});
-                                       
-                }else{
-
-                    panZoomTiger.pan({x:0,y:0});
-                                      
+                    let a = setSvg.children[0].getAttr("style");
+                    if(typeof a == 'string'){
+                        let b = a.match(/\d([^\,]+)\d/g)
+                        if(b !== null && Number(b[0]) > 1){
+                            panZoomTiger.zoom(1/Number(b[0]))
+                        }                        
+                    }
                 }
-                setSvg?.setAttr("height", this.plugin.settings.FixedHeight)
-   
+                
                 const indexMermaid = document.getElementById(zkGraph.id)
 
                 if (indexMermaid !== null) {

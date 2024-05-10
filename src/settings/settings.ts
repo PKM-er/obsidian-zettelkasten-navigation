@@ -136,20 +136,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.saveData(this.plugin.settings);
                 })
             )
-        
-        new Setting(this.containerEl)
-            .setName("Fixed Height")
-            .addText((cb) => {
-                cb.setValue(this.plugin.settings.FixedHeight.toString())
-                    .setPlaceholder("510 (px)")                
-                    .onChange((value) => {
-                        
-                        this.plugin.settings.FixedHeight = Number(value);
-                        
-                        this.plugin.saveData(this.plugin.settings);
-                    })
-                }
-            );
 
         new Setting(this.containerEl)
             .setName("Set red dash line for nodes with ID ends with letter")

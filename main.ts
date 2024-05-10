@@ -30,7 +30,6 @@ interface ZKNavigationSettings {
     FoldToggle: boolean;
     FoldNodeArr: FoldNode[];
     RedDashLine: boolean;
-    FixedHeight:number;
 }
 
 //Default value for setting field
@@ -54,7 +53,6 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FoldToggle: false,
     FoldNodeArr: [],
     RedDashLine:false,
-    FixedHeight: 510,
 }
 
 export default class ZKNavigationPlugin extends Plugin {
