@@ -1,7 +1,13 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin } from "obsidian";
 import { ZKNavigationSettngTab } from "src/settings/settings";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
 import { ZKIndexView, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
+
+export interface FoldNode{
+    graphID: string;
+    nodeIDstr: string;
+    position: number;
+}
 
 //settings fields
 interface ZKNavigationSettings {
@@ -22,8 +28,9 @@ interface ZKNavigationSettings {
     IndexButtonText: string;
     SuggestMode: string;
     FoldToggle: boolean;
-    FoldNodeArr: string[];
+    FoldNodeArr: FoldNode[];
     RedDashLine: boolean;
+    FixedHeight:number;
 }
 
 //Default value for setting field
@@ -47,6 +54,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FoldToggle: false,
     FoldNodeArr: [],
     RedDashLine:false,
+    FixedHeight: 510,
 }
 
 export default class ZKNavigationPlugin extends Plugin {
@@ -58,7 +66,7 @@ export default class ZKNavigationPlugin extends Plugin {
             {},
             DEFAULT_SETTINGS,
             await this.loadData()
-        )
+        )        
     }
 
     async onload() {
@@ -88,7 +96,7 @@ export default class ZKNavigationPlugin extends Plugin {
         {
             defaultMod:true,
             display:"ZK Navigation"
-        });
+        });        
         
     }
 

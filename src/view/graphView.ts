@@ -1,7 +1,6 @@
 import ZKNavigationPlugin from "main";
 import { ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
 import { ZKNode, ZK_NAVIGATION } from "./indexView";
-import * as d3 from "d3";
 
 export const ZK_GRAPH_TYPE: string = "zk-graph-type"
 export const ZK_GRAPH_VIEW: string = "zk-local-graph"
@@ -44,13 +43,12 @@ export class ZKGraphView extends ItemView {
 
             if (currentFile !== null) {
 
-                let mermaid = await loadMermaid();
-
+                const mermaid = await loadMermaid();
+                const svgPanZoom = require("svg-pan-zoom");
                 if (this.plugin.settings.FamilyGraphToggle == true) {
 
                     let familyNodeArr: ZKNode[] = await this.getFamilyNodes(currentFile);
                     let familyMermaidStr: string = await this.genericFamilyMermaidStr(currentFile, familyNodeArr);
-
 
                     const familyGraphContainer = graphMermaidDiv.createDiv("zk-family-graph-container");
                     const familyGraphTextDiv = familyGraphContainer.createDiv("zk-graph-link");
@@ -65,18 +63,17 @@ export class ZKGraphView extends ItemView {
                     let { svg } = await mermaid.render(`${familyTreeDiv.id}-svg`, `${familyMermaidStr}`);
                     familyTreeDiv.insertAdjacentHTML('beforeend', svg);
                     graphMermaidDiv.appendChild(familyTreeDiv);
-               
-                    let svgs = d3.select("[id=zk-family-tree] svg");
-                    
-                    svgs.each(function () {
-                        var svg = d3.select(this);
-                        svg.html("<g>" + svg.html() + "</g>");
-                        var inner = svg.select("g");
-                        var zoom = d3.zoom().on("zoom", function (event) {
-                            inner.attr("transform", event.transform);
-                        });
-                        svg.call(zoom);
-                    });
+                                                       
+                    let panZoomTiger = svgPanZoom(`#${familyTreeDiv.id}-svg`, {
+                        zoomEnabled: true,
+                        controlIconsEnabled: false,
+                        fit: false,                    
+                        center: true,
+                        minZoom: 0.001,
+                        maxZoom: 1000,
+                        dblClickZoomEnabled: false,
+                        zoomScaleSensitivity: 0.3,
+                    })
 
                     let nodeGArr = familyTreeDiv.querySelectorAll("[id^='flowchart-']");
                     let nodeArr = familyTreeDiv.getElementsByClassName("nodeLabel");
@@ -89,8 +86,12 @@ export class ZKGraphView extends ItemView {
                         link.textContent = nodeArr[i].getText();
                         nodeArr[i].textContent = "";
                         nodeArr[i].appendChild(link);
-                        nodeArr[i].addEventListener("click", () => {
-                            this.app.workspace.openLinkText("", node.file.path, 'tab');
+                        nodeArr[i].addEventListener("click", (event: MouseEvent) => {
+                            if(event.ctrlKey){
+                                this.app.workspace.openLinkText("", node.file.path, 'tab');
+                            }else{
+                                this.app.workspace.openLinkText("",node.file.path)
+                            }
                         })
 
                         nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
@@ -124,16 +125,16 @@ export class ZKGraphView extends ItemView {
                     inlinksDiv.insertAdjacentHTML('beforeend', svg);
                     graphMermaidDiv.appendChild(inlinksDiv);
                     
-                    let svgs = d3.select("[id=zk-inlinks] svg");
-                    svgs.each(function () {
-                        var svg = d3.select(this);
-                        svg.html("<g>" + svg.html() + "</g>");
-                        var inner = svg.select("g");
-                        var zoom = d3.zoom().on("zoom", function (event) {
-                            inner.attr("transform", event.transform);
-                        });
-                        svg.call(zoom);
-                    });
+                    let panZoomTiger = svgPanZoom(`#${inlinksDiv.id}-svg`, {
+                        zoomEnabled: true,
+                        controlIconsEnabled: false,
+                        fit: false,                    
+                        center: true,
+                        minZoom: 0.001,
+                        maxZoom: 1000,
+                        dblClickZoomEnabled: false,
+                        zoomScaleSensitivity: 0.3,
+                    })
                     
 
                     let nodeGArr = inlinksDiv.querySelectorAll("[id^='flowchart-']");
@@ -148,8 +149,12 @@ export class ZKGraphView extends ItemView {
                         link.textContent = nodeArr[i].getText();
                         nodeArr[i].textContent = "";
                         nodeArr[i].appendChild(link);
-                        nodeArr[i].addEventListener("click", () => {
-                            this.app.workspace.openLinkText("", node.path, 'tab');
+                        nodeArr[i].addEventListener("click", (event: MouseEvent) => {
+                            if(event.ctrlKey){
+                                this.app.workspace.openLinkText("", node.path, 'tab');
+                            }else{
+                                this.app.workspace.openLinkText("", node.path);
+                            }
                         })
 
                         nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
@@ -187,16 +192,16 @@ export class ZKGraphView extends ItemView {
                     outlinksDiv.insertAdjacentHTML('beforeend', svg);
                     graphMermaidDiv.appendChild(outlinksDiv);
                     
-                    let svgs = d3.select("[id=zk-outlinks] svg");
-                    svgs.each(function () {
-                        var svg = d3.select(this);
-                        svg.html("<g>" + svg.html() + "</g>");
-                        var inner = svg.select("g");
-                        var zoom = d3.zoom().on("zoom", function (event) {
-                            inner.attr("transform", event.transform);
-                        });
-                        svg.call(zoom);
-                    }); 
+                    let panZoomTiger = svgPanZoom(`#${outlinksDiv.id}-svg`, {
+                        zoomEnabled: true,
+                        controlIconsEnabled: false,
+                        fit: false,                    
+                        center: true,
+                        minZoom: 0.001,
+                        maxZoom: 1000,
+                        dblClickZoomEnabled: false,
+                        zoomScaleSensitivity: 0.3,
+                    })
                    
                     let nodeGArr = outlinksDiv.querySelectorAll("[id^='flowchart-']");
                     let nodeArr = outlinksDiv.getElementsByClassName("nodeLabel");
@@ -209,8 +214,12 @@ export class ZKGraphView extends ItemView {
                         link.textContent = nodeArr[i].getText();
                         nodeArr[i].textContent = "";
                         nodeArr[i].appendChild(link);
-                        nodeArr[i].addEventListener("click", () => {
-                            this.app.workspace.openLinkText("", node.path, 'tab');
+                        nodeArr[i].addEventListener("click", (event: MouseEvent) => {
+                            if(event.ctrlKey){
+                                this.app.workspace.openLinkText("", node.path, 'tab');
+                            }else{
+                                this.app.workspace.openLinkText("", node.path);
+                            }
                         })
 
                         nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
@@ -287,7 +296,7 @@ export class ZKGraphView extends ItemView {
                     node.IDStr = IDArr.toString();
                     if (nodeCache !== null) {
                         if (typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.TitleField !== "") {
-                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField];
+                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField].toString();
                             if (typeof title == "string" && title.length > 0) {
                                 node.title = title;
                             }

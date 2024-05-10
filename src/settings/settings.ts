@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 
@@ -83,7 +83,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 break;
             case "3":
                 new Setting(this.containerEl)
-                    .setName("Specify a separator for splitting ID and title")
+                    .setName("Specify a separator between ID and title")
                     .addDropdown(options => options
                         .addOption(" ", `" "(blank)`)
                         .addOption("-", `"-"(hyphen)`)
@@ -136,6 +136,20 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.saveData(this.plugin.settings);
                 })
             )
+        
+        new Setting(this.containerEl)
+            .setName("Fixed Height")
+            .addText((cb) => {
+                cb.setValue(this.plugin.settings.FixedHeight.toString())
+                    .setPlaceholder("510 (px)")                
+                    .onChange((value) => {
+                        
+                        this.plugin.settings.FixedHeight = Number(value);
+                        
+                        this.plugin.saveData(this.plugin.settings);
+                    })
+                }
+            );
 
         new Setting(this.containerEl)
             .setName("Set red dash line for nodes with ID ends with letter")

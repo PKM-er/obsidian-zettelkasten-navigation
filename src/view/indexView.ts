@@ -1,7 +1,7 @@
-import ZKNavigationPlugin from "main";
+import ZKNavigationPlugin, { FoldNode } from "main";
 import { ButtonComponent, DropdownComponent, ItemView, Notice, TFile, WorkspaceLeaf, loadMermaid } from "obsidian";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
-import * as d3 from "d3";
+import { setMaxZoom } from "svg-pan-zoom";
 
 export const ZK_INDEX_TYPE: string = "zk-index-type";
 export const ZK_INDEX_VIEW: string = "zk-index-graph";
@@ -89,7 +89,7 @@ export class ZKIndexView extends ItemView {
 
                     if (nodeCache !== null) {
                         if (typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.TitleField !== "") {
-                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField];
+                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField].toString();
                             if (typeof title == "string" && title.length > 0) {
                                 node.title = title;
                             }
@@ -199,7 +199,7 @@ export class ZKIndexView extends ItemView {
 
         indexMermaidDiv.empty();
 
-        this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
+        await this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
 
         const indexButtonDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
         const indexButton = new ButtonComponent(indexButtonDiv).setClass("zk-index-toolbar-button");
@@ -235,6 +235,7 @@ export class ZKIndexView extends ItemView {
             .setValue(this.plugin.settings.StartingPoint)
             .onChange((StartPoint) => {
                 this.plugin.settings.StartingPoint = StartPoint;
+                this.plugin.settings.FoldNodeArr = [];
                 this.plugin.saveData(this.plugin.settings);
                 this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
             });
@@ -249,6 +250,7 @@ export class ZKIndexView extends ItemView {
             .setValue(this.plugin.settings.DisplayLevel)
             .onChange((DisplayLevel) => {
                 this.plugin.settings.DisplayLevel = DisplayLevel;
+                this.plugin.settings.FoldNodeArr = [];
                 this.plugin.saveData(this.plugin.settings);
                 this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
             });
@@ -297,12 +299,6 @@ export class ZKIndexView extends ItemView {
 
         let branchEntranceNodeArr = await this.getBranchEntranceNode(index);
 
-        let allShowNodes: ZKNode[] = [];
-
-        for (let IDStr of this.plugin.settings.FoldNodeArr) {
-            this.MainNotes = this.MainNotes.filter(n => !n.IDStr.startsWith(IDStr) || n.IDStr == IDStr)
-        }
-
         indexMermaidDiv.empty();
 
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
@@ -313,8 +309,13 @@ export class ZKIndexView extends ItemView {
 
             let link = indexLinkDiv.createEl('a', { text: indexFile.basename });
 
-            link.addEventListener("click", () => {
-                this.app.workspace.openLinkText("", indexFile.path);
+            link.addEventListener("click", (event: MouseEvent) => {
+                if (event.ctrlKey) {
+                    this.app.workspace.openLinkText("", indexFile.path, 'tab');
+                } else {
+                    this.app.workspace.openLinkText("", indexFile.path);
+                }
+
             });
             link.addEventListener(`mouseover`, (event: MouseEvent) => {
                 this.app.workspace.trigger(`hover-link`, {
@@ -332,88 +333,153 @@ export class ZKIndexView extends ItemView {
             for (let i = 0; i < branchEntranceNodeArr.length; i++) {
 
                 let branchAllNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);
-                allShowNodes = allShowNodes.concat(branchAllNodes);
                 let branchMermaidStr = await this.genericIndexMermaidStr(branchAllNodes, branchEntranceNodeArr[i]);
                 let zkGraph = indexMermaidDiv.createEl("div", { cls: "zk-index-mermaid" });
                 zkGraph.id = `zk-index-mermaid-${i}`;
                 let { svg } = await mermaid.render(`${zkGraph.id}-svg`, branchMermaidStr);
                 zkGraph.insertAdjacentHTML('beforeend', svg);
                 indexMermaidDiv.appendChild(zkGraph);
-                zkGraph.children[0].setAttribute('width', "100%");
-            }
+                zkGraph.children[0].setAttribute('width', "98%");                
 
-            let svgs = d3.selectAll(".zk-index-mermaid svg");
-            svgs.each(function () {
-                var svg = d3.select(this);
-                svg.html("<g>" + svg.html() + "</g>");
-                var inner = svg.select("g");
-                var zoom = d3.zoom().on("zoom", function (event) {
-                    inner.attr("transform", event.transform);
-                });
-                svg.call(zoom);
-            });
+                const svgPanZoom = require("svg-pan-zoom");
+                let panZoomTiger = svgPanZoom(`#${zkGraph.id}-svg`, {
+                    zoomEnabled: true,
+                    controlIconsEnabled: false,
+                    fit: false,                    
+                    center: true,
+                    minZoom: 0.001,
+                    maxZoom: 1000,
+                    dblClickZoomEnabled: false,
+                    zoomScaleSensitivity: 0.2,
+                })
+                let setSvg = document.getElementById(`${zkGraph.id}-svg`);                
+                               
+                let svgHeight = Number(setSvg?.getAttribute("height"))
 
-            let indexMermaid = document.getElementById("zk-index-mermaid-container")
+                let totalHeight = this.plugin.settings.FixedHeight - 40;
 
-            if (indexMermaid !== null) {
+                if(svgHeight<totalHeight){            
 
-                let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
-                let nodeArr = indexMermaid.getElementsByClassName("nodeLabel");
+                    panZoomTiger.pan({x:0,y:(totalHeight-svgHeight)/2});
+                                       
+                }else{
 
-                for (let i = 0; i < nodeArr.length; i++) {
-                    let link = document.createElement('a');
-                    link.addClass("internal-link");
-                    let nodePosStr = nodeGArr[i].id.split('-')[1];
-                    let node = allShowNodes.filter(n => n.position == Number(nodePosStr))[0];
-                    link.textContent = nodeArr[i].getText();
-                    nodeArr[i].textContent = "";
-                    nodeArr[i].appendChild(link);
-                    nodeArr[i].addEventListener("click", () => {
-                        this.app.workspace.openLinkText("", node.file.path);
-                    })
+                    panZoomTiger.pan({x:0,y:0});
+                                      
+                }
+                setSvg?.setAttr("height", this.plugin.settings.FixedHeight)
+   
+                const indexMermaid = document.getElementById(zkGraph.id)
 
-                    nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
-                        this.app.workspace.trigger(`hover-link`, {
-                            event,
-                            source: ZK_NAVIGATION,
-                            hoverParent: this,
-                            linktext: node.file.basename,
-                            targetEl: link,
-                            sourcePath: node.file.path,
-                        })
-                    });
+                if (indexMermaid !== null) {
 
-                    if (this.plugin.settings.FoldToggle == true) {
-                        let foldIcon = document.createElement("span")
-                        nodeArr[i].parentNode?.insertAfter(foldIcon, nodeArr[i]);
-                        if (typeof this.plugin.settings.FoldNodeArr.find(n => n == node.IDStr) === "undefined") {
-                            foldIcon.textContent = "🟡";
-                        } else {
-                            foldIcon.textContent = "🟢";
+
+                    for (let foldNode of this.plugin.settings.FoldNodeArr.filter(n => n.graphID == zkGraph.id)) {
+
+                        let hideNodes = this.MainNotes.filter(n =>
+                            n.IDStr.startsWith(foldNode.nodeIDstr) && (n.IDStr !== foldNode.nodeIDstr)
+                        );
+
+                        for (let hideNode of hideNodes) {
+                            let hideNodeGArr = indexMermaid.querySelectorAll(`[id^='flowchart-${hideNode.position}']`);
+
+                            hideNodeGArr.forEach((item) => {
+                                item.setAttribute("style", "display:none");
+                            })
+
+                            let hideLines = indexMermaid.querySelectorAll(`[id^='L-${hideNode.position}']`);
+
+                            hideLines.forEach((item) => {
+                                item.setAttribute("style", "display:none");
+                            })
                         }
 
-                        foldIcon.addEventListener("click", async () => {
-
-                            if ((this.plugin.settings.FoldNodeArr.length === 0)) {
-                                if (this.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
-                                    this.plugin.settings.FoldNodeArr.push(node.IDStr);
-                                }
-                            } else {
-                                if (typeof this.plugin.settings.FoldNodeArr.find(n => n == node.IDStr) === "undefined") {
-                                    if (this.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
-                                        this.plugin.settings.FoldNodeArr.push(node.IDStr);
-                                    }
-                                } else {
-                                    this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(n => n !== node.IDStr);
-                                }
-                            }
-
-                            await this.plugin.saveData(this.plugin.settings);
-                            this.refreshIndexMermaid(index, indexMermaidDiv)
+                        let hideLines = indexMermaid.querySelectorAll(`[id^='L-${foldNode.position}']`);
+                        hideLines.forEach((item) => {
+                            item.setAttribute("style", "display:none");
                         })
+
+                    }
+
+                    let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
+                    let flowchartG = indexMermaid.querySelector("g.nodes");
+
+                    if (flowchartG !== null) {
+
+                        let nodeArr = flowchartG.getElementsByClassName("nodeLabel");
+
+                        for (let i = 0; i < nodeArr.length; i++) {
+                            let link = document.createElement('a');
+                            link.addClass("internal-link");
+                            let nodePosStr = nodeGArr[i].id.split('-')[1];
+                            let node = this.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
+                            link.textContent = nodeArr[i].getText();
+                            nodeArr[i].textContent = "";
+                            nodeArr[i].appendChild(link);
+                            nodeArr[i].addEventListener("click", (event: MouseEvent) => {
+                                if (event.ctrlKey) {
+                                    this.app.workspace.openLinkText("", node.file.path, 'tab');
+                                } else {
+                                    this.app.workspace.openLinkText("", node.file.path)
+                                }
+                            })
+
+                            nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
+                                this.app.workspace.trigger(`hover-link`, {
+                                    event,
+                                    source: ZK_NAVIGATION,
+                                    hoverParent: this,
+                                    linktext: node.file.basename,
+                                    targetEl: link,
+                                    sourcePath: node.file.path,
+                                })
+                            });
+
+                            if (this.plugin.settings.FoldToggle == true) {
+
+                                let foldIcon = document.createElement("span")
+                                nodeArr[i].parentNode?.insertAfter(foldIcon, nodeArr[i]);
+                                if (typeof this.plugin.settings.FoldNodeArr.find(n =>
+                                    (n.nodeIDstr == node.IDStr) && (n.graphID == zkGraph.id)) === "undefined"
+                                ) {
+                                    foldIcon.textContent = "🟡";
+                                } else {
+                                    foldIcon.textContent = "🟢";
+                                }
+
+                                foldIcon.addEventListener("click", async () => {
+
+                                    let foldNode: FoldNode = {
+                                        graphID: zkGraph.id,
+                                        nodeIDstr: node.IDStr,
+                                        position: node.position,
+                                    };
+
+                                    if ((this.plugin.settings.FoldNodeArr.length === 0)) {
+                                        if (this.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
+                                            this.plugin.settings.FoldNodeArr.push(foldNode);
+                                        }
+                                    } else {
+                                        if (typeof this.plugin.settings.FoldNodeArr.find(n =>
+                                            (n.nodeIDstr == node.IDStr) && (n.graphID = zkGraph.id)) === "undefined"
+                                        ) {
+                                            if (this.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
+                                                this.plugin.settings.FoldNodeArr.push(foldNode);
+                                            }
+                                        } else {
+                                            this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(n =>
+                                                !(n.graphID == foldNode.graphID && n.nodeIDstr == foldNode.nodeIDstr)
+                                            );
+                                        }
+                                    }
+                                    await this.plugin.saveData(this.plugin.settings);
+                                    this.refreshIndexMermaid(index, indexMermaidDiv)
+
+                                })
+                            }
+                        }
                     }
                 }
-
             }
         }
     }
@@ -514,7 +580,8 @@ export class ZKIndexView extends ItemView {
     async genericIndexMermaidStr(Nodes: ZKNode[], entranceNode: ZKNode) {
 
         let mermaidStr: string = `%%{ init: { 'flowchart': { 'cruve': '' },
-        'themeVariables':{ 'fontSize': '10px'}}}%% flowchart LR;\n`;
+        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart LR;\n`;
+
         for (let node of Nodes) {
 
             mermaidStr = mermaidStr + `${node.position}("${node.displayText}");\n`;
@@ -522,12 +589,14 @@ export class ZKIndexView extends ItemView {
             if (node.IDStr.startsWith(entranceNode.IDStr)) {
                 //黄底                
                 mermaidStr = mermaidStr + `style ${node.position} fill:#ffa,stroke:#333,stroke-width:1px \n`;
+
             } else {
                 //白底
                 mermaidStr = mermaidStr + `style ${node.position} fill:#fff; \n`;
             }
 
         }
+        
         for (let node of Nodes) {
 
             let sonNodes = Nodes.filter(n => (n.IDArr.length - 1 == node.IDArr.length)
@@ -543,7 +612,7 @@ export class ZKIndexView extends ItemView {
         if (this.plugin.settings.RedDashLine === true) {
 
             for (let node of Nodes) {
-                if (/^[a-zA-Z]$/.test(node.file.basename.slice(-1))) {
+                if (/^[a-zA-Z]$/.test(node.ID.slice(-1))) {
                     //红色虚线边
                     mermaidStr = mermaidStr + `style ${node.position} stroke:#f66,stroke-width:2px,stroke-dasharray: 1 \n`;
                 }
@@ -553,7 +622,7 @@ export class ZKIndexView extends ItemView {
         return mermaidStr;
     }
     async onClose() {
-
+        this.plugin.saveData(this.plugin.settings);
     }
 
 }
