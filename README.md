@@ -3,7 +3,7 @@ This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-s
 
 [中文说明](https://pkmer.cn/show/20240506222202)
 
-![Demo](https://github.com/terrychenzw/obsidian-zettelkasten-navigation/blob/35981ab539718b3248afd5d7c9e844d987dfa209/attachments/Demo.gif)
+![Demo](attachments/Demo.gif)
 
 ## Main functionalities
 1. zk-index-graph-view
@@ -63,3 +63,11 @@ Below ID field options are supported by this plugin. You have to choose 1 option
 
 ## Installation
 `Settings > Community plugins > Community Plugins > Browse` and search for `Zettelkasten Navigation`.
+
+## Support
+
+> 如果您觉得这个插件有用，并希望支持其开发，您可以通过以下方式赞助我：微信，支付宝。感谢您的任何支持！
+>
+> If you find this plugin useful and wish to support its development, you can do so through the following methods: WeChat, Alipay. Any amount of support is appreciated. Thank you!
+> 
+> ![](attachments/payQRcode.png)
