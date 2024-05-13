@@ -1,6 +1,7 @@
 import ZKNavigationPlugin from "main";
 import { ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
 import { ZKNode, ZK_NAVIGATION } from "./indexView";
+import { t } from "src/lang/helper";
 
 export const ZK_GRAPH_TYPE: string = "zk-graph-type"
 export const ZK_GRAPH_VIEW: string = "zk-local-graph"
@@ -54,7 +55,7 @@ export class ZKGraphView extends ItemView {
                     const familyGraphTextDiv = familyGraphContainer.createDiv("zk-graph-link");
 
                     familyGraphTextDiv.empty();
-                    familyGraphTextDiv.createEl('span', { text: `close relative` })
+                    familyGraphTextDiv.createEl('span', { text: t("close relative") })
 
                     const familyTreeDiv = familyGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
 
@@ -117,7 +118,7 @@ export class ZKGraphView extends ItemView {
                     const inlinksGraphTextDiv = inlinksGraphContainer.createDiv("zk-graph-text");
 
                     inlinksGraphTextDiv.empty();
-                    inlinksGraphTextDiv.createEl('span', { text: `inlinks` });
+                    inlinksGraphTextDiv.createEl('span', { text: t("inlinks") });
 
                     const inlinksDiv = inlinksGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
                     inlinksDiv.id = "zk-inlinks";
@@ -184,7 +185,7 @@ export class ZKGraphView extends ItemView {
                     const outlinksGraphTextDiv = outlinksGraphContainer.createDiv("zk-graph-text");
 
                     outlinksGraphTextDiv.empty();
-                    outlinksGraphTextDiv.createEl('span', { text: `outlinks` })
+                    outlinksGraphTextDiv.createEl('span', { text: t("outlinks") })
 
                     const outlinksDiv = outlinksGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
                     outlinksDiv.id = "zk-outlinks";

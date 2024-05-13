@@ -9,6 +9,17 @@ export interface FoldNode{
     position: number;
 }
 
+interface Point {
+    x: number;
+    y: number;
+}
+
+export interface ZoomPanScale{
+    graphID: string;
+    zoomScale: number;
+    pan:Point;
+}
+
 //settings fields
 interface ZKNavigationSettings {
     FolderOfMainNotes: string;
@@ -30,6 +41,7 @@ interface ZKNavigationSettings {
     FoldToggle: boolean;
     FoldNodeArr: FoldNode[];
     RedDashLine: boolean;
+    zoomPanScaleArr:ZoomPanScale[];
 }
 
 //Default value for setting field
@@ -47,12 +59,13 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     IDFieldOption: '1',
     TitleField: '',
     IDField: '',
-    Separator: '',
+    Separator: ' ',
     IndexButtonText: '📖index',
     SuggestMode: 'fuzzySuggest',
     FoldToggle: false,
     FoldNodeArr: [],
     RedDashLine:false,
+    zoomPanScaleArr:[],
 }
 
 export default class ZKNavigationPlugin extends Plugin {

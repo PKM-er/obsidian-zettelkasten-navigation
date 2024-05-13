@@ -1,7 +1,7 @@
-import ZKNavigationPlugin, { FoldNode } from "main";
+import ZKNavigationPlugin, { FoldNode, ZoomPanScale } from "main";
 import { ButtonComponent, DropdownComponent, ItemView, Notice, TFile, WorkspaceLeaf, loadMermaid } from "obsidian";
+import { t } from "src/lang/helper";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
-import { setMaxZoom } from "svg-pan-zoom";
 
 export const ZK_INDEX_TYPE: string = "zk-index-type";
 export const ZK_INDEX_VIEW: string = "zk-index-graph";
@@ -206,6 +206,7 @@ export class ZKIndexView extends ItemView {
         indexButton.setButtonText(this.plugin.settings.IndexButtonText);
         indexButton.setCta();
         indexButton.onClick(() => {
+            this.plugin.settings.zoomPanScaleArr = [];
             if (this.plugin.settings.SuggestMode === "keywordOrder") {
                 new indexModal(this.app, this.plugin, this.MainNotes, (index) => {
                     this.plugin.settings.SelectIndex = index;
@@ -225,44 +226,46 @@ export class ZKIndexView extends ItemView {
 
         const startingDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
 
-        startingDiv.createEl("b", { text: "Display from : " });
+        startingDiv.createEl("b", { text: t("Display from : ") });
 
         const startPoint = new DropdownComponent(startingDiv);
         startPoint
-            .addOption("father", "father")
-            .addOption("branch", "branch")
-            .addOption("root", "root")
+            .addOption("father", t("father"))
+            .addOption("branch", t("branch"))
+            .addOption("root", t("root"))
             .setValue(this.plugin.settings.StartingPoint)
             .onChange((StartPoint) => {
                 this.plugin.settings.StartingPoint = StartPoint;
                 this.plugin.settings.FoldNodeArr = [];
+                this.plugin.settings.zoomPanScaleArr = [];
                 this.plugin.saveData(this.plugin.settings);
                 this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
             });
 
         const displayLevelDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
 
-        displayLevelDiv.createEl("b", { text: "To : " });
+        displayLevelDiv.createEl("b", { text: t("To : ") });
         const displayLevel = new DropdownComponent(displayLevelDiv);
         displayLevel
-            .addOption("next", "next")
-            .addOption("end", "end")
+            .addOption("next", t("next"))
+            .addOption("end", t("end"))
             .setValue(this.plugin.settings.DisplayLevel)
             .onChange((DisplayLevel) => {
                 this.plugin.settings.DisplayLevel = DisplayLevel;
                 this.plugin.settings.FoldNodeArr = [];
+                this.plugin.settings.zoomPanScaleArr = [];
                 this.plugin.saveData(this.plugin.settings);
                 this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
             });
 
         const nodeTextDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
 
-        nodeTextDiv.createEl("b", { text: "Text : " });
+        nodeTextDiv.createEl("b", { text: t("Text : ") });
         const nodeText = new DropdownComponent(nodeTextDiv);
         nodeText
-            .addOption("id", "id")
-            .addOption("title", "title")
-            .addOption("both", "both")
+            .addOption("id", "ID")
+            .addOption("title", t("title"))
+            .addOption("both", t("both"))
             .setValue(this.plugin.settings.NodeText)
             .onChange((NodeText) => {
                 this.plugin.settings.NodeText = NodeText;
@@ -303,7 +306,7 @@ export class ZKIndexView extends ItemView {
 
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
         indexLinkDiv.empty();
-        indexLinkDiv.createEl('span', { text: `Current index: ` });
+        indexLinkDiv.createEl('span', { text: t("Current index: ") });
         const indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
         if (indexFile) {
 
@@ -340,20 +343,28 @@ export class ZKIndexView extends ItemView {
                 zkGraph.insertAdjacentHTML('beforeend', svg);
                 indexMermaidDiv.appendChild(zkGraph);
                 zkGraph.children[0].setAttribute('width', "98%");                
-
+                
+                
                 const svgPanZoom = require("svg-pan-zoom");
                 let panZoomTiger = svgPanZoom(`#${zkGraph.id}-svg`, {
                     zoomEnabled: true,
                     controlIconsEnabled: false,
-                    fit: false,                    
+                    fit: true,                    
                     center: true,
                     minZoom: 0.001,
                     maxZoom: 1000,
                     dblClickZoomEnabled: false,
                     zoomScaleSensitivity: 0.2,
+                    
+                    onZoom: async () => {                        
+                        this.plugin.settings.zoomPanScaleArr[i].zoomScale = panZoomTiger.getZoom();
+                    },
+                    onPan: async ()=> {
+                        this.plugin.settings.zoomPanScaleArr[i].pan = panZoomTiger.getPan();
+                    }
                 })
                 
-                let setSvg = document.getElementById(`${zkGraph.id}-svg`)
+                const setSvg = document.getElementById(`${zkGraph.id}-svg`);
                 if(setSvg !== null){
 
                     let a = setSvg.children[0].getAttr("style");
@@ -364,6 +375,19 @@ export class ZKIndexView extends ItemView {
                         }                        
                     }
                 }
+
+                let zoomPanScale: ZoomPanScale = {
+                    graphID: zkGraph.id,
+                    zoomScale: panZoomTiger.getZoom(),
+                    pan: panZoomTiger.getPan(),
+                };
+
+                if(typeof this.plugin.settings.zoomPanScaleArr[i] === 'undefined'){
+                    this.plugin.settings.zoomPanScaleArr.push(zoomPanScale);
+                }
+
+                panZoomTiger.zoom(this.plugin.settings.zoomPanScaleArr[i].zoomScale);
+                panZoomTiger.pan(this.plugin.settings.zoomPanScaleArr[i].pan)
                 
                 const indexMermaid = document.getElementById(zkGraph.id)
 
@@ -417,6 +441,14 @@ export class ZKIndexView extends ItemView {
                                     this.app.workspace.openLinkText("", node.file.path, 'tab');
                                 } else {
                                     this.app.workspace.openLinkText("", node.file.path)
+                                }
+                                event.stopPropagation();
+                            })
+
+                            nodeGArr[i].addEventListener("click", (event: MouseEvent) => {
+                                if (event.ctrlKey) {
+                                    navigator.clipboard.writeText(node.ID)
+                                    new Notice(node.ID + " copied")
                                 }
                             })
 
