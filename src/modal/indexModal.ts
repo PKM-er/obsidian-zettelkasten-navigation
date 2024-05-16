@@ -56,8 +56,8 @@ export class indexModal extends SuggestModal<ZKIndex> {
            let file = this.app.vault.getFileByPath(link);
            if(file !== null){              
               let outlink = this.MainNotes.find(n=>n.file === file);
-              if(typeof outlink !== 'undefined' && typeof outlink.IDStr !== 'undefined'){
-                let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink.IDStr)).length
+              if(typeof outlink !== 'undefined'){
+                let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink!.IDStr)).length
                 outlinks.push(outlink.ID+` (${count.toString()})`);
               }else{
                 outlinks.push(file.basename);
@@ -138,8 +138,8 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
            let file = this.app.vault.getFileByPath(link);
            if(file !== null){              
               let outlink = this.MainNotes.find(n=>n.file === file);
-              if(typeof outlink !== 'undefined' && typeof outlink.IDStr !== 'undefined'){
-                let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink.IDStr)).length
+              if(typeof outlink !== 'undefined'){
+                let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink!.IDStr)).length;
                 outlinks.push(outlink.ID+` (${count.toString()})`);
               }else{
                 outlinks.push(file.basename);
