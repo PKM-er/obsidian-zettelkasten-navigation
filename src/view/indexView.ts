@@ -137,7 +137,7 @@ export class ZKIndexView extends ItemView {
                     }
                     break;
                 case "both":
-                    node.displayText = `${node.ID} ${node.title}`;
+                    node.displayText = `${node.ID}: ${node.title}`;
                     break;
                 default:
                 //do nothing
@@ -215,7 +215,7 @@ export class ZKIndexView extends ItemView {
                     this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
                 }).open();
             } else {
-                new indexFuzzyModal(this.app, this.plugin, (index) => {
+                new indexFuzzyModal(this.app, this.plugin, this.MainNotes, (index) => {
                     this.plugin.settings.SelectIndex = index;
                     this.plugin.settings.FoldNodeArr = [];
                     this.plugin.saveData(this.plugin.settings);
@@ -290,8 +290,21 @@ export class ZKIndexView extends ItemView {
 
         } else {
 
-            await this.mainNoteFilesInit();
+            //await this.mainNoteFilesInit();
             await this.IndexViewInterfaceInit(containerEl);
+
+            this.registerEvent(this.app.vault.on("rename", async ()=>{
+                await this.IndexViewInterfaceInit(containerEl)
+            }));
+
+            this.registerEvent(this.app.vault.on("create", async ()=>{
+                await this.IndexViewInterfaceInit(containerEl)
+            }));
+
+            this.registerEvent(this.app.vault.on("delete", async ()=>{
+                await this.IndexViewInterfaceInit(containerEl)
+            }));            
+            
         }
 
     }

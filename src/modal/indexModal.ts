@@ -57,7 +57,8 @@ export class indexModal extends SuggestModal<ZKIndex> {
            if(file !== null){              
               let outlink = this.MainNotes.find(n=>n.file === file);
               if(typeof outlink !== 'undefined'){
-                outlinks.push(outlink.ID);
+                let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink.IDStr)).length
+                outlinks.push(outlink.ID+` (${count.toString()})`);
               }else{
                 outlinks.push(file.basename);
               }
@@ -96,11 +97,13 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
   onSubmit: (index: String) => void;
   ALL_ZKIndex: ZKIndex[];
   plugin: ZKNavigationPlugin;
+  MainNotes: ZKNode[];
 
-  constructor(app: App, plugin: ZKNavigationPlugin, onSubmit: (index: string) => void) {
+  constructor(app: App, plugin: ZKNavigationPlugin, MainNotes: ZKNode[], onSubmit: (index: string) => void) {
     super(app);
     this.onSubmit = onSubmit;
     this.plugin = plugin;
+    this.MainNotes = MainNotes;
   }
 
   getItems(): ZKIndex[] {
@@ -128,14 +131,20 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
         let frontLinks: string[] = Object.keys(resolvedLinks[file.path])
           .filter(l => l.endsWith("md"));
 
-        let outlinks = [];
+        let outlinks:string[] = [];
 
         if (frontLinks.length > 0) {
           for (let link of frontLinks) {
-            let name = this.app.vault.getFileByPath(link)?.basename;
-            if (name) {
-              outlinks.push(name)
-            }
+           let file = this.app.vault.getFileByPath(link);
+           if(file !== null){              
+              let outlink = this.MainNotes.find(n=>n.file === file);
+              if(typeof outlink !== 'undefined'){
+                let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink.IDStr)).length
+                outlinks.push(outlink.ID+` (${count.toString()})`);
+              }else{
+                outlinks.push(file.basename);
+              }
+           }
           }
         }
 

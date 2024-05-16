@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
+import { ItemView, Notice, TFile, Vault, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
 import { ZKNode, ZK_NAVIGATION } from "./indexView";
 import { t } from "src/lang/helper";
 
@@ -247,6 +247,22 @@ export class ZKGraphView extends ItemView {
         this.registerEvent(this.app.workspace.on("file-open", () => {
             refresh();
         }));
+
+        this.registerEvent(this.app.vault.on("rename", () => {
+                        
+            refresh();
+        }));
+
+        this.registerEvent(this.app.vault.on("create", () => {
+            
+            refresh();
+        }));
+
+        this.registerEvent(this.app.vault.on("delete", () => {
+            
+            refresh();
+        }));
+
     }
 
     async getFamilyNodes(currentFile: TFile) {
