@@ -186,8 +186,9 @@ export class ZKIndexView extends ItemView {
         }
     }
 
-    async IndexViewInterfaceInit(containerEl: HTMLElement) {
-
+    async IndexViewInterfaceInit() {
+        
+        let { containerEl } = this;
         containerEl.empty();
 
         // Create Divs on indexView
@@ -276,9 +277,21 @@ export class ZKIndexView extends ItemView {
     }
 
     async onOpen() {
-        let { containerEl } = this;
-        containerEl.empty();
 
+        if(this.app.workspace.layoutReady){
+
+            this.refreshIndexLayout();
+        }else{
+            this.app.workspace.onLayoutReady(()=>{
+
+                this.refreshIndexLayout();
+                
+            });
+        }
+
+    }
+    
+    async refreshIndexLayout(){
 
         if (this.plugin.settings.FolderOfMainNotes == '' && this.plugin.settings.TagOfMainNotes == '') {
 
@@ -290,27 +303,24 @@ export class ZKIndexView extends ItemView {
 
         } else {
 
-            //await this.mainNoteFilesInit();
-            await this.IndexViewInterfaceInit(containerEl);
+            await this.IndexViewInterfaceInit();
 
             this.registerEvent(this.app.vault.on("rename", async ()=>{
-                await this.IndexViewInterfaceInit(containerEl)
+                await this.IndexViewInterfaceInit()
             }));
 
             this.registerEvent(this.app.vault.on("create", async ()=>{
-                await this.IndexViewInterfaceInit(containerEl)
+                await this.IndexViewInterfaceInit()
             }));
 
             this.registerEvent(this.app.vault.on("delete", async ()=>{
-                await this.IndexViewInterfaceInit(containerEl)
-            }));            
-            
+                await this.IndexViewInterfaceInit()
+            }));                        
         }
-
     }
 
     async refreshIndexMermaid(index: string, indexMermaidDiv: HTMLElement) {
-
+        
         await this.mainNoteFilesInit();
 
         let branchEntranceNodeArr = await this.getBranchEntranceNode(index);
@@ -355,8 +365,7 @@ export class ZKIndexView extends ItemView {
                 let { svg } = await mermaid.render(`${zkGraph.id}-svg`, branchMermaidStr);
                 zkGraph.insertAdjacentHTML('beforeend', svg);
                 indexMermaidDiv.appendChild(zkGraph);
-                zkGraph.children[0].setAttribute('width', "98%");                
-                
+                zkGraph.children[0].setAttribute('width', "98%");       
                 
                 const svgPanZoom = require("svg-pan-zoom");
                 let panZoomTiger = svgPanZoom(`#${zkGraph.id}-svg`, {
