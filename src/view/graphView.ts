@@ -1,10 +1,10 @@
 import ZKNavigationPlugin from "main";
-import { ItemView, Notice, TFile, Vault, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
+import { ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
 import { ZKNode, ZK_NAVIGATION } from "./indexView";
 import { t } from "src/lang/helper";
 
 export const ZK_GRAPH_TYPE: string = "zk-graph-type"
-export const ZK_GRAPH_VIEW: string = "zk-local-graph"
+export const ZK_GRAPH_VIEW: string = t("zk-local-graph")
 
 export class ZKGraphView extends ItemView {
 
@@ -179,6 +179,7 @@ export class ZKGraphView extends ItemView {
                     if (currentFile.extension === 'md') {
                         outlinkArr = await this.getOutlinks(currentFile);
                     }
+
                     let outlinkMermaidStr: string = await this.genericLinksMermaidStr(currentFile, outlinkArr, 'out');
 
                     const outlinksGraphContainer = graphMermaidDiv.createDiv("zk-outlinks-graph-container");
@@ -253,6 +254,10 @@ export class ZKGraphView extends ItemView {
             refresh();
         }));
 
+        this.registerEvent(this.app.vault.on("modify", async ()=>{
+            refresh();
+        }));
+        
         this.registerEvent(this.app.vault.on("create", () => {
             
             refresh();
@@ -300,6 +305,7 @@ export class ZKGraphView extends ItemView {
                 file: note,
                 title: '',
                 displayText: '',
+                ctime: '',
             }
 
             let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -364,6 +370,19 @@ export class ZKGraphView extends ItemView {
                     break;
                 default:
                 //do nothing
+            }
+
+            if (this.plugin.settings.CustomCreatedTime != "") {
+                
+                let ctime = nodeCache?.frontmatter?.[this.plugin.settings.CustomCreatedTime];
+ 
+                if(ctime){
+                     node.ctime = ctime.toString();
+                }             
+            }
+
+            if(node.ctime === ""){
+                node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')
             }
 
             this.MainNotes.push(node);
@@ -467,6 +486,10 @@ export class ZKGraphView extends ItemView {
 
         let outlinks: string[] = Object.keys(resolvedLinks[currentFile.path]);
 
+        if(this.plugin.settings.FileExtension == "md"){
+            outlinks = outlinks.filter(link=>link.endsWith(".md"))
+        }
+
         for (let outlink of outlinks) {
             let outlinkFile = this.app.vault.getFileByPath(outlink);
             if (outlinkFile !== null) {
@@ -480,7 +503,7 @@ export class ZKGraphView extends ItemView {
 
     async genericLinksMermaidStr(currentFile: TFile, linkArr: TFile[], direction: string = 'in') {
 
-        let mermaidStr: string = `%%{ init: { 'flowchart': { 'cruve': '' },
+        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart TB;\n`
 
 
@@ -518,7 +541,7 @@ export class ZKGraphView extends ItemView {
     }
 
     async genericFamilyMermaidStr(currentFile: TFile, Nodes: ZKNode[]) {
-        let mermaidStr: string = `%%{ init: { 'flowchart': { 'cruve': '' },
+        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart LR;`;
 
         for (let node of Nodes) {

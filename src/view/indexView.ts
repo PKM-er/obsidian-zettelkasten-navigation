@@ -4,7 +4,7 @@ import { t } from "src/lang/helper";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
 
 export const ZK_INDEX_TYPE: string = "zk-index-type";
-export const ZK_INDEX_VIEW: string = "zk-index-graph";
+export const ZK_INDEX_VIEW: string = t("zk-index-graph");
 export const ZK_NAVIGATION: string = "zk-navigation";
 
 export interface ZKNode {
@@ -15,6 +15,7 @@ export interface ZKNode {
     file: TFile;
     title: string;
     displayText: string;
+    ctime: string;
 }
 
 export class ZKIndexView extends ItemView {
@@ -75,6 +76,7 @@ export class ZKIndexView extends ItemView {
                 file: note,
                 title: '',
                 displayText: '',
+                ctime: "",
             }
 
             let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -143,6 +145,20 @@ export class ZKIndexView extends ItemView {
                 //do nothing
             }
 
+            
+            if (this.plugin.settings.CustomCreatedTime.length > 0) {
+                
+               let ctime = nodeCache?.frontmatter?.[this.plugin.settings.CustomCreatedTime];
+
+               if(ctime){
+                    node.ctime = ctime.toString();
+               }            
+            }
+
+            if(node.ctime === ""){         
+                node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
+            }
+
             this.MainNotes.push(node);
         }
 
@@ -208,10 +224,11 @@ export class ZKIndexView extends ItemView {
         indexButton.setCta();
         indexButton.onClick(() => {
             this.plugin.settings.zoomPanScaleArr = [];
+            this.plugin.settings.BranchTab = 0;
             if (this.plugin.settings.SuggestMode === "keywordOrder") {
                 new indexModal(this.app, this.plugin, this.MainNotes, (index) => {
                     this.plugin.settings.SelectIndex = index;
-                    this.plugin.settings.FoldNodeArr = [];
+                    this.plugin.settings.FoldNodeArr = [];                    
                     this.plugin.saveData(this.plugin.settings);
                     this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
                 }).open();
@@ -313,6 +330,10 @@ export class ZKIndexView extends ItemView {
                 await this.IndexViewInterfaceInit()
             }));
 
+            this.registerEvent(this.app.vault.on("modify", async ()=>{
+                await this.IndexViewInterfaceInit()
+            }));
+
             this.registerEvent(this.app.vault.on("delete", async ()=>{
                 await this.IndexViewInterfaceInit()
             }));                        
@@ -324,16 +345,16 @@ export class ZKIndexView extends ItemView {
         await this.mainNoteFilesInit();
 
         let branchEntranceNodeArr = await this.getBranchEntranceNode(index);
-
+    
         indexMermaidDiv.empty();
 
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
         indexLinkDiv.empty();
-        indexLinkDiv.createEl('span', { text: t("Current index: ") });
+        indexLinkDiv.createEl('abbr', { text: t("Current index: ") });
         const indexFile = this.app.vault.getFileByPath(`${this.plugin.settings.FolderOfIndexes}/${this.plugin.settings.SelectIndex}.md`);
         if (indexFile) {
 
-            let link = indexLinkDiv.createEl('a', { text: indexFile.basename });
+            let link = indexLinkDiv.createEl('a', { text: `${indexFile.basename}` });
 
             link.addEventListener("click", (event: MouseEvent) => {
                 if (event.ctrlKey) {
@@ -364,8 +385,9 @@ export class ZKIndexView extends ItemView {
                 zkGraph.id = `zk-index-mermaid-${i}`;
                 let { svg } = await mermaid.render(`${zkGraph.id}-svg`, branchMermaidStr);
                 zkGraph.insertAdjacentHTML('beforeend', svg);
-                indexMermaidDiv.appendChild(zkGraph);
-                zkGraph.children[0].setAttribute('width', "98%");       
+                zkGraph.children[0].setAttribute('width', "98%");    
+                zkGraph.children[0].setAttribute('height', `${this.plugin.settings.HeightOfBranchGraph}px`);    
+                indexMermaidDiv.appendChild(zkGraph); 
                 
                 const svgPanZoom = require("svg-pan-zoom");
                 let panZoomTiger = svgPanZoom(`#${zkGraph.id}-svg`, {
@@ -387,6 +409,7 @@ export class ZKIndexView extends ItemView {
                 })
                 
                 const setSvg = document.getElementById(`${zkGraph.id}-svg`);
+                
                 if(setSvg !== null){
 
                     let a = setSvg.children[0].getAttr("style");
@@ -523,7 +546,7 @@ export class ZKIndexView extends ItemView {
                                         }
                                     }
                                     await this.plugin.saveData(this.plugin.settings);
-                                    this.refreshIndexMermaid(index, indexMermaidDiv)
+                                    await this.refreshIndexMermaid(index, indexMermaidDiv)
 
                                 })
                             }
@@ -531,7 +554,43 @@ export class ZKIndexView extends ItemView {
                     }
                 }
             }
+            
+            if(branchEntranceNodeArr.length > 0){
+
+                const branchTabs = document.getElementsByClassName("zk-index-mermaid")
+                indexLinkDiv.createEl('small', { text: ` >> `});
+
+                for(let i = 0; i < branchEntranceNodeArr.length; i++){
+
+                    let branchTab = indexLinkDiv.createEl('span').createEl('a', { text: `🌿${i+1} `,cls:"zK-branch-tab"});
+
+                    branchTab.addEventListener("click", async () => {                        
+                        await this.openBranchTab(i);
+                    });
+                    
+                }
+                
+                await this.openBranchTab(this.plugin.settings.BranchTab);
+            }
         }
+    }
+
+    async openBranchTab(tabNo:number){
+
+        this.plugin.settings.BranchTab = tabNo;        
+        this.plugin.saveData(this.plugin.settings);
+
+        const branchGraph = document.getElementsByClassName("zk-index-mermaid")
+        const branchTabs = document.querySelectorAll('[class^="zK-branch-tab"]')
+
+        for(let i=0; i<branchGraph.length;i++){
+            branchGraph[i].setAttribute("style", "display:none");
+            branchTabs[i].className = "zK-branch-tabs";
+        }
+
+        branchGraph[tabNo].setAttribute("style", "display:block");
+        branchTabs[tabNo].className = "zK-branch-tab-select";
+        
     }
 
     async getBranchEntranceNode(index: string) {
@@ -629,11 +688,11 @@ export class ZKIndexView extends ItemView {
 
     async genericIndexMermaidStr(Nodes: ZKNode[], entranceNode: ZKNode) {
 
-        let mermaidStr: string = `%%{ init: { 'flowchart': { 'cruve': '' },
+        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart LR;\n`;
 
         for (let node of Nodes) {
-
+            
             mermaidStr = mermaidStr + `${node.position}("${node.displayText}");\n`;
 
             if (node.IDStr.startsWith(entranceNode.IDStr)) {
@@ -668,7 +727,7 @@ export class ZKIndexView extends ItemView {
                 }
             }
         }
-
+        
         return mermaidStr;
     }
     async onClose() {

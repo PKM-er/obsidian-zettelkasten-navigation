@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, Notice, PluginSettingTab, Setting, setIcon } from "obsidian";
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 import { t } from "../lang/helper";
@@ -156,6 +156,36 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.saveData(this.plugin.settings);
                 })
             );
+        
+        new Setting(this.containerEl)
+        .setName(t("Height of branch graph"))
+        .setDesc(t("Enter a number to set the height of branch graph in pixels."))
+        .addText((cb) => {
+
+            cb.inputEl.placeholder = "530(defaulf)";
+            cb.setValue(this.plugin.settings.HeightOfBranchGraph.toString())
+                .onChange((value) => {
+                    if(/^[1-9]\d*$/.test(value)){
+                        this.plugin.settings.HeightOfBranchGraph = Number(value);
+                    }else{
+                        this.plugin.settings.HeightOfBranchGraph = 530;                        
+                    }
+                    this.plugin.saveData(this.plugin.settings);
+                    
+                })
+            }
+        );
+        
+        new Setting(this.containerEl)
+        .setName("Custom created time(optional)")
+        .setDesc("Specify a frontmatter field for anote's creted time")
+        .addText((cb) =>
+            cb.setValue(this.plugin.settings.CustomCreatedTime)
+                .onChange((value) => {
+                    this.plugin.settings.CustomCreatedTime = value;
+                    this.plugin.saveData(this.plugin.settings);
+                })
+        );
 
         new Setting(this.containerEl).setName(t("zk-local-graph-view")).setHeading(); 
         new Setting(this.containerEl)
@@ -186,7 +216,16 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.settings.OutlinksGraphToggle = value;
                     this.plugin.saveData(this.plugin.settings);
                 })
-            );
+            ).addDropdown(options => options
+                .addOption("all", t("all file extension"))
+                .addOption("md", t(".md only"))
+                .setValue(this.plugin.settings.FileExtension)
+                .onChange((value) => {
+                    this.plugin.settings.FileExtension = value;
+                    this.plugin.saveData(this.plugin.settings);
+                    this.display();
+                })
+            )
 
     }
 

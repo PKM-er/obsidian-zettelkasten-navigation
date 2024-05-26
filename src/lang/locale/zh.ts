@@ -1,5 +1,5 @@
 export default {
-    // settingTab
+    // setting.ts
     "ZK main notes": "主笔记",
     "Main notes folder location": "主笔记存放位置",
     "Specify a folder location to identify main notes": "指定主笔记的文件夹",
@@ -34,8 +34,12 @@ export default {
     "Mermaid graph to display inlinks": "显示当前笔记及其所有入链",
     "Open outlinks graph": "打开出链视图",
     "Mermaid graph to display outlinks": "显示当前笔记及其所有出链",
+    "Height of branch graph": "分支视图高度",
+    "Enter a number to set the height of branch graph in pixels.": "输入一个像素值来设置分支视图的高度.",
+    "all file extension": "检索所有类型出链",
+    ".md only": "仅检索.md类型出链",
 
-    // index-graph
+    // indexView.ts
     "Display from : ": "起点：",
     "To : ": "终点：",
     "Text : ": "显示文本：",
@@ -48,8 +52,14 @@ export default {
     "both": "ID + 标题",
     "Current index: ": "当前关键词：",
 
-    // local-graph
+    // localView.ts
     "close relative": "邻近",
     "inlinks": "入链",
     "outlinks": "出链",
+
+    //main.ts
+    "open zk-index-graph": "打开关键词分支视图",
+    "open zk-local-graph": "打开局部关系视图",
+    "zk-index-graph": "关键词分支视图", 
+    "zk-local-graph": "局部关系视图", 
 }

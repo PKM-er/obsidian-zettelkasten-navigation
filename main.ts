@@ -1,4 +1,5 @@
 import { Notice, Plugin } from "obsidian";
+import { t } from "src/lang/helper";
 import { ZKNavigationSettngTab } from "src/settings/settings";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
 import { ZKIndexView, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
@@ -42,6 +43,10 @@ interface ZKNavigationSettings {
     FoldNodeArr: FoldNode[];
     RedDashLine: boolean;
     zoomPanScaleArr:ZoomPanScale[];
+    CustomCreatedTime: string;
+    BranchTab: number;
+    HeightOfBranchGraph:number;
+    FileExtension:string; // "all" or ".md only"
 }
 
 //Default value for setting field
@@ -66,6 +71,10 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FoldNodeArr: [],
     RedDashLine:false,
     zoomPanScaleArr:[],
+    CustomCreatedTime: '',
+    BranchTab: 0,
+    HeightOfBranchGraph: 530,
+    FileExtension: "all"
 }
 
 export default class ZKNavigationPlugin extends Plugin {
@@ -90,15 +99,36 @@ export default class ZKNavigationPlugin extends Plugin {
 
         this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf, this));
       
-        this.addRibbonIcon("ghost", "open zk-index-graph", () => {
+        this.addRibbonIcon("ghost", t("open zk-index-graph"), () => {
             if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length === 0){                
                 this.openIndexView();
             }
             
         })
-        this.addRibbonIcon("network", "open zk-local-graph", () => {
+
+        this.addRibbonIcon("network", t("open zk-local-graph"), () => {
             if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length === 0){
                 this.openGraphView();
+            }
+        });
+
+        this.addCommand({
+            id: "zk-index-graph",
+            name: t("open zk-index-graph"),
+            callback:()=>{
+                if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length === 0){                
+                    this.openIndexView();
+                }
+            }
+        });
+
+        this.addCommand({
+            id: "zk-local-graph",
+            name: t("open zk-local-graph"),
+            callback:()=>{
+                if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length === 0){                
+                    this.openGraphView();
+                }
             }
         });
 
@@ -106,20 +136,9 @@ export default class ZKNavigationPlugin extends Plugin {
         ZK_NAVIGATION,
         {
             defaultMod:true,
-            display:"ZK Navigation"
-        });        
-        
-    }
+            display:ZK_NAVIGATION,
+        });      
 
-    async openGraphView() {
-
-        let leaf = this.app.workspace.getRightLeaf(false);
-        if (leaf != null) {
-            await leaf.setViewState({
-                type: ZK_GRAPH_TYPE
-            })
-            this.app.workspace.revealLeaf(leaf);
-        }
     }
 
     async openIndexView() {
@@ -133,7 +152,18 @@ export default class ZKNavigationPlugin extends Plugin {
         }
     }
 
-    onunload() {
+    async openGraphView() {
+        
+        let leaf = this.app.workspace.getRightLeaf(false);
+        if (leaf != null) {
+            await leaf.setViewState({
+                type: ZK_GRAPH_TYPE
+            })
+            this.app.workspace.revealLeaf(leaf);
+        }
+    }
 
+    onunload() {
+        
     }
 }

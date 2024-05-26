@@ -1,5 +1,5 @@
 export default {
-    // settingTab
+    // setting.ts
     "ZK main notes": "ZK main notes",
     "Main notes folder location": "Main notes folder location",
     "Specify a folder location to identify main notes": "Specify a folder location to identify main notes",
@@ -34,7 +34,12 @@ export default {
     "Mermaid graph to display inlinks": "Mermaid graph to display inlinks",
     "Open outlinks graph": "Open outlinks graph",
     "Mermaid graph to display outlinks": "Mermaid graph to display outlinks",
-    // index-graph
+    "Height of branch graph": "Height of branch graph",
+    "Enter a number to set the height of branch graph in pixels.": "Enter a number to set the height of branch graph in pixels.",
+    "all file extension": "all file extension",
+    ".md only": ".md only",
+
+    // indexView.ts
     "Display from : ": "Display from : ",
     "To : ": "To : ",
     "Text : ": "Text : ",
@@ -47,8 +52,14 @@ export default {
     "both": "both",
     "Current index: ": "Current index: ",
 
-    // local-graph
+    // localView.ts
     "close relative": "close relative",
     "inlinks": "inlinks",
     "outlinks": "outlinks",
+
+    //main.ts
+    "open zk-index-graph": "open zk-index-graph",
+    "open zk-local-graph": "open zk-local-graph",
+    "zk-local-graph": "zk-local-graph",
+    "zk-index-graph": "zk-index-graph",    
 }
