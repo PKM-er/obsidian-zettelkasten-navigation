@@ -15,7 +15,6 @@ export interface ZKNode {
     file: TFile;
     title: string;
     displayText: string;
-    ctime: string;
 }
 
 export class ZKIndexView extends ItemView {
@@ -76,7 +75,6 @@ export class ZKIndexView extends ItemView {
                 file: note,
                 title: '',
                 displayText: '',
-                ctime: "",
             }
 
             let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -143,20 +141,6 @@ export class ZKIndexView extends ItemView {
                     break;
                 default:
                 //do nothing
-            }
-
-            
-            if (this.plugin.settings.CustomCreatedTime.length > 0) {
-                
-               let ctime = nodeCache?.frontmatter?.[this.plugin.settings.CustomCreatedTime];
-
-               if(ctime){
-                    node.ctime = ctime.toString();
-               }            
-            }
-
-            if(node.ctime === ""){         
-                node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
             }
 
             this.MainNotes.push(node);
@@ -555,7 +539,7 @@ export class ZKIndexView extends ItemView {
                 }
             }
             
-            if(branchEntranceNodeArr.length > 0){
+            if(branchEntranceNodeArr.length > 1){
 
                 const branchTabs = document.getElementsByClassName("zk-index-mermaid")
                 indexLinkDiv.createEl('small', { text: ` >> `});

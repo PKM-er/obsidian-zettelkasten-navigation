@@ -176,17 +176,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             }
         );
         
-        new Setting(this.containerEl)
-        .setName("Custom created time(optional)")
-        .setDesc("Specify a frontmatter field for anote's creted time")
-        .addText((cb) =>
-            cb.setValue(this.plugin.settings.CustomCreatedTime)
-                .onChange((value) => {
-                    this.plugin.settings.CustomCreatedTime = value;
-                    this.plugin.saveData(this.plugin.settings);
-                })
-        );
-
         new Setting(this.containerEl).setName(t("zk-local-graph-view")).setHeading(); 
         new Setting(this.containerEl)
             .setName(t("Open close-relative graph"))

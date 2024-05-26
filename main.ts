@@ -43,7 +43,6 @@ interface ZKNavigationSettings {
     FoldNodeArr: FoldNode[];
     RedDashLine: boolean;
     zoomPanScaleArr:ZoomPanScale[];
-    CustomCreatedTime: string;
     BranchTab: number;
     HeightOfBranchGraph:number;
     FileExtension:string; // "all" or ".md only"
@@ -71,7 +70,6 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FoldNodeArr: [],
     RedDashLine:false,
     zoomPanScaleArr:[],
-    CustomCreatedTime: '',
     BranchTab: 0,
     HeightOfBranchGraph: 530,
     FileExtension: "all"
