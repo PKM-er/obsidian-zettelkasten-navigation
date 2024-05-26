@@ -541,7 +541,6 @@ export class ZKIndexView extends ItemView {
             
             if(branchEntranceNodeArr.length > 1){
 
-                const branchTabs = document.getElementsByClassName("zk-index-mermaid")
                 indexLinkDiv.createEl('small', { text: ` >> `});
 
                 for(let i = 0; i < branchEntranceNodeArr.length; i++){
@@ -552,8 +551,7 @@ export class ZKIndexView extends ItemView {
                         await this.openBranchTab(i);
                     });
                     
-                }
-                
+                }                
                 await this.openBranchTab(this.plugin.settings.BranchTab);
             }
         }
