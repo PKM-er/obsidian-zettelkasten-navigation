@@ -34,7 +34,7 @@ export class ZKGraphView extends ItemView {
         let { containerEl } = this;
         containerEl.empty();
 
-        const graphMermaidDiv = containerEl.createDiv("zk-graph-mermaid-container");
+        const graphMermaidDiv = containerEl.createDiv().createDiv("zk-graph-mermaid-container");
 
         const refresh_graph = async () => {
 
@@ -52,7 +52,7 @@ export class ZKGraphView extends ItemView {
                     let familyMermaidStr: string = await this.genericFamilyMermaidStr(currentFile, familyNodeArr);
 
                     const familyGraphContainer = graphMermaidDiv.createDiv("zk-family-graph-container");
-                    const familyGraphTextDiv = familyGraphContainer.createDiv("zk-graph-link");
+                    const familyGraphTextDiv = familyGraphContainer.createDiv("zk-graph-text");
 
                     familyGraphTextDiv.empty();
                     familyGraphTextDiv.createEl('span', { text: t("close relative") })
@@ -253,10 +253,6 @@ export class ZKGraphView extends ItemView {
                         
             refresh();
         }));
-
-        this.registerEvent(this.app.vault.on("modify", async ()=>{
-            refresh();
-        }));
         
         this.registerEvent(this.app.vault.on("create", () => {
             
@@ -265,6 +261,14 @@ export class ZKGraphView extends ItemView {
 
         this.registerEvent(this.app.vault.on("delete", () => {
             
+            refresh();
+        }));
+
+        this.registerEvent(this.app.metadataCache.on("changed", ()=>{
+            refresh();
+        }));
+
+        this.registerEvent(this.app.metadataCache.on("deleted", ()=>{
             refresh();
         }));
 
@@ -318,7 +322,7 @@ export class ZKGraphView extends ItemView {
                     node.IDStr = IDArr.toString();
                     if (nodeCache !== null) {
                         if (typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.TitleField !== "") {
-                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField].toString();
+                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField]?.toString();
                             if (typeof title == "string" && title.length > 0) {
                                 node.title = title;
                             }

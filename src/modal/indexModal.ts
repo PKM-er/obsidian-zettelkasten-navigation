@@ -4,7 +4,8 @@ import { ZKNode } from "src/view/indexView";
 
 export interface ZKIndex {
   keyword: string,
-  display: string
+  display: string,
+  path: string,
 }
 
 export class indexModal extends SuggestModal<ZKIndex> {
@@ -66,7 +67,7 @@ export class indexModal extends SuggestModal<ZKIndex> {
           }
         }
 
-        this.ALL_ZKIndex.push({ keyword: file.basename, display: `【${file.basename}】: ${outlinks.toString()}` })
+        this.ALL_ZKIndex.push({ keyword: file.basename, display: `【${file.basename}】: ${outlinks.toString()}`, path:file.path })
       }
 
       this.ALL_ZKIndex.sort(function (a, b) {
@@ -86,7 +87,7 @@ export class indexModal extends SuggestModal<ZKIndex> {
   }
 
   onChooseSuggestion(index: ZKIndex, evt: MouseEvent | KeyboardEvent) {
-    this.index = index.keyword;
+    this.index = index.path;
     this.onSubmit(this.index);
   }
 }
@@ -148,7 +149,7 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
           }
         }
 
-        this.ALL_ZKIndex.push({ keyword: file.basename, display: `【${file.basename}】: ${outlinks.toString()}` })
+        this.ALL_ZKIndex.push({ keyword: file.basename, display: `【${file.basename}】: ${outlinks.toString()}`, path:file.path })
       }
 
       this.ALL_ZKIndex.sort(function (a, b) {
@@ -165,7 +166,8 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
   }
 
   onChooseItem(index: ZKIndex, evt: MouseEvent | KeyboardEvent) {
-    this.index = index.keyword;
+    
+    this.index = index.path;
     this.onSubmit(this.index);
   }
 }

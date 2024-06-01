@@ -72,7 +72,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     zoomPanScaleArr:[],
     BranchTab: 0,
     HeightOfBranchGraph: 530,
-    FileExtension: "all"
+    FileExtension: "md"
 }
 
 export default class ZKNavigationPlugin extends Plugin {

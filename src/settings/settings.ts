@@ -174,8 +174,8 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     
                 })
             }
-        );
-        
+        );        
+
         new Setting(this.containerEl).setName(t("zk-local-graph-view")).setHeading(); 
         new Setting(this.containerEl)
             .setName(t("Open close-relative graph"))

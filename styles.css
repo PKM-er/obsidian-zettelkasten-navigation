@@ -80,16 +80,6 @@ padding: 5px;
   height: 200px;  
 }
 
-.zk-graph-link {  
-  position: fixed;
-  background-color: rgba(var(--color-blue-rgb), 0.2);
-  margin:5px;
-  border-radius: 5px;
-  padding: 5px;
-  width: auto;
-  float:left;
-}
-
 .zk-graph-text {  
   position: fixed;
   background-color: rgba(var(--color-blue-rgb), 0.2);
