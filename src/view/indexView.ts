@@ -351,7 +351,7 @@ export class ZKIndexView extends ItemView {
         const indexFile = this.app.vault.getFileByPath(index);
         if (indexFile) {
 
-            let link = indexLinkDiv.createEl('a', { text: `【${indexFile.basename}】` });
+            let link = indexLinkDiv.createEl('a', { text: `${indexFile.basename}` });
 
             link.addEventListener("click", (event: MouseEvent) => {
                 if (event.ctrlKey) {
@@ -359,8 +359,8 @@ export class ZKIndexView extends ItemView {
                 } else {
                     this.app.workspace.openLinkText("", indexFile.path);
                 }
-
             });
+            
             link.addEventListener(`mouseover`, (event: MouseEvent) => {
                 this.app.workspace.trigger(`hover-link`, {
                     event,
@@ -520,8 +520,8 @@ export class ZKIndexView extends ItemView {
                                 } else {
                                     foldIcon.textContent = "🟢";
                                 }
-                          
-                                foldIcon.addEventListener("click", async () => {
+
+                                foldIcon.addEventListener("click", async () => {                                   
 
                                     let foldNode: FoldNode = {
                                         graphID: zkGraph.id,
