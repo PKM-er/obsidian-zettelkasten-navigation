@@ -1,7 +1,7 @@
 export default {
     // setting.ts
     "ZK main notes": "主笔记",
-    "Main notes folder location": "主笔记存放位置",
+    "Main notes folder location": "主笔记文件存放位置",
     "Specify a folder location to identify main notes": "指定主笔记的文件夹",
     "Example: folder1/folder2": "比如: 文件夹/子文件夹",
     "Main notes tag": "主笔记标签",
@@ -16,7 +16,7 @@ export default {
     '" "(blank)': '" "(空格)',
     '"-"(hyphen)': '"-"(横线)',
     '"_"(underscore)': '"_"(下划线)',
-    "ZK index file": "关键词文件",
+    "ZK index file": "关键词",
     "Indexes folder location": "关键词文件存放位置",
     "zk-index-graph-view": "关键词分支视图",
     "Name of index button": "关键词按钮名称",
@@ -24,7 +24,7 @@ export default {
     "Keyword Order": "顺序查找",
     "Fuzzy Suggest": "模糊查找",
     "Set red dash line for nodes with ID ends with letter": "ID为字母结尾的节点设置红色虚线框",
-    "In order to distinguish nodes which ID ends with letter and number": "区分：数字结尾ID vs 字母结尾ID",
+    "In order to distinguish nodes which ID ends with letter and number": "区分: 数字结尾ID vs 字母结尾ID",
     "Fold node toggle": "折叠开关",
     "Open the fold icon(🟡🟢)": "点击图标(🟡🟢)进行折叠",
     "zk-local-graph-view": "局部关系视图",
@@ -35,9 +35,19 @@ export default {
     "Open outlinks graph": "打开出链视图",
     "Mermaid graph to display outlinks": "显示当前笔记及其所有出链",
     "Height of branch graph": "分支视图高度",
-    "Enter a number to set the height of branch graph in pixels.": "输入一个像素值来设置分支视图的高度.",
+    "Enter a number to set the height of graph in pixels.": "输入一个像素值来设置视图的高度.",
     "all file extension": "检索所有类型出链",
     ".md only": "仅检索.md类型出链",
+    "Index graph styles": "视图样式设置",
+    "Height of close-relative graph": "邻近视图高度",
+    "Height of inlinks graph": "入链视图高度",
+    "Height of outlinks graph": "出链视图高度",
+    "direction of graph": "树状图方向",
+    '"LR": feft to right': '"LR": 从左到右',
+    '"RL": right to left': '"RL": 从右到左',
+    '"TB": top to bottom': '"TB": 从上到下',
+    '"BT": bottom to top': '"BT": 从下到上',
+    "Detect file extensions": "限定出链的文件类型",
 
     // indexView.ts
     "Display from : ": "起点：",
@@ -50,7 +60,7 @@ export default {
     "end": "最后一层",
     "title": "标题",
     "both": "ID + 标题",
-    "Current index: ": "当前关键词：",
+    "Current index: ": "当前关键词:",
 
     // localView.ts
     "close relative": "邻近",

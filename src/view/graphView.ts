@@ -49,7 +49,7 @@ export class ZKGraphView extends ItemView {
                 if (this.plugin.settings.FamilyGraphToggle == true) {
 
                     let familyNodeArr: ZKNode[] = await this.getFamilyNodes(currentFile);
-                    let familyMermaidStr: string = await this.genericFamilyMermaidStr(currentFile, familyNodeArr);
+                    let familyMermaidStr: string = await this.genericFamilyMermaidStr(currentFile, familyNodeArr, this.plugin.settings.DirectionOfFamilyGraph);
 
                     const familyGraphContainer = graphMermaidDiv.createDiv("zk-family-graph-container");
                     const familyGraphTextDiv = familyGraphContainer.createDiv("zk-graph-text");
@@ -63,6 +63,8 @@ export class ZKGraphView extends ItemView {
 
                     let { svg } = await mermaid.render(`${familyTreeDiv.id}-svg`, `${familyMermaidStr}`);
                     familyTreeDiv.insertAdjacentHTML('beforeend', svg);
+                    familyTreeDiv.children[0].setAttribute('width', "100%");
+                    familyTreeDiv.children[0].setAttribute('height', `${this.plugin.settings.HeightOfFamilyGraph}px`);    
                     graphMermaidDiv.appendChild(familyTreeDiv);
                                                        
                     let panZoomTiger = svgPanZoom(`#${familyTreeDiv.id}-svg`, {
@@ -75,6 +77,18 @@ export class ZKGraphView extends ItemView {
                         dblClickZoomEnabled: false,
                         zoomScaleSensitivity: 0.3,
                     })
+
+                    let setSvg = document.getElementById(`${familyTreeDiv.id}-svg`);
+
+                    if(setSvg !== null){
+                        let a = setSvg.children[0].getAttr("style");
+                        if(typeof a == 'string'){
+                            let b = a.match(/\d([^\,]+)\d/g)
+                            if(b !== null && Number(b[0]) > 1){
+                                panZoomTiger.zoom(1/Number(b[0]))
+                            }                        
+                        }
+                    }
 
                     let nodeGArr = familyTreeDiv.querySelectorAll("[id^='flowchart-']");
                     let nodeArr = familyTreeDiv.getElementsByClassName("nodeLabel");
@@ -112,7 +126,7 @@ export class ZKGraphView extends ItemView {
                 if (this.plugin.settings.InlinksGraphToggle == true) {
 
                     let inlinkArr: TFile[] = await this.getInlinks(currentFile);
-                    let inlinkMermaidStr: string = await this.genericLinksMermaidStr(currentFile, inlinkArr, 'in');
+                    let inlinkMermaidStr: string = await this.genericLinksMermaidStr(currentFile, inlinkArr, 'in',this.plugin.settings.DirectionOfInlinksGraph);
 
                     const inlinksGraphContainer = graphMermaidDiv.createDiv("zk-inlinks-graph-container");
                     const inlinksGraphTextDiv = inlinksGraphContainer.createDiv("zk-graph-text");
@@ -124,6 +138,8 @@ export class ZKGraphView extends ItemView {
                     inlinksDiv.id = "zk-inlinks";
                     let { svg } = await mermaid.render(`${inlinksDiv.id}-svg`, inlinkMermaidStr);
                     inlinksDiv.insertAdjacentHTML('beforeend', svg);
+                    inlinksDiv.children[0].setAttribute('width', "100%");
+                    inlinksDiv.children[0].setAttribute('height', `${this.plugin.settings.HeightOfInlinksGraph}px`); 
                     graphMermaidDiv.appendChild(inlinksDiv);
                     
                     let panZoomTiger = svgPanZoom(`#${inlinksDiv.id}-svg`, {
@@ -136,6 +152,18 @@ export class ZKGraphView extends ItemView {
                         dblClickZoomEnabled: false,
                         zoomScaleSensitivity: 0.3,
                     })
+
+                    let setSvg = document.getElementById(`${inlinksDiv.id}-svg`);
+
+                    if(setSvg !== null){
+                        let a = setSvg.children[0].getAttr("style");
+                        if(typeof a == 'string'){
+                            let b = a.match(/\d([^\,]+)\d/g)
+                            if(b !== null && Number(b[0]) > 1){
+                                panZoomTiger.zoom(1/Number(b[0]))
+                            }                        
+                        }
+                    }
                     
 
                     let nodeGArr = inlinksDiv.querySelectorAll("[id^='flowchart-']");
@@ -180,7 +208,7 @@ export class ZKGraphView extends ItemView {
                         outlinkArr = await this.getOutlinks(currentFile);
                     }
 
-                    let outlinkMermaidStr: string = await this.genericLinksMermaidStr(currentFile, outlinkArr, 'out');
+                    let outlinkMermaidStr: string = await this.genericLinksMermaidStr(currentFile, outlinkArr, 'out', this.plugin.settings.DirectionOfOutlinksGraph);
 
                     const outlinksGraphContainer = graphMermaidDiv.createDiv("zk-outlinks-graph-container");
                     const outlinksGraphTextDiv = outlinksGraphContainer.createDiv("zk-graph-text");
@@ -192,6 +220,8 @@ export class ZKGraphView extends ItemView {
                     outlinksDiv.id = "zk-outlinks";
                     let { svg } = await mermaid.render(`${outlinksDiv.id}-svg`, outlinkMermaidStr);
                     outlinksDiv.insertAdjacentHTML('beforeend', svg);
+                    outlinksDiv.children[0].setAttribute('width', "100%");
+                    outlinksDiv.children[0].setAttribute('height', `${this.plugin.settings.HeightOfOutlinksGraph}px`); 
                     graphMermaidDiv.appendChild(outlinksDiv);
                     
                     let panZoomTiger = svgPanZoom(`#${outlinksDiv.id}-svg`, {
@@ -204,6 +234,18 @@ export class ZKGraphView extends ItemView {
                         dblClickZoomEnabled: false,
                         zoomScaleSensitivity: 0.3,
                     })
+
+                    let setSvg = document.getElementById(`${outlinksDiv.id}-svg`);
+
+                    if(setSvg !== null){
+                        let a = setSvg.children[0].getAttr("style");
+                        if(typeof a == 'string'){
+                            let b = a.match(/\d([^\,]+)\d/g)
+                            if(b !== null && Number(b[0]) > 1){
+                                panZoomTiger.zoom(1/Number(b[0]))
+                            }                        
+                        }
+                    }
                    
                     let nodeGArr = outlinksDiv.querySelectorAll("[id^='flowchart-']");
                     let nodeArr = outlinksDiv.getElementsByClassName("nodeLabel");
@@ -309,6 +351,7 @@ export class ZKGraphView extends ItemView {
                 file: note,
                 title: '',
                 displayText: '',
+                ctime: '',
             }
 
             let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -491,10 +534,10 @@ export class ZKGraphView extends ItemView {
 
     }
 
-    async genericLinksMermaidStr(currentFile: TFile, linkArr: TFile[], direction: string = 'in') {
+    async genericLinksMermaidStr(currentFile: TFile, linkArr: TFile[], direction1: string = 'in', direction2: string) {
 
         let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
-        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart TB;\n`
+        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction2};\n`
 
 
         let currentNode: ZKNode[] = [];
@@ -519,7 +562,7 @@ export class ZKGraphView extends ItemView {
                 mermaidStr = mermaidStr + `${i}("${linkArr[i].basename}");\n`;
             }
             mermaidStr = mermaidStr + `style ${i} fill:#fff; \n`;
-            if (direction == 'in') {
+            if (direction1 == 'in') {
                 mermaidStr = mermaidStr + `${i} --> ${linkArr.length};\n`;
             } else {
                 mermaidStr = mermaidStr + `${linkArr.length} --> ${i};\n`;
@@ -530,9 +573,9 @@ export class ZKGraphView extends ItemView {
 
     }
 
-    async genericFamilyMermaidStr(currentFile: TFile, Nodes: ZKNode[]) {
+    async genericFamilyMermaidStr(currentFile: TFile, Nodes: ZKNode[], direction:string) {
         let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
-        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart LR;`;
+        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};`;
 
         for (let node of Nodes) {
             mermaidStr = mermaidStr + `${node.position}("${node.displayText}");\n`;

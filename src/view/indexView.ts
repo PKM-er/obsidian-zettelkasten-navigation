@@ -15,6 +15,7 @@ export interface ZKNode {
     file: TFile;
     title: string;
     displayText: string;
+    ctime: string;
 }
 
 export class ZKIndexView extends ItemView {
@@ -75,6 +76,7 @@ export class ZKIndexView extends ItemView {
                 file: note,
                 title: '',
                 displayText: '',
+                ctime: "",
             }
 
             let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -144,7 +146,6 @@ export class ZKIndexView extends ItemView {
                 //do nothing
             }
 
-            
             this.MainNotes.push(node);
         }
 
@@ -203,7 +204,7 @@ export class ZKIndexView extends ItemView {
         indexMermaidDiv.empty();
 
         await this.refreshIndexMermaid(this.plugin.settings.SelectIndex, indexMermaidDiv);
-
+        
         const indexButtonDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
         const indexButton = new ButtonComponent(indexButtonDiv).setClass("zk-index-toolbar-button");
         indexButton.setButtonText(this.plugin.settings.IndexButtonText);
@@ -342,7 +343,7 @@ export class ZKIndexView extends ItemView {
 
         let branchEntranceNodeArr = await this.getBranchEntranceNode(index);
     
-        indexMermaidDiv.empty();        
+        indexMermaidDiv.empty();     
 
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
         indexLinkDiv.empty();
@@ -350,7 +351,7 @@ export class ZKIndexView extends ItemView {
         const indexFile = this.app.vault.getFileByPath(index);
         if (indexFile) {
 
-            let link = indexLinkDiv.createEl('a', { text: `${indexFile.basename}` });
+            let link = indexLinkDiv.createEl('a', { text: `【${indexFile.basename}】` });
 
             link.addEventListener("click", (event: MouseEvent) => {
                 if (event.ctrlKey) {
@@ -376,7 +377,7 @@ export class ZKIndexView extends ItemView {
             for (let i = 0; i < branchEntranceNodeArr.length; i++) {
 
                 let branchAllNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);
-                let branchMermaidStr = await this.genericIndexMermaidStr(branchAllNodes, branchEntranceNodeArr[i]);
+                let branchMermaidStr = await this.genericIndexMermaidStr(branchAllNodes, branchEntranceNodeArr[i],this.plugin.settings.DirectionOfBranchGraph);
                 let zkGraph = indexMermaidDiv.createEl("div", { cls: "zk-index-mermaid" });
                 zkGraph.id = `zk-index-mermaid-${i}`;
                 let { svg } = await mermaid.render(`${zkGraph.id}-svg`, branchMermaidStr);
@@ -384,7 +385,7 @@ export class ZKIndexView extends ItemView {
                 zkGraph.children[0].setAttribute('width', "98%");    
                 zkGraph.children[0].setAttribute('height', `${this.plugin.settings.HeightOfBranchGraph}px`);    
                 indexMermaidDiv.appendChild(zkGraph); 
-                
+
                 const svgPanZoom = require("svg-pan-zoom");
                 let panZoomTiger = svgPanZoom(`#${zkGraph.id}-svg`, {
                     zoomEnabled: true,
@@ -560,7 +561,7 @@ export class ZKIndexView extends ItemView {
                 const branchTabs = document.getElementsByClassName("zk-index-mermaid")
                 indexLinkDiv.createEl('small', { text: ` >> `});
 
-                for(let i = 0; i < branchEntranceNodeArr.length; i++){
+                for(let i = 0; i < branchTabs.length; i++){
 
                     let branchTab = indexLinkDiv.createEl('span').createEl('a', { text: `🌿${i+1} `,cls:"zK-branch-tab"});
 
@@ -572,7 +573,10 @@ export class ZKIndexView extends ItemView {
                 
                 await this.openBranchTab(this.plugin.settings.BranchTab);
             }
+
+            
         }
+
     }
 
     async openBranchTab(tabNo:number){
@@ -690,10 +694,10 @@ export class ZKIndexView extends ItemView {
 
     }
 
-    async genericIndexMermaidStr(Nodes: ZKNode[], entranceNode: ZKNode) {
+    async genericIndexMermaidStr(Nodes: ZKNode[], entranceNode: ZKNode, direction: string) {
 
         let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
-        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart LR;\n`;
+        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};\n`;
 
         for (let node of Nodes) {
             

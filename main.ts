@@ -46,6 +46,14 @@ interface ZKNavigationSettings {
     BranchTab: number;
     HeightOfBranchGraph:number;
     FileExtension:string; // "all" or ".md only"
+    SectionTab:number;    
+    HeightOfFamilyGraph: number;
+    HeightOfInlinksGraph: number;
+    HeightOfOutlinksGraph: number;
+    DirectionOfBranchGraph: string,
+    DirectionOfFamilyGraph: string,
+    DirectionOfInlinksGraph: string,
+    DirectionOfOutlinksGraph: string,
 }
 
 //Default value for setting field
@@ -72,7 +80,16 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     zoomPanScaleArr:[],
     BranchTab: 0,
     HeightOfBranchGraph: 530,
-    FileExtension: "md"
+    FileExtension: "md",
+    SectionTab: 0,
+    HeightOfFamilyGraph: 200,
+    HeightOfInlinksGraph: 200,
+    HeightOfOutlinksGraph: 200,
+    DirectionOfBranchGraph: "LR",
+    DirectionOfFamilyGraph: "LR",
+    DirectionOfInlinksGraph: "TB",
+    DirectionOfOutlinksGraph: "TB",
+
 }
 
 export default class ZKNavigationPlugin extends Plugin {
