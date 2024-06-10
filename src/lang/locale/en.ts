@@ -16,7 +16,7 @@ export default {
     '" "(blank)': '" "(blank)',
     '"-"(hyphen)': '"-"(hyphen)',
     '"_"(underscore)': '"_"(underscore)',
-    "ZK index file": "Index",
+    "Retrieval": "Retrieval",
     "Indexes folder location": "Index files folder location",
     "zk-index-graph-view": "zk-index-graph-view",
     "Name of index button": "Name of index button",
@@ -49,7 +49,14 @@ export default {
     '"BT": bottom to top': '"BT": bottom to top',
     "direction of graph": "direction of graph",
     "Detect file extensions": "Detect file extensions",
-
+    "Toolbar": "Toolbar",
+    "Open the icons(commands) in the branch graph.": "Open the icons(commands) on the index graph view.",
+    "Index button": "Index retrieval button",
+    "Main Notes button": "Main notes retrieval button",
+    "Name of main note button": "Name of main note button",
+    "Custom created time(optional)": "Custom created time(used in table view)",
+    "Specify a frontmatter field for time of note created time": "Specify a frontmatter field for the time of main note creation",
+    
     // indexView.ts
     "Display from : ": "Display from : ",
     "To : ": "To : ",
@@ -62,6 +69,15 @@ export default {
     "title": "title",
     "both": "both",
     "Current index: ": "Current index:",
+    "random index": "random index",
+    "random main note": "random main note",
+    "❌Setting error: no folder or tag specified for main notes!": "❌Setting error: no folder or tag specified for main notes!",
+    "❌Setting error: no folder specified for index!": "❌Setting error: no folder specified for index!",
+    "Index: ": "Index: ",
+    "has no valid main note outlinks": "has no valid main note outlinks",
+    "table view": "table view",
+    "Current note: ": "Current note: ",
+    "settings": "open settings",
 
     // localView.ts
     "close relative": "close relative",
@@ -73,4 +89,16 @@ export default {
     "open zk-local-graph": "open zk-local-graph",
     "zk-local-graph": "zk-local-graph",
     "zk-index-graph": "zk-index-graph",    
+    "Main notes": "📄Main notes",
+    '📖index': '📖index',
+
+    //indexModal.ts
+    "Index folder not set!": "Index folder not set!",
+    "No index can be found by path": "No index can be found by path",
+
+    //tableView.ts
+    "note's ID": "note's ID",
+    "note's title": "note's title",
+    "Time of creation": "Time of creation",
+
 }

@@ -16,10 +16,10 @@ export default {
     '" "(blank)': '" "(空格)',
     '"-"(hyphen)': '"-"(横线)',
     '"_"(underscore)': '"_"(下划线)',
-    "ZK index file": "关键词",
+    "Retrieval": "检索设置",
     "Indexes folder location": "关键词文件存放位置",
     "zk-index-graph-view": "关键词分支视图",
-    "Name of index button": "关键词按钮名称",
+    "Name of index button": "按钮名称",
     "Suggest mode of index modal": "关键词查找模式",
     "Keyword Order": "顺序查找",
     "Fuzzy Suggest": "模糊查找",
@@ -48,6 +48,13 @@ export default {
     '"TB": top to bottom': '"TB": 从上到下',
     '"BT": bottom to top': '"BT": 从下到上',
     "Detect file extensions": "限定出链的文件类型",
+    "Toolbar": "图标工具栏",
+    "Open the icons(commands) in the branch graph.":"打开分支视图的图标命令栏.",
+    "Index button": "关键词检索按钮",
+    "Main Notes button": "主笔记检索按钮",
+    "Name of main note button": "按钮名称",
+    "Custom created time(optional)": "主笔记创建时间（自定义字段）",
+    "Specify a frontmatter field for time of note created time": "指定一个属性字段作为主笔记的创建时间",
 
     // indexView.ts
     "Display from : ": "起点：",
@@ -61,6 +68,15 @@ export default {
     "title": "标题",
     "both": "ID + 标题",
     "Current index: ": "当前关键词:",
+    "random index": "随机关键词",
+    "random main note": "随机主笔记",
+    "❌Setting error: no folder or tag specified for main notes!": "❌设置错误: 没有为主笔记指定文件夹或标签!",
+    "❌Setting error: no folder specified for index!": "❌设置错误: 没有为关键词指定文件夹!",
+    "Index: ": "关键词: ",
+    "has no valid main note outlinks": "没有包含有效主笔记链接",
+    "table view": "表格视图",
+    "Current note: ": "当前笔记: ",
+    "settings": "打开设置",
 
     // localView.ts
     "close relative": "邻近",
@@ -72,4 +88,15 @@ export default {
     "open zk-local-graph": "打开局部关系视图",
     "zk-index-graph": "关键词分支视图", 
     "zk-local-graph": "局部关系视图", 
+    "Main notes": "📄主笔记",
+    '📖index': '📖关键词',
+
+    //indexModal.ts
+    "Index folder not set!": "关键词文件夹没有设置!",
+    "No index can be found by path": "指定文件夹找不到任何关键词：",
+    
+    //tableView.ts
+    "note's ID": "笔记编号(ID)",
+    "note's title": "笔记标题",
+    "Time of creation": "创建时间",
 }

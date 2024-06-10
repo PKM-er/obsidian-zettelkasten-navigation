@@ -418,6 +418,19 @@ export class ZKGraphView extends ItemView {
                 //do nothing
             }
 
+            if (this.plugin.settings.CustomCreatedTime != "") {
+                
+                let ctime = nodeCache?.frontmatter?.[this.plugin.settings.CustomCreatedTime];
+ 
+                if(ctime){
+                     node.ctime = ctime.toString();
+                }             
+            }
+
+            if(node.ctime === ""){
+                node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')
+            }
+
             this.MainNotes.push(node);
         }
         this.MainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));

@@ -1,5 +1,6 @@
 import ZKNavigationPlugin from "main";
 import { App, FuzzySuggestModal, Notice, SuggestModal, renderMatches } from "obsidian";
+import { t } from "src/lang/helper";
 import { ZKNode } from "src/view/indexView";
 
 export interface ZKIndex {
@@ -32,7 +33,7 @@ export class indexModal extends SuggestModal<ZKIndex> {
     const indexPath = this.plugin.settings.FolderOfIndexes;
 
     if (indexPath == "") {
-      new Notice("Index folder not set!");
+      new Notice(t("Index folder not set!"));
     } else {
 
       // Get all indexes
@@ -40,7 +41,7 @@ export class indexModal extends SuggestModal<ZKIndex> {
         .filter(f => f.path.startsWith(indexPath + '/'));
 
       if (indexFiles.length == 0) {
-        new Notice(`No index can be found by path "${indexPath}"`)
+        new Notice(`${t("No index can be found by path")} "${indexPath}"`)
       }
 
       // Get outlinks from index
@@ -114,7 +115,7 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
     const indexPath = this.plugin.settings.FolderOfIndexes;
 
     if (indexPath == "") {
-      new Notice("Index folder not set!");
+      new Notice(t("Index folder not set!"));
     } else {
 
       // Get all indexes
@@ -122,7 +123,7 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
         .filter(f => f.path.startsWith(indexPath + '/'));
 
       if (indexFiles.length == 0) {
-        new Notice(`No index can be found by path "${indexPath}"`)
+        new Notice(`${t("No index can be found by path")} "${indexPath}"`)
       }
 
       // Get outlinks from index

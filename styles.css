@@ -15,19 +15,15 @@ padding: 5px;
  background-color: rgba(var(--color-blue-rgb), 0.1);
  max-width: 100%; 
  margin: 10px;
- margin-top: 5px;
+ margin-top: 1px;
  border-radius: 5px;
-}
-
-.zk-index-mermaid svg { 
-  margin-top: 30px;
 }
 
 .zk-index-link{
   position: relative;
   background-color: rgba(var(--color-blue-rgb), 0.2);
   margin:10px;
-  margin-bottom: 5px;
+  margin-bottom: 0px;
   margin-top: 0px;
   border-radius: 5px;
   padding: 5px;
@@ -35,6 +31,22 @@ padding: 5px;
   padding-right: 15px;
   width: auto;
   float:left;
+}
+
+.zk-tool-buttons {
+  position: relative;
+  margin-right: 10px;
+  border-radius: 5px;
+  float: right;
+  display: flex;
+  justify-content: center;
+}
+
+.zk-tool-buttons > .clickable-icon {
+  background-color: rgba(var(--color-blue-rgb), 0.3);
+  margin-left: 2px;
+  padding: 2px;
+  border: 1px solid;
 }
 
 .zk-extra-buttons{
@@ -81,7 +93,6 @@ padding: 5px;
   float:left;
 }
 
-/*settings*/
 .top-buttons-div{
   display: flex;
   justify-content: left;
@@ -109,4 +120,38 @@ padding: 5px;
   border-radius: 10px;
   box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.5);
   background-color: rgba(var(--color-purple-rgb), 0.2);
+}
+
+.zk-table-view table
+{
+	border-width: 1px;
+  font-size:12px;
+	border-collapse: collapse;
+  max-height: 530px; 
+  overflow:auto;
+  display:block;
+}
+
+.zk-table-view table thead tr
+{
+  background-color: var(--color-accent); 
+  color: var(--text-on-accent);
+  position: sticky !important;
+  top: 0;
+  z-index: 8;
+}
+
+.zk-table-view table th {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+}
+.zk-table-view table td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+}
+.zk-table-view table ul {
+  margin: 0;
+  padding-left: 10px;
 }

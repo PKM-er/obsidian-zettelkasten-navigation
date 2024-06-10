@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { App, ButtonComponent, Notice, PluginSettingTab, Setting, setIcon } from "obsidian";
+import { App, ButtonComponent, Notice, PluginSettingTab, Setting } from "obsidian";
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 import { t } from "../lang/helper";
@@ -14,7 +14,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
     }
 
     async display() {
-
+        
         const { containerEl } = this;
         containerEl.empty();
 
@@ -30,8 +30,8 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             this.openTabSection(0,topButtonsDiv);          
         })
 
-        const indexButton = new ButtonComponent(topButtonsDiv);
-        indexButton.setButtonText(t("ZK index file"))
+        const retrievalButton = new ButtonComponent(topButtonsDiv);
+        retrievalButton.setButtonText(t("Retrieval"))
         .onClick(()=>{
             this.openTabSection(1,topButtonsDiv);
         })
@@ -59,7 +59,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     .setValue(this.plugin.settings.FolderOfMainNotes)
                     .onChange((value) => {
                         this.plugin.settings.FolderOfMainNotes = value;
-                        this.plugin.saveData(this.plugin.settings);
                     })
             });
 
@@ -71,7 +70,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 cb.setValue(this.plugin.settings.TagOfMainNotes)
                     .onChange((value) => {
                         this.plugin.settings.TagOfMainNotes = value;
-                        this.plugin.saveData(this.plugin.settings);
                     })
             });
         
@@ -84,7 +82,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.IDFieldOption)
                 .onChange((value) => {
                     this.plugin.settings.IDFieldOption = value;
-                    this.plugin.saveData(this.plugin.settings);
                     this.display();
                 })
             );
@@ -97,7 +94,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         cb.setValue(this.plugin.settings.TitleField)
                             .onChange((value) => {
                                 this.plugin.settings.TitleField = value;
-                                this.plugin.saveData(this.plugin.settings);
                             })
                     );
                 break;
@@ -108,7 +104,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         cb.setValue(this.plugin.settings.IDField)
                             .onChange((value) => {
                                 this.plugin.settings.IDField = value;
-                                this.plugin.saveData(this.plugin.settings);
                             })
                     );
                 break;
@@ -122,7 +117,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         .setValue(this.plugin.settings.Separator)
                         .onChange((value) => {
                             this.plugin.settings.Separator = value;
-                            this.plugin.saveData(this.plugin.settings);
                         })
                     );
                 break
@@ -130,9 +124,72 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             //do nothing.
         }
 
-        const indexDiv = settingTabDiv.createDiv("zk-setting-section");
-        //new Setting(settingTabDiv).setName(t("ZK index file")).setHeading();
-        new Setting(indexDiv)
+        
+        new Setting(mainNotesDiv)
+        .setName(t("Custom created time(optional)"))
+        .setDesc(t("Specify a frontmatter field for time of note created time"))
+        .addText((cb) =>
+            cb.setValue(this.plugin.settings.CustomCreatedTime)
+                .onChange((value) => {
+                    this.plugin.settings.CustomCreatedTime = value;
+                })
+        );
+
+        const retrievalDiv = settingTabDiv.createDiv("zk-setting-section");
+        
+        new Setting(retrievalDiv)
+            .setName(t("Main Notes button"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.MainNoteButton)
+                .onChange((value) => {
+                    this.plugin.settings.MainNoteButton = value;
+                    this.plugin.settings.RefreshViews = true;
+                    this.display();
+                })
+            ).addExtraButton((cb)=>{
+                cb.setIcon("settings")
+                .onClick(()=>{
+                    if(MainNoteButtonDiv.getAttr("style") == "display:block"){                        
+                        MainNoteButtonDiv.setAttribute("style","display:none") ;
+                    }else{                      
+                        MainNoteButtonDiv.setAttribute("style","display:block") ;
+                    }
+                })
+            })
+        
+        const MainNoteButtonDiv = retrievalDiv.createDiv("zk-local-section");
+
+        new Setting(MainNoteButtonDiv)
+            .setName(t("Name of main note button"))
+            .addText((cb) =>
+                cb.setValue(this.plugin.settings.MainNoteButtonText)
+                    .onChange((value) => {
+                        this.plugin.settings.MainNoteButtonText = value;
+                        this.plugin.settings.RefreshViews = true;
+                    })
+            );
+            
+            new Setting(retrievalDiv)
+            .setName(t("Index button"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.IndexButton)
+                .onChange((value) => {
+                    this.plugin.settings.IndexButton = value;
+                    this.plugin.settings.RefreshViews = true;
+                    this.display();
+                })
+            ).addExtraButton((cb)=>{
+                cb.setIcon("settings")
+                .onClick(()=>{
+                    if(indexButtonDiv.getAttr("style") == "display:block"){                        
+                        indexButtonDiv.setAttribute("style","display:none") ;
+                    }else{                      
+                        indexButtonDiv.setAttribute("style","display:block") ;
+                    }
+                })
+            })
+        
+        const indexButtonDiv = retrievalDiv.createDiv("zk-local-section");
+
+        new Setting(indexButtonDiv)
             .setName(t("Indexes folder location"))
             .addSearch((cb) => {
                 new FolderSuggest(this.app, cb.inputEl);
@@ -140,24 +197,20 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     .setValue(this.plugin.settings.FolderOfIndexes)
                     .onChange((value) => {
                         this.plugin.settings.FolderOfIndexes = value;
-                        this.plugin.saveData(this.plugin.settings);
                     })
             });
-        
-        const indexGraphView = settingTabDiv.createDiv("zk-setting-section");
-        //new Setting(settingTabDiv).setName(t("zk-index-graph-view")).setHeading();        
 
-        new Setting(indexGraphView)
+        new Setting(indexButtonDiv)
             .setName(t("Name of index button"))
             .addText((cb) =>
                 cb.setValue(this.plugin.settings.IndexButtonText)
                     .onChange((value) => {
                         this.plugin.settings.IndexButtonText = value;
-                        this.plugin.saveData(this.plugin.settings);
+                        this.plugin.settings.RefreshViews = true;
                     })
             );
         
-        new Setting(indexGraphView)
+        new Setting(indexButtonDiv)
             .setName(t("Suggest mode of index modal"))
             .addDropdown(options => options
                 .addOption("keywordOrder", t("Keyword Order"))
@@ -165,10 +218,11 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.SuggestMode)
                 .onChange((value) => {
                     this.plugin.settings.SuggestMode = value;
-                    this.plugin.saveData(this.plugin.settings);
                 })
-            )
+            )        
 
+        const indexGraphView = settingTabDiv.createDiv("zk-setting-section");
+            
         new Setting(indexGraphView)
             .setName(t("Index graph styles"))
             .addExtraButton((cb)=>{
@@ -197,7 +251,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfBranchGraph = 530;                        
                     }
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                     
                 })
             }
@@ -213,7 +267,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfBranchGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfBranchGraph = value;
-                this.plugin.saveData(this.plugin.settings);
+                this.plugin.settings.RefreshViews = true;
             })
         );
 
@@ -223,7 +277,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.RedDashLine)
                 .onChange((value) => {
                     this.plugin.settings.RedDashLine = value;
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                 })
             );
 
@@ -233,10 +287,72 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FoldToggle)
                 .onChange((value) => {
                     this.plugin.settings.FoldToggle = value;
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                 })
             );
+
         
+        new Setting(indexGraphView)
+            .setName(t("Toolbar"))
+            .setDesc(t("Open the icons(commands) in the branch graph."))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.BranchToolbra)
+                .onChange((value) =>{
+                    this.plugin.settings.BranchToolbra = value;
+                    this.plugin.settings.RefreshViews = true;
+                }) 
+            ).addExtraButton((cb)=>{
+                cb.setIcon("settings")
+                .onClick(()=>{
+                    if(branchToolbarDiv.getAttr("style") == "display:block"){                        
+                        branchToolbarDiv.setAttribute("style","display:none") ;
+                    }else{                      
+                        branchToolbarDiv.setAttribute("style","display:block") ;
+                    }
+                });
+            })        
+        
+        const branchToolbarDiv = indexGraphView.createDiv("zk-local-section")
+
+        new Setting(branchToolbarDiv)
+                .setName(t("settings"))
+                .addToggle(toggle => toggle.setValue(this.plugin.settings.settingIcon)
+                    .onChange((value) =>{
+                        this.plugin.settings.settingIcon = value;
+                        this.plugin.settings.RefreshViews = true;
+                    }) 
+                )
+
+        if(this.plugin.settings.IndexButton == true){
+            new Setting(branchToolbarDiv)
+                .setName(t("random index"))
+                .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomIndex)
+                    .onChange((value) =>{
+                        this.plugin.settings.RandomIndex = value;
+                        this.plugin.settings.RefreshViews = true;
+                    }) 
+                )
+        }
+
+        if(this.plugin.settings.MainNoteButton == true){
+            new Setting(branchToolbarDiv)
+                .setName(t("random main note"))
+                .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomMainNote)
+                    .onChange((value) =>{
+                        this.plugin.settings.RandomMainNote = value;
+                        this.plugin.settings.RefreshViews = true;
+                    }) 
+                )
+        }
+        
+        new Setting(branchToolbarDiv)
+            .setName(t("table view"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.TableView)
+                .onChange((value) =>{
+                    this.plugin.settings.TableView = value;
+                    this.plugin.settings.RefreshViews = true;
+                }) 
+            )        
+
         const localGraphView = settingTabDiv.createDiv("zk-setting-section");
         //new Setting(settingTabDiv).setName(t("zk-local-graph-view")).setHeading(); 
         new Setting(localGraphView)
@@ -245,7 +361,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FamilyGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.FamilyGraphToggle = value;
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                 })
             ).addExtraButton((cb)=>{
                 
@@ -275,7 +391,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfFamilyGraph = 200;                        
                     }
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                     
                 })
             }
@@ -291,7 +407,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfFamilyGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfFamilyGraph = value;
-                this.plugin.saveData(this.plugin.settings);
+                this.plugin.settings.RefreshViews = true;
             })
         );
 
@@ -301,7 +417,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.InlinksGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.InlinksGraphToggle = value;
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
@@ -329,7 +445,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfInlinksGraph = 200;                        
                     }
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                     
                 })
             }
@@ -345,7 +461,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfInlinksGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfInlinksGraph = value;
-                this.plugin.saveData(this.plugin.settings);
+                this.plugin.settings.RefreshViews = true;
             })
         );
 
@@ -355,7 +471,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.OutlinksGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.OutlinksGraphToggle = value;
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
@@ -383,7 +499,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfOutlinksGraph = 200;                        
                     }
-                    this.plugin.saveData(this.plugin.settings);
+                    this.plugin.settings.RefreshViews = true;
                     
                 })
             }
@@ -399,7 +515,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfOutlinksGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfOutlinksGraph = value;
-                this.plugin.saveData(this.plugin.settings);
+                this.plugin.settings.RefreshViews = true;
             })
         );
         
@@ -411,7 +527,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.FileExtension)
             .onChange((value) => {
                 this.plugin.settings.FileExtension = value;
-                this.plugin.saveData(this.plugin.settings);
+                this.plugin.settings.RefreshViews = true;
             })
         )
         
@@ -431,11 +547,20 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         sections[selectNo].setAttribute("style", "display:block");
         buttons[selectNo].addClass("top-button-select")
         this.plugin.settings.SectionTab = selectNo;
-        this.plugin.saveData(this.plugin.settings);
     }
 
     initDiv(topButtonsDiv: HTMLDivElement){
         this.openTabSection(this.plugin.settings.SectionTab,topButtonsDiv);
     }
+
+    async hide() {
+        if(this.plugin.settings.RefreshViews === true){
+            this.plugin.refreshViews();
+            this.plugin.settings.RefreshViews = false;
+        }
+        this.plugin.saveData(this.plugin.settings);
+    }
+
+    
 
 }
