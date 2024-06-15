@@ -73,13 +73,6 @@ padding: 5px;
   background-color: rgba(var(--color-blue-rgb), 0.1);
   margin: 5px;
   border-radius: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.zk-graph-mermaid svg { 
-  margin: 5px;
 }
 
 .zk-graph-text {  
@@ -89,9 +82,23 @@ padding: 5px;
   margin-top: 0px;
   border-radius: 5px;
   padding: 5px;
-  width: auto;
-  float:left;
+  float: left;
 }
+
+.zk-graph-icon {
+  position: fixed;
+  margin-right: 5px;
+  float: right;
+  right: 0px;
+  justify-content: center;
+}
+
+.zk-graph-icon >.clickable-icon {  
+  background-color: rgba(var(--color-blue-rgb), 0.3);
+  border: 1px solid;
+  padding: 2px;
+}
+
 
 .top-buttons-div{
   display: flex;
@@ -154,4 +161,18 @@ padding: 5px;
 .zk-table-view table ul {
   margin: 0;
   padding-left: 10px;
+}
+
+.zk-table-container{
+  width: auto;
+  height: auto;
+}
+
+.zk-expand-modal{
+  width: 100%;
+  height: 100%;
+}
+
+.zk-expand-modal svg{  
+  background-color: rgba(var(--color-blue-rgb), 0.1);
 }

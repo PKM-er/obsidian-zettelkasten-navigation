@@ -1,8 +1,10 @@
 import ZKNavigationPlugin, { FoldNode, ZoomPanScale } from "main";
-import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, MarkdownPreviewRenderer, MarkdownPreviewView, MarkdownRenderer, MarkdownView, Notice, TFile, WorkspaceLeaf, loadMermaid } from "obsidian";
+import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Notice, TFile, WorkspaceLeaf, loadMermaid, moment } from "obsidian";
 import { t } from "src/lang/helper";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
-import { mainNoteFuzzyModal } from "src/modal/mainNoteModal";
+import { mainNoteFuzzyModal, mainNoteModal } from "src/modal/mainNoteModal";
+import { tableModal } from "src/modal/tableModal";
+import { mainNoteInit } from "src/utils/utils";
 
 export const ZK_INDEX_TYPE: string = "zk-index-type";
 export const ZK_INDEX_VIEW: string = t("zk-index-graph");
@@ -41,168 +43,6 @@ export class ZKIndexView extends ItemView {
         return "ghost";
     }
     
-    async mainNoteFilesInit() {
-
-        this.MainNotes = [];
-        this.mainNoteFiles = [];
-
-        this.mainNoteFiles = this.app.vault.getMarkdownFiles();
-
-        if (this.plugin.settings.FolderOfMainNotes !== '') {
-            this.mainNoteFiles = this.mainNoteFiles.filter(
-                file => {
-                    return file.path.replace(file.name, "").startsWith(this.plugin.settings.FolderOfMainNotes + '/');
-                })
-        }
-
-        if (this.plugin.settings.TagOfMainNotes !== '') {
-
-            this.mainNoteFiles = this.mainNoteFiles.filter(
-                file => {
-                    return this.app.metadataCache.getFileCache(file)?.frontmatter?.tags?.includes(
-                        this.plugin.settings.TagOfMainNotes.substring(1)
-                    );
-                }
-            )
-        }
-
-        for (let note of this.mainNoteFiles) {
-            let IDArr: string[] = [];
-
-            let node: ZKNode = {
-                ID: '',
-                IDArr: IDArr,
-                IDStr: '',
-                position: 0,
-                file: note,
-                title: '',
-                displayText: '',
-                ctime: "",
-            }
-
-            let nodeCache = this.app.metadataCache.getFileCache(note);
-
-            switch (this.plugin.settings.IDFieldOption) {
-                case "1":
-                    node.ID = note.basename;
-
-                    node.IDArr = await this.ID_formatting(node.ID, node.IDArr);
-
-                    node.IDStr = IDArr.toString();
-
-                    if (nodeCache !== null) {
-                        if (typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.TitleField !== "") {
-                            
-                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField]?.toString();
-                            if (typeof title == "string" && title.length > 0) {
-                                node.title = title;
-                            }
-                        }
-                    }
-
-                    break;
-                case "2":
-                    if (nodeCache !== null) {
-                        if (typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.IDField !== "") {
-                            let id = nodeCache.frontmatter[this.plugin.settings.IDField];
-                            if (typeof id == "string" && id.length > 0) {
-                                node.ID = id;
-                                node.IDArr = await this.ID_formatting(node.ID, node.IDArr);
-                                node.IDStr = node.IDArr.toString();
-                                node.title = note.basename;
-                            }
-                        }
-                    }
-                    if (node.ID == '') {
-                        continue;
-                    }
-                    break;
-                case "3":
-                    node.ID = note.basename.split(this.plugin.settings.Separator)[0];
-                    node.IDArr = await this.ID_formatting(node.ID, node.IDArr);
-                    node.IDStr = IDArr.toString();
-                    if (node.ID.length < note.basename.length - 1) {
-                        node.title = note.basename.substring(node.ID.length + 1);
-                    }
-                    break;
-                default:
-                // do nothing
-            }
-
-            switch (this.plugin.settings.NodeText) {
-                case "id":
-                    node.displayText = node.ID;
-                    break;
-                case "title":
-                    if (node.title == "") {
-                        node.displayText = node.ID;
-                    } else {
-                        node.displayText = node.title;
-                    }
-                    break;
-                case "both":
-                    node.displayText = `${node.ID}: ${node.title}`;
-                    break;
-                default:
-                //do nothing
-            }
-
-            
-            if (this.plugin.settings.CustomCreatedTime.length > 0) {
-                
-               let ctime = nodeCache?.frontmatter?.[this.plugin.settings.CustomCreatedTime];
-
-               if(ctime){
-                    node.ctime = ctime.toString();
-               }            
-            }
-
-            if(node.ctime === ""){         
-                node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
-            }
-
-            this.MainNotes.push(node);
-        }
-
-        this.MainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
-
-        for (let i = 0; i < this.MainNotes.length; i++) {
-
-            this.MainNotes[i].position = i;
-
-        }
-
-    }
-
-    async ID_formatting(id: string, arr: string[]): Promise<string[]> {
-        if (/^[0-9]$/.test(id[0])) {
-            let numStr = id.match(/\d+/g);
-            if (numStr && numStr.length > 0) {
-                arr.push(numStr[0].padStart(4, "0"));
-                let len = numStr[0].length;
-                if (len < id.length) {
-                    return await this.ID_formatting(id.slice(len), arr);
-                } else {
-                    return arr;
-                }
-            } else {
-                return arr;
-            }
-        } else if (/^[a-zA-Z]$/.test(id[0])) {
-            arr.push(id[0])
-            if (id.length === 1) {
-                return arr;
-            } else {
-                return await this.ID_formatting(id.slice(1), arr);
-            }
-        } else {
-            if (id.length === 1) {
-                return arr;
-            } else {
-                return await this.ID_formatting(id.slice(1), arr);
-            }
-        }
-    }
 
     async IndexViewInterfaceInit() {
         
@@ -217,7 +57,6 @@ export class ZKIndexView extends ItemView {
 
         indexMermaidDiv.empty();
 
-        await this.refreshBranchMermaid(indexMermaidDiv);
 
         if(this.plugin.settings.MainNoteButton == true){
 
@@ -226,13 +65,22 @@ export class ZKIndexView extends ItemView {
             mainNoteButton.setButtonText(this.plugin.settings.MainNoteButtonText);
             mainNoteButton.setCta();
             mainNoteButton.onClick(() => {
-                new mainNoteFuzzyModal(this.app, this.plugin, this.MainNotes, (selectZKNode) =>{
-                    this.plugin.settings.SelectMainNote = selectZKNode.file.path;
-                    this.plugin.settings.SelectIndex = "";
-                    this.clearShowingSettings();
-                    this.refreshBranchMermaid(indexMermaidDiv);
-                }).open()
-            });
+                if (this.plugin.settings.MainNoteSuggestMode === "IDOrder") {
+                    new mainNoteModal(this.app, this.plugin, this.MainNotes, (selectZKNode) =>{
+                        this.plugin.settings.SelectMainNote = selectZKNode.file.path;
+                        this.plugin.settings.SelectIndex = "";
+                        this.clearShowingSettings();
+                        this.refreshBranchMermaid(indexMermaidDiv);
+                    }).open();
+                }else {
+                    new mainNoteFuzzyModal(this.app, this.plugin, this.MainNotes, (selectZKNode) =>{
+                        this.plugin.settings.SelectMainNote = selectZKNode.file.path;
+                        this.plugin.settings.SelectIndex = "";
+                        this.clearShowingSettings();
+                        this.refreshBranchMermaid(indexMermaidDiv);
+                    }).open()
+                }
+            })
         }
 
         if(this.plugin.settings.IndexButton == true){
@@ -305,23 +153,71 @@ export class ZKIndexView extends ItemView {
                 this.refreshBranchMermaid(indexMermaidDiv);
             });
 
+        await this.refreshBranchMermaid(indexMermaidDiv);
+    }
+
+    async onload() {
+
+        this.registerEvent(this.app.workspace.on("active-leaf-change", async(leaf)=>{  
+            
+            if(leaf?.view.getViewType() == ZK_INDEX_TYPE){
+                if(this.plugin.settings.RefreshViews == true){                         
+                    await this.IndexViewInterfaceInit();
+                    this.plugin.settings.RefreshViews = false;
+                }else{
+                    
+                    let svgAbc = document.getElementsByClassName("svg-pan-zoom_viewport")[0];
+                    
+                    let a = svgAbc.getAttr("style"); 
+                    if(a){
+                        let b = a.match(/\d([^\,]+)\d/g)
+                        if(b === null){
+                            await this.IndexViewInterfaceInit();
+                            this.plugin.settings.RefreshViews = false; 
+                        }
+                    }
+                } 
+            }             
+        }));
+
+        this.registerEvent(this.app.vault.on("rename", async ()=>{
+            this.plugin.settings.RefreshViews = true;
+        }));
+
+        this.registerEvent(this.app.vault.on("create", async ()=>{
+            this.plugin.settings.RefreshViews = true;
+        }));
+
+        this.registerEvent(this.app.vault.on("delete", async ()=>{
+            this.plugin.settings.RefreshViews = true;
+        }));      
+        
+        this.registerEvent(this.app.metadataCache.on("changed", async()=>{
+            
+            this.plugin.settings.RefreshViews = true;
+        }));
+
+        this.registerEvent(this.app.metadataCache.on("deleted", async()=>{
+            this.plugin.settings.RefreshViews = true;
+        }));
+
     }
 
     async onOpen() {
-
         
         if(this.app.workspace.layoutReady){
 
             this.refreshIndexLayout();
+            
         }else{
             this.app.workspace.onLayoutReady(()=>{
-
+                
                 this.refreshIndexLayout();
                 
             });
-        }
+        } 
     }
-    
+
     async refreshIndexLayout(){
 
         if (this.plugin.settings.FolderOfMainNotes == '' && this.plugin.settings.TagOfMainNotes == '') {
@@ -331,41 +227,14 @@ export class ZKIndexView extends ItemView {
         } else {            
             
             await this.IndexViewInterfaceInit();
-
-            this.registerEvent(this.app.workspace.on("active-leaf-change", async(leaf)=>{    
-                        
-                if(leaf && leaf.getDisplayText() == ZK_INDEX_VIEW){                   
-                   await this.IndexViewInterfaceInit();
-                }              
-            }));
-
-            this.registerEvent(this.app.vault.on("rename", async ()=>{
-                await this.IndexViewInterfaceInit();
-            }));
-
-            this.registerEvent(this.app.vault.on("create", async ()=>{
-                await this.IndexViewInterfaceInit();
-            }));
-
-            this.registerEvent(this.app.vault.on("delete", async ()=>{
-                await this.IndexViewInterfaceInit();
-            }));      
+            this.plugin.settings.RefreshViews = false;
             
-            this.registerEvent(this.app.metadataCache.on("changed", async()=>{
-                await this.IndexViewInterfaceInit();
-            }));
-
-            this.registerEvent(this.app.metadataCache.on("deleted", async()=>{
-                await this.IndexViewInterfaceInit();
-            }));
         }
     }
 
     async refreshBranchMermaid(indexMermaidDiv: HTMLElement) {
         
-        await this.mainNoteFilesInit();
-
-        const moment = require('moment'); 
+        this.MainNotes = await mainNoteInit([], this.plugin);
 
         indexMermaidDiv.empty(); 
 
@@ -374,27 +243,7 @@ export class ZKIndexView extends ItemView {
 
         const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
         indexLinkDiv.empty();
-
-        if(this.plugin.settings.SelectIndex != ""){
-
-            branchEntranceNodeArr = await this.getBranchEntranceNode(this.plugin.settings.SelectIndex);
-           
-            indexLinkDiv.createEl('abbr', { text: t("Current index: ") });
-
-            indexFile = this.app.vault.getFileByPath(this.plugin.settings.SelectIndex);
-
-        }else if(this.plugin.settings.SelectMainNote != ""){
-
-            let selectZKNode = this.MainNotes.filter(n=>n.file.path == this.plugin.settings.SelectMainNote)[0]
-            
-            branchEntranceNodeArr.push(selectZKNode);
-
-            indexLinkDiv.createEl('abbr', { text: t("Current note: ") });            
-
-            indexFile = this.app.vault.getFileByPath(this.plugin.settings.SelectMainNote);
-
-        }              
-
+        
         if(this.plugin.settings.BranchToolbra == true){
             const toolButtonsDiv = indexMermaidDiv.createDiv("zk-tool-buttons");
             toolButtonsDiv.empty();
@@ -450,15 +299,71 @@ export class ZKIndexView extends ItemView {
                 const tableBtn = new ExtraButtonComponent(toolButtonsDiv);
                 tableBtn.setIcon("table").setTooltip(t("table view"))
                 tableBtn.onClick(async ()=>{
-                    
-                    await this.genericTableArr();  
-                    await this.plugin.openTableView();
+                    new tableModal(this.app, this.plugin, await this.genericTableArr()).open();
                 })
-            }            
-        }        
+            }       
+            
+            if(this.plugin.settings.ExportList == true){
+                const listBtn = new ExtraButtonComponent(toolButtonsDiv);
+                listBtn.setIcon("list").setTooltip(t("export markdown list"))
+                listBtn.onClick(async ()=>{
+                    let tableArr = await this.genericTableArr();
+                    
+                    if(tableArr.length > 0){
 
+                        let listStr:string = '';
+                        let layer = tableArr[0].IDArr.length
+                        for(let line of tableArr ){
+                            let tabStr = ''
+                            for(let i= layer; i<line.IDArr.length; i++){
+                                tabStr = tabStr + `\t`;
+                            }   
+                            listStr = listStr + `${tabStr}- [[${line.file.basename}|${line.displayText}]]\n`
+                        }                       
+                        
+                        let newFile = await this.app.vault.create(`${moment().format("YYYY-MM-DD HH.mm.ss")}.md`, listStr);
+                        this.app.workspace.getLeaf().openFile(newFile);
+                    }else{
+                        new Notice("No contents!")
+                    }
+
+                    
+                })
+            }  
+        }  
+
+        if(this.plugin.settings.SelectIndex != ""){
+
+            if(!this.plugin.settings.SelectIndex.startsWith(this.plugin.settings.FolderOfIndexes))
+            
+                return;
+
+            branchEntranceNodeArr = await this.getBranchEntranceNode(this.plugin.settings.SelectIndex);
+           
+            indexLinkDiv.createEl('abbr', { text: t("Current index: ") });
+
+            indexFile = this.app.vault.getFileByPath(this.plugin.settings.SelectIndex);
+
+        }else if(this.plugin.settings.SelectMainNote != ""){
+
+            let selectZKNode = this.MainNotes.filter(n=>n.file.path == this.plugin.settings.SelectMainNote)[0]
+            
+            if(typeof selectZKNode === 'undefined'){
+                new Notice(`Invalid main note: ${this.plugin.settings.SelectMainNote}`)
+                return;
+            } 
+
+            branchEntranceNodeArr.push(selectZKNode);
+
+            indexLinkDiv.createEl('abbr', { text: t("Current note: ") });            
+
+            indexFile = this.app.vault.getFileByPath(this.plugin.settings.SelectMainNote);
+
+        }              
+
+      
         
-        if (indexFile) {
+        if (indexFile instanceof TFile) {
 
             let link = indexLinkDiv.createEl('a', { text: `【${indexFile.basename}】` });
             
@@ -503,10 +408,12 @@ export class ZKIndexView extends ItemView {
                 zkGraph.insertAdjacentHTML('beforeend', svg);
                 zkGraph.children[0].setAttribute('width', "100%");    
                 zkGraph.children[0].setAttribute('height', `${this.plugin.settings.HeightOfBranchGraph}px`);    
-                indexMermaidDiv.appendChild(zkGraph); 
-
+                
+                await indexMermaidDiv.appendChild(zkGraph); 
+                
                 const svgPanZoom = require("svg-pan-zoom");
-                let panZoomTiger = svgPanZoom(`#${zkGraph.id}-svg`, {
+                
+                let panZoomTiger = await svgPanZoom(`#${zkGraph.id}-svg`, {
                     zoomEnabled: true,
                     controlIconsEnabled: false,
                     fit: true,                    
@@ -525,14 +432,14 @@ export class ZKIndexView extends ItemView {
                         
                     }
                 })
-
+                
                 if(typeof this.plugin.settings.zoomPanScaleArr[i] === 'undefined'){
                     
                     const setSvg = document.getElementById(`${zkGraph.id}-svg`);
-                
+                    
                     if(setSvg !== null){
                         let a = setSvg.children[0].getAttr("style");
-                        if(typeof a == 'string'){
+                        if(a){
                             let b = a.match(/\d([^\,]+)\d/g)
                             if(b !== null && Number(b[0]) > 1){
                                 panZoomTiger.zoom(1/Number(b[0]))
@@ -550,14 +457,14 @@ export class ZKIndexView extends ItemView {
                 }else{
                     
                     panZoomTiger.zoom(this.plugin.settings.zoomPanScaleArr[i].zoomScale);  
-                    panZoomTiger.pan(this.plugin.settings.zoomPanScaleArr[i].pan);                             
-                }
-                       
+                    panZoomTiger.pan(this.plugin.settings.zoomPanScaleArr[i].pan); 
+                            
+                }   
                 
                 const indexMermaid = document.getElementById(zkGraph.id)
 
                 if (indexMermaid !== null) {
-
+                    
 
                     for (let foldNode of this.plugin.settings.FoldNodeArr.filter(n => n.graphID == zkGraph.id)) {
 
@@ -865,7 +772,7 @@ export class ZKIndexView extends ItemView {
 
     async genericTableArr(){
 
-        this.plugin.tableArr = [];
+        let tableArr:ZKNode[] = [];
 
         const tableBranch = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
 
@@ -877,9 +784,11 @@ export class ZKIndexView extends ItemView {
 
                 let nodePosStr = nodeGArr[i].id.split('-')[1];
                 let node = this.MainNotes.filter(n => n.position == Number(nodePosStr))[0];            
-                this.plugin.tableArr.push(node);
+                tableArr.push(node);
             }            
         }
+
+        return tableArr;
         
     }    
 

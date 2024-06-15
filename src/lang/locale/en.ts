@@ -21,8 +21,10 @@ export default {
     "zk-index-graph-view": "zk-index-graph-view",
     "Name of index button": "Name of index button",
     "Suggest mode of index modal": "Suggestion mode of index modal",
+    "Suggest mode of main note modal": "Suggest mode of main note modal",
     "Keyword Order": "Keyword Order",
     "Fuzzy Suggest": "Fuzzy Suggest",
+    "ID Order": "ID Order",
     "Set red dash line for nodes with ID ends with letter": "Set red dash line for nodes with ID ends with letter",
     "In order to distinguish nodes which ID ends with letter and number": "In order to distinguish nodes which ID ends with letter or number",
     "Fold node toggle": "Fold node toggle",
@@ -49,13 +51,14 @@ export default {
     '"BT": bottom to top': '"BT": bottom to top',
     "direction of graph": "direction of graph",
     "Detect file extensions": "Detect file extensions",
-    "Toolbar": "Toolbar",
+    "Toolbar": "Icon toolbar",
     "Open the icons(commands) in the branch graph.": "Open the icons(commands) on the index graph view.",
     "Index button": "Index retrieval button",
     "Main Notes button": "Main notes retrieval button",
     "Name of main note button": "Name of main note button",
     "Custom created time(optional)": "Custom created time(used in table view)",
     "Specify a frontmatter field for time of note created time": "Specify a frontmatter field for the time of main note creation",
+    "export markdown list": "export markdown list",
     
     // indexView.ts
     "Display from : ": "Display from : ",
@@ -83,6 +86,7 @@ export default {
     "close relative": "close relative",
     "inlinks": "inlinks",
     "outlinks": "outlinks",
+    "expand graph": "expand graph",
 
     //main.ts
     "open zk-index-graph": "open zk-index-graph",
@@ -91,6 +95,7 @@ export default {
     "zk-index-graph": "zk-index-graph",    
     "Main notes": "📄Main notes",
     '📖index': '📖index',
+    "Copy zk-navigation URI":"Copy zk-navigation URI",
 
     //indexModal.ts
     "Index folder not set!": "Index folder not set!",

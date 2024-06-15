@@ -1,7 +1,9 @@
 import ZKNavigationPlugin from "main";
-import { ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
+import { ExtraButtonComponent, ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
 import { ZKNode, ZK_NAVIGATION } from "./indexView";
 import { t } from "src/lang/helper";
+import { mainNoteInit } from "src/utils/utils";
+import { expandGraphModal } from "src/modal/expandGraphModal";
 
 export const ZK_GRAPH_TYPE: string = "zk-graph-type"
 export const ZK_GRAPH_VIEW: string = t("zk-local-graph")
@@ -47,7 +49,7 @@ export class ZKGraphView extends ItemView {
                 const mermaid = await loadMermaid();
                 const svgPanZoom = require("svg-pan-zoom");
                 if (this.plugin.settings.FamilyGraphToggle == true) {
-
+                    
                     let familyNodeArr: ZKNode[] = await this.getFamilyNodes(currentFile);
                     let familyMermaidStr: string = await this.genericFamilyMermaidStr(currentFile, familyNodeArr, this.plugin.settings.DirectionOfFamilyGraph);
 
@@ -57,10 +59,17 @@ export class ZKGraphView extends ItemView {
                     familyGraphTextDiv.empty();
                     familyGraphTextDiv.createEl('span', { text: t("close relative") })
 
+                    let graphIconDiv = familyGraphContainer.createDiv("zk-graph-icon");
+                    graphIconDiv.empty();
+                    let expandBtn = new ExtraButtonComponent(graphIconDiv);
+                    expandBtn.setIcon("expand").setTooltip(t("expand graph"));
+                    expandBtn.onClick(()=>{              
+                        new expandGraphModal(this.app,this.plugin, familyNodeArr, [], familyMermaidStr).open();
+                    })
+
                     const familyTreeDiv = familyGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
 
-                    familyTreeDiv.id = "zk-family-tree";
-
+                    familyTreeDiv.id = "zk-family-tree";                    
                     let { svg } = await mermaid.render(`${familyTreeDiv.id}-svg`, `${familyMermaidStr}`);
                     familyTreeDiv.insertAdjacentHTML('beforeend', svg);
                     familyTreeDiv.children[0].setAttribute('width', "100%");
@@ -133,6 +142,14 @@ export class ZKGraphView extends ItemView {
 
                     inlinksGraphTextDiv.empty();
                     inlinksGraphTextDiv.createEl('span', { text: t("inlinks") });
+
+                    let graphIconDiv = inlinksGraphContainer.createDiv("zk-graph-icon");
+                    graphIconDiv.empty();
+                    let expandBtn = new ExtraButtonComponent(graphIconDiv);
+                    expandBtn.setIcon("expand").setTooltip(t("expand graph"));
+                    expandBtn.onClick(()=>{              
+                        new expandGraphModal(this.app,this.plugin,[], inlinkArr, inlinkMermaidStr).open();
+                    })
 
                     const inlinksDiv = inlinksGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
                     inlinksDiv.id = "zk-inlinks";
@@ -215,6 +232,15 @@ export class ZKGraphView extends ItemView {
 
                     outlinksGraphTextDiv.empty();
                     outlinksGraphTextDiv.createEl('span', { text: t("outlinks") })
+
+
+                    let graphIconDiv = outlinksGraphContainer.createDiv("zk-graph-icon");
+                    graphIconDiv.empty();
+                    let expandBtn = new ExtraButtonComponent(graphIconDiv);
+                    expandBtn.setIcon("expand").setTooltip(t("expand graph"));
+                    expandBtn.onClick(()=>{              
+                        new expandGraphModal(this.app,this.plugin,[], outlinkArr, outlinkMermaidStr).open();
+                    })
 
                     const outlinksDiv = outlinksGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
                     outlinksDiv.id = "zk-outlinks";
@@ -317,129 +343,9 @@ export class ZKGraphView extends ItemView {
     }
 
     async getFamilyNodes(currentFile: TFile) {
+
         let familyNodeArr: ZKNode[] = [];
-        this.MainNotes = [];
-
-        this.mainNoteFiles = this.app.vault.getMarkdownFiles();
-
-        if (this.plugin.settings.FolderOfMainNotes !== '') {
-            this.mainNoteFiles = this.mainNoteFiles.filter(
-                file => {
-                    return file.path.replace(file.name, "").startsWith(this.plugin.settings.FolderOfMainNotes + '/');
-                })
-        }
-
-        if (this.plugin.settings.TagOfMainNotes !== '') {
-
-            this.mainNoteFiles = this.mainNoteFiles.filter(
-                file => {
-                    return this.app.metadataCache.getFileCache(file)?.frontmatter?.tags?.includes(
-                        this.plugin.settings.TagOfMainNotes.substring(1)
-                    );
-                }
-            )
-        }
-
-        for (let note of this.mainNoteFiles) {
-            let IDArr: string[] = [];
-
-            let node: ZKNode = {
-                ID: '',
-                IDArr: IDArr,
-                IDStr: '',
-                position: 0,
-                file: note,
-                title: '',
-                displayText: '',
-                ctime: '',
-            }
-
-            let nodeCache = this.app.metadataCache.getFileCache(note);
-
-            switch (this.plugin.settings.IDFieldOption) {
-                case "1":
-                    node.ID = note.basename;
-
-                    node.IDArr = await this.ID_formatting(node.ID, node.IDArr);
-
-                    node.IDStr = IDArr.toString();
-                    if (nodeCache !== null) {
-                        if (typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.TitleField !== "") {
-                            let title = nodeCache.frontmatter[this.plugin.settings.TitleField]?.toString();
-                            if (typeof title == "string" && title.length > 0) {
-                                node.title = title;
-                            }
-                        }
-                    }
-                    break;
-                case "2":
-                    if (nodeCache !== null) {
-                        if (typeof nodeCache.frontmatter !== 'undefined' && this.plugin.settings.IDField !== "") {
-                            let id = nodeCache.frontmatter[this.plugin.settings.IDField];
-                            if (typeof id == "string" && id.length > 0) {
-                                node.ID = id;
-                                node.IDArr = await this.ID_formatting(node.ID, node.IDArr);
-                                node.IDStr = node.IDArr.toString();
-                                node.title = note.basename;
-                            }
-                        }
-                    }
-                    if (node.ID == '') {
-                        continue;
-                    }
-                    break;
-                case "3":
-                    node.ID = note.basename.split(this.plugin.settings.Separator)[0];
-                    node.IDArr = await this.ID_formatting(node.ID, node.IDArr);
-                    node.IDStr = IDArr.toString();
-                    if (node.ID.length < note.basename.length - 1) {
-                        node.title = note.basename.substring(node.ID.length + 1);
-                    }
-                    break;
-                default:
-                // do nothing
-            }
-
-            switch (this.plugin.settings.NodeText) {
-                case "id":
-                    node.displayText = node.ID;
-                    break;
-                case "title":
-                    if (node.title == "") {
-                        node.displayText = node.ID;
-                    } else {
-                        node.displayText = node.title;
-                    }
-                    break;
-                case "both":
-                    node.displayText = `${node.ID} ${node.title}`;
-                    break;
-                default:
-                //do nothing
-            }
-
-            if (this.plugin.settings.CustomCreatedTime != "") {
-                
-                let ctime = nodeCache?.frontmatter?.[this.plugin.settings.CustomCreatedTime];
- 
-                if(ctime){
-                     node.ctime = ctime.toString();
-                }             
-            }
-
-            if(node.ctime === ""){
-                node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')
-            }
-
-            this.MainNotes.push(node);
-        }
-        this.MainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
-
-        for (let i = 0; i < this.MainNotes.length; i++) {
-
-            this.MainNotes[i].position = i;
-
-        }
+        this.MainNotes = await mainNoteInit([], this.plugin);
 
         let currentNode = this.MainNotes.filter(n => n.file == currentFile)[0];
 
@@ -470,36 +376,6 @@ export class ZKGraphView extends ItemView {
         }
 
         return familyNodeArr;
-    }
-
-    async ID_formatting(id: string, arr: string[]): Promise<string[]> {
-        if (/^[0-9]$/.test(id[0])) {
-            let numStr = id.match(/\d+/g);
-            if (numStr && numStr.length > 0) {
-                arr.push(numStr[0].padStart(4, "0"));
-                let len = numStr[0].length;
-                if (len < id.length) {
-                    return await this.ID_formatting(id.slice(len), arr);
-                } else {
-                    return arr;
-                }
-            } else {
-                return arr;
-            }
-        } else if (/^[a-zA-Z]$/.test(id[0])) {
-            arr.push(id[0])
-            if (id.length === 1) {
-                return arr;
-            } else {
-                return await this.ID_formatting(id.slice(1), arr);
-            }
-        } else {
-            if (id.length === 1) {
-                return arr;
-            } else {
-                return await this.ID_formatting(id.slice(1), arr);
-            }
-        }
     }
 
     async getInlinks(currentFile: TFile) {
@@ -581,8 +457,10 @@ export class ZKGraphView extends ItemView {
                 mermaidStr = mermaidStr + `${linkArr.length} --> ${i};\n`;
             }
         }
-
+        
         return mermaidStr;
+
+        
 
     }
 

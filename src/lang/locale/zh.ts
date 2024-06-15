@@ -21,8 +21,10 @@ export default {
     "zk-index-graph-view": "关键词分支视图",
     "Name of index button": "按钮名称",
     "Suggest mode of index modal": "关键词查找模式",
+    "Suggest mode of main note modal": "主笔记查找模式",
     "Keyword Order": "顺序查找",
     "Fuzzy Suggest": "模糊查找",
+    "ID Order": "顺序查找",
     "Set red dash line for nodes with ID ends with letter": "ID为字母结尾的节点设置红色虚线框",
     "In order to distinguish nodes which ID ends with letter and number": "区分: 数字结尾ID vs 字母结尾ID",
     "Fold node toggle": "折叠开关",
@@ -55,6 +57,7 @@ export default {
     "Name of main note button": "按钮名称",
     "Custom created time(optional)": "主笔记创建时间（自定义字段）",
     "Specify a frontmatter field for time of note created time": "指定一个属性字段作为主笔记的创建时间",
+    "export markdown list": "导出列表",
 
     // indexView.ts
     "Display from : ": "起点：",
@@ -82,6 +85,7 @@ export default {
     "close relative": "邻近",
     "inlinks": "入链",
     "outlinks": "出链",
+    "expand graph": "放大显示",
 
     //main.ts
     "open zk-index-graph": "打开关键词分支视图",
@@ -90,6 +94,7 @@ export default {
     "zk-local-graph": "局部关系视图", 
     "Main notes": "📄主笔记",
     '📖index': '📖关键词',
+    "Copy zk-navigation URI":"复制 zk-navigation 链接",
 
     //indexModal.ts
     "Index folder not set!": "关键词文件夹没有设置!",

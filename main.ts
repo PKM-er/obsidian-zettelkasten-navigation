@@ -1,9 +1,8 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin, TFile } from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNavigationSettngTab } from "src/settings/settings";
-import { ZK_TABLE_TYPE, ZKTableView } from "src/view/tableView";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
-import { ZKIndexView, ZKNode, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
+import { ZKIndexView, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
 
 export interface FoldNode{
     graphID: string;
@@ -66,6 +65,8 @@ interface ZKNavigationSettings {
     SelectMainNote: string;
     RefreshViews: boolean;
     settingIcon:boolean;
+    MainNoteSuggestMode: string;
+    ExportList: boolean;
 }
 
 //Default value for setting field
@@ -112,12 +113,13 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     SelectMainNote: '',
     RefreshViews: false,
     settingIcon:true,
+    MainNoteSuggestMode: 'fuzzySuggest',
+    ExportList:false,
 }
 
 export default class ZKNavigationPlugin extends Plugin {
 
     settings: ZKNavigationSettings;
-    tableArr:ZKNode[]
 
     async loadSettings() {
         this.settings = Object.assign(
@@ -130,6 +132,78 @@ export default class ZKNavigationPlugin extends Plugin {
     async onload() {
 
         await this.loadSettings();
+        
+        this.registerObsidianProtocolHandler("zk-navigation",async (para)=>{
+
+            if(para.file){             
+                
+                let file = this.app.vault.getFileByPath(para.file);
+
+                if(!file){
+                    new Notice(`zk-navigation: file "${para.file}" can't be found!`);
+                    return;
+
+                } 
+
+                let indexFlag:boolean = false;
+
+                if(this.settings.FolderOfIndexes !== ""){
+                    if(para.file.startsWith(this.settings.FolderOfIndexes)){
+                        indexFlag = true;
+                        this.settings.SelectIndex = para.file;
+                        this.settings.SelectMainNote = "";
+                        this.settings.zoomPanScaleArr = [];
+                        this.settings.BranchTab = 0;
+                        this.settings.FoldNodeArr = [];                    
+                        this.saveData(this.settings);
+                        await this.openIndexView();
+                    }
+                }
+
+                if(!indexFlag){
+                    this.settings.SelectMainNote = para.file;
+                    this.settings.SelectIndex = "";
+                    this.settings.zoomPanScaleArr = [];
+                    this.settings.BranchTab = 0;
+                    this.settings.FoldNodeArr = [];                    
+                    this.saveData(this.settings);
+                    await this.openIndexView();
+                }
+
+            } else {
+                new Notice(`zk-navigation: invalid uri`);
+            }
+        })
+
+        this.registerEvent(
+            this.app.workspace.on("file-menu", (menu, file, source) => {
+                console.log(source);
+
+                if (
+                    !(
+                        source === "more-options" ||
+                        source === "tab-header" ||
+                        source == "file-explorer-context-menu"
+                    )
+                ) {
+                    return;
+                }
+
+                if (!(file instanceof TFile)) {
+                    return;
+                }
+
+                menu.addItem((item) => {
+                    item.setTitle(t("Copy zk-navigation URI"))
+                        .setIcon("copy")
+                        .setSection("info")
+                        .onClick(() =>
+                            
+                            navigator.clipboard.writeText(`obsidian://zk-navigation?file=${encodeURI(file.path)}`)
+                        );
+                });
+            })
+        );
 
         this.addSettingTab(new ZKNavigationSettngTab(this.app, this));
 
@@ -137,21 +211,14 @@ export default class ZKNavigationPlugin extends Plugin {
 
         this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf, this));
       
-        this.registerView(ZK_TABLE_TYPE, (leaf) => new ZKTableView(leaf, this, this.tableArr));
-
         this.addRibbonIcon("ghost", t("open zk-index-graph"), async () => {
-            if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length > 0){     
-
-                await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);   
-            }
+            
             this.openIndexView();
             
         })
 
         this.addRibbonIcon("network", t("open zk-local-graph"), async () => {
-            if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length > 0){
-                await this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
-            }
+            
             this.openGraphView();
         });
 
@@ -159,10 +226,7 @@ export default class ZKNavigationPlugin extends Plugin {
             id: "zk-index-graph",
             name: t("open zk-index-graph"),
             callback:async ()=>{
-                if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length > 0){     
                 
-                await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);   
-                }
                 this.openIndexView();
             }
         });
@@ -171,9 +235,7 @@ export default class ZKNavigationPlugin extends Plugin {
             id: "zk-local-graph",
             name: t("open zk-local-graph"),
             callback: async ()=>{
-                if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length > 0){
-                    await this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
-                }
+                
                 this.openGraphView();
             }
         });
@@ -189,6 +251,11 @@ export default class ZKNavigationPlugin extends Plugin {
 
     async openIndexView() {
 
+        if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length > 0){     
+                
+            await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);   
+        }
+
         let leaf = this.app.workspace.getLeaf('tab');
         if (leaf != null) {
             await leaf.setViewState({
@@ -200,6 +267,10 @@ export default class ZKNavigationPlugin extends Plugin {
     }
 
     async openGraphView() {
+
+        if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length > 0){
+            await this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
+        }
         
         let leaf = this.app.workspace.getRightLeaf(false);
         if (leaf != null) {
@@ -211,32 +282,16 @@ export default class ZKNavigationPlugin extends Plugin {
         }
     }
 
-    async openTableView() {
-
-        if(this.app.workspace.getLeavesOfType(ZK_TABLE_TYPE).length > 0){   
-
-            await this.app.workspace.detachLeavesOfType(ZK_TABLE_TYPE);
-            
-        }
-
-        let leaf = this.app.workspace.getLeaf('tab');
-        if (leaf != null) {
-            await leaf.setViewState({
-                type: ZK_TABLE_TYPE,
-                active: true,
-            })
-            this.app.workspace.revealLeaf(leaf);
-        }
-    }
-
     async refreshViews(){
         if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length > 0){              
             await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);              
-            await this.openIndexView();
+            await this.openIndexView();            
+            this.settings.RefreshViews = false;
         }       
 
     }
 
     onunload() {
+        this.saveData(this.settings);
     }
 }

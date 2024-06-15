@@ -167,8 +167,19 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         this.plugin.settings.RefreshViews = true;
                     })
             );
+
+        new Setting(MainNoteButtonDiv)
+            .setName(t("Suggest mode of main note modal"))
+            .addDropdown(options => options
+                .addOption("IDOrder", t("ID Order"))
+                .addOption("fuzzySuggest", t("Fuzzy Suggest"))
+                .setValue(this.plugin.settings.MainNoteSuggestMode)
+                .onChange((value) => {
+                    this.plugin.settings.MainNoteSuggestMode = value;
+                })
+            )  
             
-            new Setting(retrievalDiv)
+        new Setting(retrievalDiv)
             .setName(t("Index button"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.IndexButton)
                 .onChange((value) => {
@@ -351,7 +362,16 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.settings.TableView = value;
                     this.plugin.settings.RefreshViews = true;
                 }) 
-            )        
+            )     
+        
+        new Setting(branchToolbarDiv)
+            .setName(t("export markdown list"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.ExportList)
+                .onChange((value) =>{
+                    this.plugin.settings.ExportList = value;
+                    this.plugin.settings.RefreshViews = true;
+                }) 
+            )
 
         const localGraphView = settingTabDiv.createDiv("zk-setting-section");
         //new Setting(settingTabDiv).setName(t("zk-local-graph-view")).setHeading(); 
@@ -556,7 +576,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
     async hide() {
         if(this.plugin.settings.RefreshViews === true){
             this.plugin.refreshViews();
-            this.plugin.settings.RefreshViews = false;
         }
         this.plugin.saveData(this.plugin.settings);
     }
