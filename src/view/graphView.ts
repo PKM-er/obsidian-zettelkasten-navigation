@@ -345,7 +345,7 @@ export class ZKGraphView extends ItemView {
     async getFamilyNodes(currentFile: TFile) {
 
         let familyNodeArr: ZKNode[] = [];
-        this.MainNotes = await mainNoteInit([], this.plugin);
+        this.MainNotes = await mainNoteInit(this.plugin);
 
         let currentNode = this.MainNotes.filter(n => n.file == currentFile)[0];
 

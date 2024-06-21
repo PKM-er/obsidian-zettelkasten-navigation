@@ -34,10 +34,10 @@ export async function ID_formatting(id: string, arr: string[]): Promise<string[]
 }
 
 // translating different ID fields(filename/attribute/prefix of filename) into standard ZKNode array
-
-export async function mainNoteInit(MainNotes:ZKNode[], plugin:ZKNavigationPlugin): Promise<ZKNode[]> {
+export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]> {
 
     let mainNoteFiles:TFile[] = this.app.vault.getMarkdownFiles();
+    let mainNotes:ZKNode[] = [];
 
     if (plugin.settings.FolderOfMainNotes !== '') {
         mainNoteFiles = mainNoteFiles.filter(
@@ -152,17 +152,17 @@ export async function mainNoteInit(MainNotes:ZKNode[], plugin:ZKNavigationPlugin
             node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
         }
 
-        MainNotes.push(node);
+        mainNotes.push(node);
     }
 
-    MainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
+    mainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
 
-    for (let i = 0; i < MainNotes.length; i++) {
+    for (let i = 0; i < mainNotes.length; i++) {
 
-        MainNotes[i].position = i;
+        mainNotes[i].position = i;
 
     }
 
-    return MainNotes;
+    return mainNotes;
 
 }

@@ -97,13 +97,21 @@ addLinkAndPreview(){
     if(tableDiv !== null){
         let links = tableDiv.getElementsByTagName("a");
         for(let i=0;i<links.length;i++){
-            let linkStr = links[i].getAttribute("href");
-            if(typeof linkStr == 'string'){
+            let href = links[i].getAttribute("href");
+            if(href){
+                let linkStr:string = href;
+
+                let node = this.tableArr.find(n=>n.ID == linkStr)
+
+                if(node){
+                    linkStr =  node.file.basename;
+                }
+
                 links[i].addEventListener('click', (event:MouseEvent)=>{
                     if(event.ctrlKey){
-                        this.app.workspace.openLinkText(linkStr?linkStr:"","",'tab');              
+                        this.app.workspace.openLinkText(linkStr,"",'tab');              
                     }else{
-                        this.app.workspace.openLinkText(linkStr?linkStr:"","");
+                        this.app.workspace.openLinkText(linkStr,"");
                     }
                     
                 })

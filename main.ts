@@ -21,6 +21,12 @@ export interface ZoomPanScale{
     pan:Point;
 }
 
+export interface History {
+    displayText: string;
+    filePath: string;
+    openTime: string;
+}
+
 //settings fields
 interface ZKNavigationSettings {
     FolderOfMainNotes: string;
@@ -66,7 +72,12 @@ interface ZKNavigationSettings {
     RefreshViews: boolean;
     settingIcon:boolean;
     MainNoteSuggestMode: string;
-    ExportList: boolean;
+    ListTree: boolean;
+    HistoryList: History[];
+    HistoryToggle: boolean;
+    HistoryMaxCount: number;
+    HistoryListShow: boolean;
+    ListTreeShow: boolean;
 }
 
 //Default value for setting field
@@ -112,9 +123,14 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     MainNoteButtonText: t("Main notes"),
     SelectMainNote: '',
     RefreshViews: false,
-    settingIcon:true,
+    settingIcon: true,
     MainNoteSuggestMode: 'fuzzySuggest',
-    ExportList:false,
+    ListTree: true,
+    HistoryList: [],
+    HistoryToggle: true,
+    HistoryMaxCount: 20,
+    HistoryListShow: false,
+    ListTreeShow: false,
 }
 
 export default class ZKNavigationPlugin extends Plugin {

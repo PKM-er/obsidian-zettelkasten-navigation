@@ -365,13 +365,31 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             )     
         
         new Setting(branchToolbarDiv)
-            .setName(t("export markdown list"))
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.ExportList)
+            .setName(t("list tree"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.ListTree)
                 .onChange((value) =>{
-                    this.plugin.settings.ExportList = value;
+                    this.plugin.settings.ListTree = value;
                     this.plugin.settings.RefreshViews = true;
                 }) 
             )
+
+        new Setting(branchToolbarDiv)
+            .setName(t("History List"))
+            .setDesc(t("And set the list length"))
+            .addSlider((cb) =>{
+                cb.setLimits(10,50,5)
+                .setValue(this.plugin.settings.HistoryMaxCount)
+                .setDynamicTooltip()
+                .onChange(async (value) =>{
+                    this.plugin.settings.HistoryMaxCount = value;
+
+                })
+            }).addToggle(toggle => toggle.setValue(this.plugin.settings.HistoryToggle)
+            .onChange((value) =>{
+                this.plugin.settings.HistoryToggle = value;
+                this.plugin.settings.RefreshViews = true;
+            }) 
+        )
 
         const localGraphView = settingTabDiv.createDiv("zk-setting-section");
         //new Setting(settingTabDiv).setName(t("zk-local-graph-view")).setHeading(); 

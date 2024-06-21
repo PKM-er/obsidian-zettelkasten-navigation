@@ -10,14 +10,14 @@ export interface ZKIndex {
 }
 
 export class indexModal extends SuggestModal<ZKIndex> {
-  index: String;
-  onSubmit: (index: String) => void;
+  index: ZKIndex;
+  onSubmit: (index: ZKIndex) => void;
   ALL_ZKIndex: ZKIndex[];
   plugin: ZKNavigationPlugin;
   query: string
   MainNotes: ZKNode[];
 
-  constructor(app: App, plugin: ZKNavigationPlugin, MainNotes: ZKNode[], onSubmit: (index: string) => void) {
+  constructor(app: App, plugin: ZKNavigationPlugin, MainNotes: ZKNode[], onSubmit: (index: ZKIndex) => void) {
     super(app);
     this.onSubmit = onSubmit;
     this.plugin = plugin;
@@ -88,20 +88,20 @@ export class indexModal extends SuggestModal<ZKIndex> {
   }
 
   onChooseSuggestion(index: ZKIndex, evt: MouseEvent | KeyboardEvent) {
-    this.index = index.path;
+    this.index = index;
     this.onSubmit(this.index);
   }
 }
 
 export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
 
-  index: String;
-  onSubmit: (index: String) => void;
+  index: ZKIndex;
+  onSubmit: (index: ZKIndex) => void;
   ALL_ZKIndex: ZKIndex[];
   plugin: ZKNavigationPlugin;
   MainNotes: ZKNode[];
 
-  constructor(app: App, plugin: ZKNavigationPlugin, MainNotes: ZKNode[], onSubmit: (index: string) => void) {
+  constructor(app: App, plugin: ZKNavigationPlugin, MainNotes: ZKNode[], onSubmit: (index: ZKIndex) => void) {
     super(app);
     this.onSubmit = onSubmit;
     this.plugin = plugin;
@@ -168,7 +168,7 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
 
   onChooseItem(index: ZKIndex, evt: MouseEvent | KeyboardEvent) {
     
-    this.index = index.path;
+    this.index = index;
     this.onSubmit(this.index);
   }
 }
