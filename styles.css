@@ -38,13 +38,12 @@ padding: 5px;
   padding-left: 10px;
   padding-right: 15px;
   width: auto;
-  left: 1%;
 }
 
 .zk-tool-buttons {
   position: fixed;
   border-radius: 5px;
-  right: 1%;
+  right: 10px;
   display: flex;
   justify-content: center;
 }

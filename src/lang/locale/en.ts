@@ -98,6 +98,7 @@ export default {
     "Main notes": "📄Main notes",
     '📖index': '📖index',
     "Copy zk-navigation URI":"Copy zk-navigation URI",
+    "reveal current file in zk-index-graph": "reveal current file in zk-index-graph",
 
     //indexModal.ts
     "Index folder not set!": "Index folder not set!",

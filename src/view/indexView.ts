@@ -151,7 +151,7 @@ export class ZKIndexView extends ItemView {
         nodeTextDiv.createEl("b", { text: t("Text : ") });
         const nodeText = new DropdownComponent(nodeTextDiv);
         nodeText
-            .addOption("id", "ID")
+            .addOption("id", "id")
             .addOption("title", t("title"))
             .addOption("both", t("both"))
             .setValue(this.plugin.settings.NodeText)
@@ -338,6 +338,8 @@ export class ZKIndexView extends ItemView {
                     }
                     
                     await this.refreshListTree();
+                    this.plugin.settings.zoomPanScaleArr = [];
+                    await this.refreshBranchMermaid();
                 })
 
             }  
@@ -357,8 +359,10 @@ export class ZKIndexView extends ItemView {
                         this.plugin.settings.HistoryListShow = false;
                     }else{                      
                         this.plugin.settings.HistoryListShow = true;
+                        
                     }
-                    await this.refreshHistoryList();
+                    this.plugin.settings.zoomPanScaleArr = [];
+                    await this.refreshBranchMermaid();
                 })
 
                 await this.refreshHistoryList();
@@ -588,13 +592,14 @@ export class ZKIndexView extends ItemView {
                                     foldIcon.textContent = "🟢";
                                 }
                           
-                                foldIcon.addEventListener("click", async () => {
+                                foldIcon.addEventListener("click", async (event) => {
 
+                                    
                                     let foldNode: FoldNode = {
                                         graphID: zkGraph.id,
                                         nodeIDstr: node.IDStr,
                                         position: node.position,
-                                    };
+                                    };                         
 
                                     if ((this.plugin.settings.FoldNodeArr.length === 0)) {
                                         if (this.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
@@ -613,6 +618,14 @@ export class ZKIndexView extends ItemView {
                                             );
                                         }
                                     }
+
+                                    if(foldIcon.textContent === "🟢" && event.ctrlKey){
+                                        this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(
+                                            n=>!n.nodeIDstr.startsWith(foldNode.nodeIDstr)
+                                        )                       
+                                    }                 
+                                    event.stopPropagation();
+
                                     await this.refreshBranchMermaid();
 
                                 })
@@ -881,7 +894,7 @@ export class ZKIndexView extends ItemView {
         if(this.plugin.settings.HistoryListShow === true){
             historyListDiv.setAttribute("style","display:block") ;
         }else{
-            historyListDiv.setAttribute("style","display:none") ;
+            historyListDiv.setAttribute("style","display:none") ; 
         }
         
     }
@@ -1001,6 +1014,7 @@ export class ZKIndexView extends ItemView {
             listTreeDiv.setAttribute("style","display:block") ;
         }else{
             listTreeDiv.setAttribute("style","display:none") ;
+            await this.refreshBranchMermaid();
         }
     }
 

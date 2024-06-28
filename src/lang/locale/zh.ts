@@ -36,7 +36,7 @@ export default {
     "Mermaid graph to display inlinks": "显示当前笔记及其所有入链",
     "Open outlinks graph": "打开出链视图",
     "Mermaid graph to display outlinks": "显示当前笔记及其所有出链",
-    "Height of branch graph": "分支视图高度",
+    "Height of branch graph": "关键词分支视图高度",
     "Enter a number to set the height of graph in pixels.": "输入一个像素值来设置视图的高度.",
     "all file extension": "检索所有类型出链",
     ".md only": "仅检索.md类型出链",
@@ -51,7 +51,7 @@ export default {
     '"BT": bottom to top': '"BT": 从下到上',
     "Detect file extensions": "限定出链的文件类型",
     "Toolbar": "图标工具栏",
-    "Open the icons(commands) in the branch graph.":"打开分支视图的图标命令栏.",
+    "Open the icons(commands) in the branch graph.":"打开关键词分支视图的图标命令栏.",
     "Index button": "关键词检索按钮",
     "Main Notes button": "主笔记检索按钮",
     "Name of main note button": "按钮名称",
@@ -97,6 +97,7 @@ export default {
     "Main notes": "📄主笔记",
     '📖index': '📖关键词',
     "Copy zk-navigation URI":"复制 zk-navigation 链接",
+    "reveal current file in zk-index-graph": "在关键词分支视图显示当前文件",
 
     //indexModal.ts
     "Index folder not set!": "关键词文件夹没有设置!",

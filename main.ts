@@ -1,4 +1,4 @@
-import { Notice, Plugin, TFile } from "obsidian";
+import { FileView, Notice, Plugin, TFile } from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNavigationSettngTab } from "src/settings/settings";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
@@ -161,6 +161,16 @@ export default class ZKNavigationPlugin extends Plugin {
 
                 } 
 
+                if(para.from && ["root","father","branch"].includes(para.from)){
+                    this.settings.StartingPoint = para.from;
+                }
+                if(para.to && ["next","end"].includes(para.to)){
+                    this.settings.DisplayLevel = para.to;
+                }
+                if(para.text && ["id","title","both"].includes(para.text)){
+                    this.settings.NodeText = para.text;
+                }
+
                 let indexFlag:boolean = false;
 
                 if(this.settings.FolderOfIndexes !== ""){
@@ -170,8 +180,7 @@ export default class ZKNavigationPlugin extends Plugin {
                         this.settings.SelectMainNote = "";
                         this.settings.zoomPanScaleArr = [];
                         this.settings.BranchTab = 0;
-                        this.settings.FoldNodeArr = [];                    
-                        this.saveData(this.settings);
+                        this.settings.FoldNodeArr = [];  
                         await this.openIndexView();
                     }
                 }
@@ -181,8 +190,7 @@ export default class ZKNavigationPlugin extends Plugin {
                     this.settings.SelectIndex = "";
                     this.settings.zoomPanScaleArr = [];
                     this.settings.BranchTab = 0;
-                    this.settings.FoldNodeArr = [];                    
-                    this.saveData(this.settings);
+                    this.settings.FoldNodeArr = [];  
                     await this.openIndexView();
                 }
 
@@ -255,6 +263,42 @@ export default class ZKNavigationPlugin extends Plugin {
                 this.openGraphView();
             }
         });
+
+        this.addCommand({
+            id: "zk-index-graph-by-file",
+            name: t("reveal current file in zk-index-graph"),
+            callback: async ()=>{
+                let filePath = this.app.workspace.getActiveViewOfType(FileView)?.file?.path
+                
+                if(filePath && filePath.endsWith(".md")){
+
+                    let indexFlag:boolean = false;
+
+                    if(this.settings.FolderOfIndexes !== ""){
+                        if(filePath.startsWith(this.settings.FolderOfIndexes)){
+                            indexFlag = true;
+                            this.settings.SelectIndex = filePath;
+                            this.settings.SelectMainNote = "";
+                            this.settings.zoomPanScaleArr = [];
+                            this.settings.BranchTab = 0;
+                            this.settings.FoldNodeArr = [];  
+                            await this.openIndexView();
+                        }
+                    }
+    
+                    if(!indexFlag){
+                        this.settings.SelectMainNote = filePath;
+                        this.settings.SelectIndex = "";
+                        this.settings.zoomPanScaleArr = [];
+                        this.settings.BranchTab = 0;
+                        this.settings.FoldNodeArr = []; 
+                        await this.openIndexView();
+                    }
+
+                    return;
+                }
+            }
+        })
 
         this.registerHoverLinkSource(
         ZK_NAVIGATION,
