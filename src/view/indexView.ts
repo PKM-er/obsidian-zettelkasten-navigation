@@ -1,5 +1,5 @@
 import ZKNavigationPlugin, { FoldNode, ZoomPanScale } from "main";
-import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Notice, TFile, WorkspaceLeaf, loadMermaid, moment } from "obsidian";
+import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid, moment } from "obsidian";
 import { t } from "src/lang/helper";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
 import { mainNoteFuzzyModal, mainNoteModal } from "src/modal/mainNoteModal";
@@ -44,11 +44,16 @@ export class ZKIndexView extends ItemView {
         return "ghost";
     }
     
+    onResize():void{
+        //await this.refreshIndexLayout();
+        this.refreshBranchMermaid();
+    }
 
     async IndexViewInterfaceInit() {
         
         let { containerEl } = this;
         containerEl.empty();
+        containerEl.addClass("zk-view-content");
 
         const toolbarDiv = containerEl.createDiv("zk-index-toolbar");
 
@@ -168,46 +173,36 @@ export class ZKIndexView extends ItemView {
         this.registerEvent(this.app.workspace.on("active-leaf-change", async(leaf)=>{  
             
             if(leaf?.view.getViewType() == ZK_INDEX_TYPE){
-                if(this.plugin.settings.RefreshViews == true){                         
+                if(this.plugin.settings.RefreshIndexViewFlag == true){                         
                     await this.IndexViewInterfaceInit();
-                    this.plugin.settings.RefreshViews = false;
-                }else{
-                    
-                    let svgAbc = document.getElementsByClassName("svg-pan-zoom_viewport")[0];
-                    
-                    let a = svgAbc.getAttr("style"); 
-                    if(a){
-                        let b = a.match(/\d([^\,]+)\d/g)
-                        if(b === null){
-                            await this.IndexViewInterfaceInit();
-                            this.plugin.settings.RefreshViews = false; 
-                        }
-                    }
-                } 
+                    this.plugin.settings.RefreshIndexViewFlag = false;
+                }
             }             
         }));
 
         this.registerEvent(this.app.vault.on("rename", async ()=>{
-            this.plugin.settings.RefreshViews = true;
+            this.plugin.settings.RefreshIndexViewFlag = true;
         }));
 
         this.registerEvent(this.app.vault.on("create", async ()=>{
-            this.plugin.settings.RefreshViews = true;
+            this.plugin.settings.RefreshIndexViewFlag = true;
         }));
 
         this.registerEvent(this.app.vault.on("delete", async ()=>{
-            this.plugin.settings.RefreshViews = true;
+            this.plugin.settings.RefreshIndexViewFlag = true;
         }));      
         
         this.registerEvent(this.app.metadataCache.on("changed", async()=>{
             
-            this.plugin.settings.RefreshViews = true;
+            this.plugin.settings.RefreshIndexViewFlag = true;
         }));
 
         this.registerEvent(this.app.metadataCache.on("deleted", async()=>{
-            this.plugin.settings.RefreshViews = true;
+            this.plugin.settings.RefreshIndexViewFlag = true;
         }));
 
+        const refresh = debounce(this.refreshIndexLayout, 300, true);
+        this.registerEvent(this.app.workspace.on("zk-navigation:refresh-index-graph", refresh));
     }
 
     async onOpen() {
@@ -225,7 +220,7 @@ export class ZKIndexView extends ItemView {
         } 
     }
 
-    async refreshIndexLayout(){
+    refreshIndexLayout = async() => {
 
         if (this.plugin.settings.FolderOfMainNotes == '' && this.plugin.settings.TagOfMainNotes == '') {
 
@@ -234,7 +229,7 @@ export class ZKIndexView extends ItemView {
         } else {            
             
             await this.IndexViewInterfaceInit();
-            this.plugin.settings.RefreshViews = false;
+            this.plugin.settings.RefreshIndexViewFlag = false;
             
         }
     }
@@ -338,7 +333,7 @@ export class ZKIndexView extends ItemView {
                     }
                     
                     await this.refreshListTree();
-                    this.plugin.settings.zoomPanScaleArr = [];
+                    await this.clearShowingSettings();
                     await this.refreshBranchMermaid();
                 })
 
@@ -361,11 +356,10 @@ export class ZKIndexView extends ItemView {
                         this.plugin.settings.HistoryListShow = true;
                         
                     }
-                    this.plugin.settings.zoomPanScaleArr = [];
+                    await this.refreshHistoryList();
+                    await this.clearShowingSettings();
                     await this.refreshBranchMermaid();
                 })
-
-                await this.refreshHistoryList();
             } 
 
         }  
@@ -451,8 +445,8 @@ export class ZKIndexView extends ItemView {
                 }else{                    
                     zkGraph.children[0].setAttribute('width', "100%");
                 }
-
-                zkGraph.children[0].setAttr('height', `${this.plugin.settings.HeightOfBranchGraph}px`); 
+                
+                zkGraph.children[0].setAttr('height', `${this.containerEl.offsetHeight - 100}px`); 
                 
                 indexMermaidDiv.appendChild(zkGraph); 
                 
@@ -553,23 +547,34 @@ export class ZKIndexView extends ItemView {
                             link.textContent = nodeArr[i].getText();
                             nodeArr[i].textContent = "";
                             nodeArr[i].appendChild(link);
-                            nodeArr[i].addEventListener("click", (event: MouseEvent) => {
+                            
+                            nodeArr[i].addEventListener("click", async (event: MouseEvent) => {
                                 if (event.ctrlKey) {
                                     this.app.workspace.openLinkText("", node.file.path, 'tab');
-                                } else {
-                                    this.app.workspace.openLinkText("", node.file.path)
+                                    event.stopPropagation();
                                 }
-                                event.stopPropagation();
                             })
 
-                            nodeGArr[i].addEventListener("click", (event: MouseEvent) => {
+                            nodeGArr[i].addEventListener("click", async (event: MouseEvent) => {
                                 if (event.ctrlKey) {
                                     navigator.clipboard.writeText(node.ID)
                                     new Notice(node.ID + " copied")
+                                }else if(event.shiftKey){
+                                    this.plugin.settings.SelectIndex = "";
+                                    this.plugin.settings.SelectMainNote = node.file.path;
+                                    await this.clearShowingSettings();
+                                    await this.unshiftHistoryList(node.displayText, node.file.path);
+                                    await this.IndexViewInterfaceInit();
+                                }else if(event.altKey){
+
+                                    this.plugin.FileforLocaLgraph = node.file.path;                                   
+                                    this.app.workspace.trigger("zk-navigation:refresh-local-graph");
+                                }else{
+                                    this.app.workspace.openLinkText("", node.file.path)
                                 }
                             })
 
-                            nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
+                            nodeGArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
                                 this.app.workspace.trigger(`hover-link`, {
                                     event,
                                     source: ZK_NAVIGATION,
@@ -661,6 +666,9 @@ export class ZKIndexView extends ItemView {
             await this.refreshListTree();
         }
         
+        if(this.plugin.settings.HistoryListShow === true){            
+            await this.refreshHistoryList();
+        }
 
     }
     
@@ -937,8 +945,20 @@ export class ZKIndexView extends ItemView {
             })
         });
 
-        treeItemSelf.addEventListener("click", (event: MouseEvent) => {            
+        treeItemSelf.addEventListener("click", async (event: MouseEvent) => {            
             if(event.ctrlKey){
+                navigator.clipboard.writeText(item.ID);
+                new Notice(item.ID + " copied");
+            }else if(event.shiftKey){
+                this.plugin.settings.SelectIndex = "";
+                this.plugin.settings.SelectMainNote = item.file.path;
+                await this.clearShowingSettings();
+                await this.unshiftHistoryList(item.displayText, item.file.path);
+                await this.IndexViewInterfaceInit();
+            }else if(event.altKey){
+                this.plugin.FileforLocaLgraph = item.file.path;
+                this.app.workspace.trigger("zk-navigation:refresh-local-graph");
+            }else{
                 this.app.workspace.openLinkText("", item.file.path);
             }
         })
@@ -983,7 +1003,8 @@ export class ZKIndexView extends ItemView {
         }
         
         let treeIteminner = treeItemSelf.createDiv("tree-item-inner");
-        treeIteminner.setText(`${item.ID}: ${item.title}`);
+        //treeIteminner.setText(`${item.ID}: ${item.title}`);
+        treeIteminner.setText(`${item.displayText}`);
 
         for(let i=0;i<children.length;i++){
             

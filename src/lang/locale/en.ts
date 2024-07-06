@@ -36,7 +36,6 @@ export default {
     "Mermaid graph to display inlinks": "Mermaid graph to display inlinks",
     "Open outlinks graph": "Open outlinks graph",
     "Mermaid graph to display outlinks": "Mermaid graph to display outlinks",
-    "Height of branch graph": "Height of branch graph",
     "Enter a number to set the height of graph in pixels.": "Enter a number to set the height of graph in pixels.",
     "all file extension": "all file extension",
     ".md only": ".md only",
@@ -60,7 +59,7 @@ export default {
     "Specify a frontmatter field for time of note created time": "Specify a frontmatter field for the time of main note creation",
     "History List": "recent retrieval",
     "And set the list length": "Set the max length",
-    "list tree": "list tree",
+    "list tree": "outline view",
     
     // indexView.ts
     "Display from : ": "Display from : ",

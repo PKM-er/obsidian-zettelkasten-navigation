@@ -142,7 +142,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.MainNoteButton)
                 .onChange((value) => {
                     this.plugin.settings.MainNoteButton = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                     this.display();
                 })
             ).addExtraButton((cb)=>{
@@ -164,7 +164,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 cb.setValue(this.plugin.settings.MainNoteButtonText)
                     .onChange((value) => {
                         this.plugin.settings.MainNoteButtonText = value;
-                        this.plugin.settings.RefreshViews = true;
+                        this.plugin.settings.RefreshIndexViewFlag = true;
                     })
             );
 
@@ -184,7 +184,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.IndexButton)
                 .onChange((value) => {
                     this.plugin.settings.IndexButton = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                     this.display();
                 })
             ).addExtraButton((cb)=>{
@@ -217,7 +217,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 cb.setValue(this.plugin.settings.IndexButtonText)
                     .onChange((value) => {
                         this.plugin.settings.IndexButtonText = value;
-                        this.plugin.settings.RefreshViews = true;
+                        this.plugin.settings.RefreshIndexViewFlag = true;
                     })
             );
         
@@ -250,25 +250,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         const branchSectionDiv = indexGraphView.createDiv("zk-local-section")
        
         new Setting(branchSectionDiv)
-        .setName(t("Height of branch graph"))
-        .setDesc(t("Enter a number to set the height of graph in pixels."))
-        .addText((cb) => {
-
-            cb.inputEl.placeholder = "530(defaulf)";
-            cb.setValue(this.plugin.settings.HeightOfBranchGraph.toString())
-                .onChange((value) => {
-                    if(/^[1-9]\d*$/.test(value)){
-                        this.plugin.settings.HeightOfBranchGraph = Number(value);
-                    }else{
-                        this.plugin.settings.HeightOfBranchGraph = 530;                        
-                    }
-                    this.plugin.settings.RefreshViews = true;
-                    
-                })
-            }
-        );
-
-        new Setting(branchSectionDiv)
         .setName(t("direction of graph"))
         .addDropdown(options => options
             .addOption("LR", t('"LR": feft to right'))
@@ -278,7 +259,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfBranchGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfBranchGraph = value;
-                this.plugin.settings.RefreshViews = true;
+                this.plugin.settings.RefreshIndexViewFlag = true;
             })
         );
 
@@ -288,7 +269,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.RedDashLine)
                 .onChange((value) => {
                     this.plugin.settings.RedDashLine = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 })
             );
 
@@ -298,7 +279,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FoldToggle)
                 .onChange((value) => {
                     this.plugin.settings.FoldToggle = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 })
             );
 
@@ -309,7 +290,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.BranchToolbra)
                 .onChange((value) =>{
                     this.plugin.settings.BranchToolbra = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 }) 
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
@@ -329,7 +310,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.settingIcon)
                     .onChange((value) =>{
                         this.plugin.settings.settingIcon = value;
-                        this.plugin.settings.RefreshViews = true;
+                        this.plugin.settings.RefreshIndexViewFlag = true;
                     }) 
                 )
 
@@ -339,7 +320,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomIndex)
                     .onChange((value) =>{
                         this.plugin.settings.RandomIndex = value;
-                        this.plugin.settings.RefreshViews = true;
+                        this.plugin.settings.RefreshIndexViewFlag = true;
                     }) 
                 )
         }
@@ -350,7 +331,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomMainNote)
                     .onChange((value) =>{
                         this.plugin.settings.RandomMainNote = value;
-                        this.plugin.settings.RefreshViews = true;
+                        this.plugin.settings.RefreshIndexViewFlag = true;
                     }) 
                 )
         }
@@ -360,7 +341,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.TableView)
                 .onChange((value) =>{
                     this.plugin.settings.TableView = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 }) 
             )     
         
@@ -369,7 +350,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.ListTree)
                 .onChange((value) =>{
                     this.plugin.settings.ListTree = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 }) 
             )
 
@@ -387,7 +368,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             }).addToggle(toggle => toggle.setValue(this.plugin.settings.HistoryToggle)
             .onChange((value) =>{
                 this.plugin.settings.HistoryToggle = value;
-                this.plugin.settings.RefreshViews = true;
+                this.plugin.settings.RefreshIndexViewFlag = true;
             }) 
         )
 
@@ -399,7 +380,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FamilyGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.FamilyGraphToggle = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 })
             ).addExtraButton((cb)=>{
                 
@@ -429,7 +410,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfFamilyGraph = 200;                        
                     }
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                     
                 })
             }
@@ -445,7 +426,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfFamilyGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfFamilyGraph = value;
-                this.plugin.settings.RefreshViews = true;
+                this.plugin.settings.RefreshIndexViewFlag = true;
             })
         );
 
@@ -455,7 +436,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.InlinksGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.InlinksGraphToggle = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
@@ -483,7 +464,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfInlinksGraph = 200;                        
                     }
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                     
                 })
             }
@@ -499,7 +480,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfInlinksGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfInlinksGraph = value;
-                this.plugin.settings.RefreshViews = true;
+                this.plugin.settings.RefreshIndexViewFlag = true;
             })
         );
 
@@ -509,7 +490,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.OutlinksGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.OutlinksGraphToggle = value;
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
@@ -537,7 +518,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfOutlinksGraph = 200;                        
                     }
-                    this.plugin.settings.RefreshViews = true;
+                    this.plugin.settings.RefreshIndexViewFlag = true;
                     
                 })
             }
@@ -553,7 +534,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfOutlinksGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfOutlinksGraph = value;
-                this.plugin.settings.RefreshViews = true;
+                this.plugin.settings.RefreshIndexViewFlag = true;
             })
         );
         
@@ -565,7 +546,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.FileExtension)
             .onChange((value) => {
                 this.plugin.settings.FileExtension = value;
-                this.plugin.settings.RefreshViews = true;
+                this.plugin.settings.RefreshIndexViewFlag = true;
             })
         )
         
@@ -592,8 +573,8 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
     }
 
     async hide() {
-        if(this.plugin.settings.RefreshViews === true){
-            this.plugin.refreshViews();
+        if(this.plugin.settings.RefreshIndexViewFlag === true){
+            this.app.workspace.trigger("zk-navigation:refresh-index-graph");
         }
         this.plugin.saveData(this.plugin.settings);
     }

@@ -51,7 +51,6 @@ interface ZKNavigationSettings {
     zoomPanScaleArr:ZoomPanScale[];
     CustomCreatedTime: string;
     BranchTab: number;
-    HeightOfBranchGraph:number;
     FileExtension:string; // "all" or ".md only"
     SectionTab:number;    
     HeightOfFamilyGraph: number;
@@ -69,7 +68,7 @@ interface ZKNavigationSettings {
     MainNoteButton: boolean;
     MainNoteButtonText: string;
     SelectMainNote: string;
-    RefreshViews: boolean;
+    RefreshIndexViewFlag: boolean;
     settingIcon:boolean;
     MainNoteSuggestMode: string;
     ListTree: boolean;
@@ -104,7 +103,6 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     zoomPanScaleArr:[],
     CustomCreatedTime: '',
     BranchTab: 0,
-    HeightOfBranchGraph: 530,
     FileExtension: "md",
     SectionTab: 0,
     HeightOfFamilyGraph: 200,
@@ -122,7 +120,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     MainNoteButton: true,
     MainNoteButtonText: t("Main notes"),
     SelectMainNote: '',
-    RefreshViews: false,
+    RefreshIndexViewFlag: false,
     settingIcon: true,
     MainNoteSuggestMode: 'fuzzySuggest',
     ListTree: true,
@@ -136,6 +134,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
 export default class ZKNavigationPlugin extends Plugin {
 
     settings: ZKNavigationSettings;
+    FileforLocaLgraph: string = "";
 
     async loadSettings() {
         this.settings = Object.assign(
@@ -172,7 +171,7 @@ export default class ZKNavigationPlugin extends Plugin {
                 }
 
                 let indexFlag:boolean = false;
-
+                
                 if(this.settings.FolderOfIndexes !== ""){
                     if(para.file.startsWith(this.settings.FolderOfIndexes)){
                         indexFlag = true;
@@ -182,6 +181,7 @@ export default class ZKNavigationPlugin extends Plugin {
                         this.settings.BranchTab = 0;
                         this.settings.FoldNodeArr = [];  
                         await this.openIndexView();
+                        this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }
                 }
 
@@ -192,6 +192,7 @@ export default class ZKNavigationPlugin extends Plugin {
                     this.settings.BranchTab = 0;
                     this.settings.FoldNodeArr = [];  
                     await this.openIndexView();
+                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 }
 
             } else {
@@ -234,7 +235,7 @@ export default class ZKNavigationPlugin extends Plugin {
         this.registerView(ZK_INDEX_TYPE, (leaf) => new ZKIndexView(leaf, this));
 
         this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf, this));
-      
+              
         this.addRibbonIcon("ghost", t("open zk-index-graph"), async () => {
             
             this.openIndexView();
@@ -311,44 +312,29 @@ export default class ZKNavigationPlugin extends Plugin {
 
     async openIndexView() {
 
-        if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length > 0){     
-                
-            await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);   
+        if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length === 0){
+         await this.app.workspace.getLeaf('tab')?.setViewState({
+             type:ZK_INDEX_TYPE,
+             active:true,
+         });
         }
-
-        let leaf = this.app.workspace.getLeaf('tab');
-        if (leaf != null) {
-            await leaf.setViewState({
-                type: ZK_INDEX_TYPE,
-                active: true,
-            })
-            this.app.workspace.revealLeaf(leaf);
-        }
+        this.app.workspace.revealLeaf(
+         this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE)[0]
+        );
     }
 
     async openGraphView() {
 
-        if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length > 0){
-            await this.app.workspace.detachLeavesOfType(ZK_GRAPH_TYPE);
-        }
-        
-        let leaf = this.app.workspace.getRightLeaf(false);
-        if (leaf != null) {
-            await leaf.setViewState({
-                type: ZK_GRAPH_TYPE,
-                active: true,
-            })
-            this.app.workspace.revealLeaf(leaf);
-        }
-    }
-
-    async refreshViews(){
-        if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length > 0){              
-            await this.app.workspace.detachLeavesOfType(ZK_INDEX_TYPE);              
-            await this.openIndexView();            
-            this.settings.RefreshViews = false;
-        }       
-
+       if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length === 0){
+        await this.app.workspace.getRightLeaf(false)?.setViewState({
+            type:ZK_GRAPH_TYPE,
+            active:true,
+        });
+       }
+       this.app.workspace.revealLeaf(
+        this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE)[0]
+       );
+       this.app.workspace.trigger("zk-navigation:refresh-local-graph");
     }
 
     onunload() {

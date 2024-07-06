@@ -36,7 +36,6 @@ export default {
     "Mermaid graph to display inlinks": "显示当前笔记及其所有入链",
     "Open outlinks graph": "打开出链视图",
     "Mermaid graph to display outlinks": "显示当前笔记及其所有出链",
-    "Height of branch graph": "关键词分支视图高度",
     "Enter a number to set the height of graph in pixels.": "输入一个像素值来设置视图的高度.",
     "all file extension": "检索所有类型出链",
     ".md only": "仅检索.md类型出链",
@@ -59,7 +58,7 @@ export default {
     "Specify a frontmatter field for time of note created time": "指定一个属性字段作为主笔记的创建时间",
     "History List": "检索记录",
     "And set the list length": "设置最大打开记录条数",
-    "list tree": "列表视图",
+    "list tree": "大纲视图",
 
     // indexView.ts
     "Display from : ": "起点：",
