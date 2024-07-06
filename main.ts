@@ -112,7 +112,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     DirectionOfFamilyGraph: "LR",
     DirectionOfInlinksGraph: "TB",
     DirectionOfOutlinksGraph: "TB",
-    BranchToolbra: false,
+    BranchToolbra: true,
     RandomIndex: true,
     RandomMainNote: true,
     TableView: true,
