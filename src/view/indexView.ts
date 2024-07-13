@@ -250,7 +250,6 @@ export class ZKIndexView extends ItemView {
     }
 
     async refreshBranchMermaid() {
-        new Notice("123")
         this.plugin.RefreshIndexViewFlag = false;
         let indexMermaidDiv = document.getElementById("zk-index-mermaid-container");
 

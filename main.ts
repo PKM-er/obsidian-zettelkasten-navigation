@@ -120,7 +120,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     RandomIndex: true,
     RandomMainNote: true,
     TableView: true,
-    IndexButton: true,
+    IndexButton: false,
     MainNoteButton: true,
     MainNoteButtonText: t("Main notes"),
     SelectMainNote: '',
