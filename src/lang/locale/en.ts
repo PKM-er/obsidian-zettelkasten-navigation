@@ -20,7 +20,7 @@ export default {
     "Indexes folder location": "⚠Index files folder location",
     "zk-index-graph-view": "zk-index-graph-view",
     "Name of index button": "Name of index button",
-    "Suggest mode of index modal": "Suggestion mode of index modal",
+    "Suggest mode of index modal": "Suggest mode of index modal",
     "Suggest mode of main note modal": "Suggest mode of main note modal",
     "Keyword Order": "Keyword Order",
     "Fuzzy Suggest": "Fuzzy Suggest",
@@ -60,6 +60,16 @@ export default {
     "History List": "recent retrieval",
     "And set the list length": "Set the max length",
     "list tree": "outline view",
+    "set default width and height for cards": "set default width and height for cards",
+    "card width": "card width",
+    "card height": "card height",
+    "set the fixed path for exported canvas file": "⚠set a fixed canvas file",
+    "if empty, it will create a new canvas file every time": "if not set, it will create a new canvas file every time",
+    "Example: folder/filename.canvas": "Example: folder/filename.canvas",
+    "siblings order":"siblings order",
+    "siblings order description": "【number first】: 1->2...->a->b;【letter first】: a->b...->1->2",
+    'number first':'number first',
+    'letter first': 'letter first',
     
     // indexView.ts
     "Display from : ": "Display from : ",
@@ -82,6 +92,9 @@ export default {
     "table view": "table view",
     "Current note: ": "Current note: ",
     "settings": "open settings",
+    "export to canvas": "export to canvas",
+    "select a main note": "select a main note",
+    "select an index": "select an index",
 
     // localView.ts
     "close relative": "close relative",

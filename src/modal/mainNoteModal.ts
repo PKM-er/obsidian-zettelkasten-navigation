@@ -1,5 +1,6 @@
 import ZKNavigationPlugin from "main";
 import { App, FuzzySuggestModal, SuggestModal, renderMatches } from "obsidian";
+import { t } from "src/lang/helper";
 import { ZKNode } from "src/view/indexView";
 
 export class mainNoteModal extends SuggestModal<ZKNode>{
@@ -14,6 +15,7 @@ export class mainNoteModal extends SuggestModal<ZKNode>{
       this.onSubmit = onSubmit;
       this.plugin = plugin;
       this.MainNotes = MainNotes;
+      this.setPlaceholder(t("select a main note"));
     }
 
     getSuggestions(query: string):ZKNode[] {
@@ -32,6 +34,7 @@ export class mainNoteModal extends SuggestModal<ZKNode>{
       this.selectZKNode = node;
       this.onSubmit(this.selectZKNode);
     }
+
 }
 
 export class mainNoteFuzzyModal extends FuzzySuggestModal<ZKNode> {
@@ -46,11 +49,13 @@ export class mainNoteFuzzyModal extends FuzzySuggestModal<ZKNode> {
       this.onSubmit = onSubmit;
       this.plugin = plugin;
       this.MainNotes = MainNotes;
+      this.setPlaceholder(t("select a main note"));
     }
   
     getItems(): ZKNode[] {
 
       return this.MainNotes;
+      
     }
   
     getItemText(node: ZKNode): string {

@@ -22,7 +22,7 @@ export class indexModal extends SuggestModal<ZKIndex> {
     this.onSubmit = onSubmit;
     this.plugin = plugin;
     this.MainNotes = MainNotes;
-
+    this.setPlaceholder(t("select an index"));
   }
 
   // Returns all available suggestions.
@@ -106,6 +106,7 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
     this.onSubmit = onSubmit;
     this.plugin = plugin;
     this.MainNotes = MainNotes;
+    this.setPlaceholder(t("select an index"));
   }
 
   getItems(): ZKIndex[] {

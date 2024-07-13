@@ -59,6 +59,17 @@ export default {
     "History List": "检索记录",
     "And set the list length": "设置最大打开记录条数",
     "list tree": "大纲视图",
+    "set default width and height for cards": "设置卡片宽度与高度",
+    "card width": "卡片宽度",
+    "card height": "卡片高度",
+    "set the fixed path for exported canvas file":"⚠设置一个固定的白板文件",
+    "if empty, it will create a new canvas file every time": "如果不设置，每次都会产生一个新的白板文件",
+    "Example: folder/filename.canvas": "比如: 文件夹/文件名.canvas",
+    "siblings order": "手足节点（同级）排序",
+    "siblings order description": "【数字优先】: 1->2...->a->b;【字母优先】: a->b...->1->2;",
+    'number first': "数字优先",
+    'letter first': "字母优先",
+
 
     // indexView.ts
     "Display from : ": "起点：",
@@ -81,6 +92,9 @@ export default {
     "table view": "表格视图",
     "Current note: ": "当前笔记: ",
     "settings": "打开设置",
+    "export to canvas": "导出到白板",
+    "select a main note": "选择一个主笔记",
+    "select an index": "选择一个关键词",
 
     // localView.ts
     "close relative": "邻近",

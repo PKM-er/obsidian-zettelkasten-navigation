@@ -3,14 +3,14 @@ import { TFile } from "obsidian";
 import { ZKNode } from "src/view/indexView";
 
 // formatting Luhmann style IDs
-export async function ID_formatting(id: string, arr: string[]): Promise<string[]> {
+export async function ID_formatting(id: string, arr: string[], siblingsOrder:string): Promise<string[]> {
     if (/^[0-9]$/.test(id[0])) {
         let numStr = id.match(/\d+/g);
         if (numStr && numStr.length > 0) {
             arr.push(numStr[0].padStart(4, "0"));
             let len = numStr[0].length;
             if (len < id.length) {
-                return await ID_formatting(id.slice(len), arr);
+                return await ID_formatting(id.slice(len), arr, siblingsOrder);
             } else {
                 return arr;
             }
@@ -18,17 +18,23 @@ export async function ID_formatting(id: string, arr: string[]): Promise<string[]
             return arr;
         }
     } else if (/^[a-zA-Z]$/.test(id[0])) {
-        arr.push(id[0])
+        let letterStr:string;
+        if(siblingsOrder === "letter"){
+            letterStr = id[0].padStart(5,"0");
+        }else{
+            letterStr = id[0];
+        }        
+        arr.push(letterStr)
         if (id.length === 1) {
             return arr;
         } else {
-            return await ID_formatting(id.slice(1), arr);
+            return await ID_formatting(id.slice(1), arr, siblingsOrder);
         }
     } else {
         if (id.length === 1) {
             return arr;
         } else {
-            return await ID_formatting(id.slice(1), arr);
+            return await ID_formatting(id.slice(1), arr, siblingsOrder);
         }
     }
 }
@@ -69,6 +75,9 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]>
             title: '',
             displayText: '',
             ctime: "",
+            nodeSons:1,
+            startY:0,
+            height:0,
         }
 
         let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -77,7 +86,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]>
             case "1":
                 node.ID = note.basename;
 
-                node.IDArr = await ID_formatting(node.ID, node.IDArr);
+                node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
 
                 node.IDStr = IDArr.toString();
 
@@ -98,7 +107,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]>
                         let id = nodeCache.frontmatter[plugin.settings.IDField];
                         if (typeof id == "string" && id.length > 0) {
                             node.ID = id;
-                            node.IDArr = await ID_formatting(node.ID, node.IDArr);
+                            node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
                             node.IDStr = node.IDArr.toString();
                             node.title = note.basename;
                         }
@@ -110,7 +119,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]>
                 break;
             case "3":
                 node.ID = note.basename.split(plugin.settings.Separator)[0];
-                node.IDArr = await ID_formatting(node.ID, node.IDArr);
+                node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
                 node.IDStr = IDArr.toString();
                 if (node.ID.length < note.basename.length - 1) {
                     node.title = note.basename.substring(node.ID.length + 1);
@@ -166,3 +175,11 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]>
     return mainNotes;
 
 }
+
+export const random = (e: number) => {
+	let t = [];
+	for (let n = 0; n < e; n++) {
+		t.push((16 * Math.random() | 0).toString(16));
+	}
+	return t.join("");
+};

@@ -3,6 +3,7 @@ import { App, ButtonComponent, Notice, PluginSettingTab, Setting } from "obsidia
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 import { t } from "../lang/helper";
+import { FileSuggest } from "src/suggester/FileSuggester";
 
 export class ZKNavigationSettngTab extends PluginSettingTab {
 
@@ -142,17 +143,13 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.MainNoteButton)
                 .onChange((value) => {
                     this.plugin.settings.MainNoteButton = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                     this.display();
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
-                    if(MainNoteButtonDiv.getAttr("style") == "display:block"){                        
-                        MainNoteButtonDiv.setAttribute("style","display:none") ;
-                    }else{                      
-                        MainNoteButtonDiv.setAttribute("style","display:block") ;
-                    }
+                    this.hideDiv(MainNoteButtonDiv);                    
                 })
             })
         
@@ -164,7 +161,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 cb.setValue(this.plugin.settings.MainNoteButtonText)
                     .onChange((value) => {
                         this.plugin.settings.MainNoteButtonText = value;
-                        this.plugin.settings.RefreshIndexViewFlag = true;
+                        this.plugin.RefreshIndexViewFlag = true;
                     })
             );
 
@@ -184,17 +181,13 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.IndexButton)
                 .onChange((value) => {
                     this.plugin.settings.IndexButton = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                     this.display();
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
-                    if(indexButtonDiv.getAttr("style") == "display:block"){                        
-                        indexButtonDiv.setAttribute("style","display:none") ;
-                    }else{                      
-                        indexButtonDiv.setAttribute("style","display:block") ;
-                    }
+                    this.hideDiv(indexButtonDiv);
                 })
             })
         
@@ -217,7 +210,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 cb.setValue(this.plugin.settings.IndexButtonText)
                     .onChange((value) => {
                         this.plugin.settings.IndexButtonText = value;
-                        this.plugin.settings.RefreshIndexViewFlag = true;
+                        this.plugin.RefreshIndexViewFlag = true;
                     })
             );
         
@@ -239,11 +232,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
-                    if(branchSectionDiv.getAttr("style") == "display:block"){                        
-                        branchSectionDiv.setAttribute("style","display:none") ;
-                    }else{                      
-                        branchSectionDiv.setAttribute("style","display:block") ;
-                    }
+                    this.hideDiv(branchSectionDiv);
                 })
             })
         
@@ -259,9 +248,22 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfBranchGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfBranchGraph = value;
-                this.plugin.settings.RefreshIndexViewFlag = true;
+                this.plugin.RefreshIndexViewFlag = true;
             })
         );
+
+        new Setting(branchSectionDiv)
+            .setName(t("siblings order"))
+            .setDesc(t("siblings order description"))
+            .addDropdown(options => options
+                .addOption("number", t('number first'))
+                .addOption("letter", t('letter first'))
+                .setValue(this.plugin.settings.siblingsOrder)
+                .onChange((value) => {
+                    this.plugin.settings.siblingsOrder = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
 
         new Setting(branchSectionDiv)
             .setName(t("Set red dash line for nodes with ID ends with letter"))
@@ -269,7 +271,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.RedDashLine)
                 .onChange((value) => {
                     this.plugin.settings.RedDashLine = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 })
             );
 
@@ -279,7 +281,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FoldToggle)
                 .onChange((value) => {
                     this.plugin.settings.FoldToggle = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 })
             );
 
@@ -290,16 +292,12 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.BranchToolbra)
                 .onChange((value) =>{
                     this.plugin.settings.BranchToolbra = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 }) 
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
-                    if(branchToolbarDiv.getAttr("style") == "display:block"){                        
-                        branchToolbarDiv.setAttribute("style","display:none") ;
-                    }else{                      
-                        branchToolbarDiv.setAttribute("style","display:block") ;
-                    }
+                    this.hideDiv(branchToolbarDiv);
                 });
             })        
         
@@ -310,9 +308,71 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.settingIcon)
                     .onChange((value) =>{
                         this.plugin.settings.settingIcon = value;
-                        this.plugin.settings.RefreshIndexViewFlag = true;
+                        this.plugin.RefreshIndexViewFlag = true;
                     }) 
                 )
+    
+        new Setting(branchToolbarDiv)
+            .setName(t("export to canvas"))
+            .addExtraButton((cb)=>{
+                cb.setIcon("settings")
+                .onClick(()=>{
+                    this.hideDiv(canvasAdditionSection);
+                });
+            })
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.exportCanvas)
+                .onChange((value) =>{
+                    this.plugin.settings.exportCanvas = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                }) 
+            )
+        
+        const canvasAdditionSection = branchToolbarDiv.createDiv("zk-local-section")
+        new Setting(canvasAdditionSection)
+            .setName(t("set the fixed path for exported canvas file"))
+            .setDesc(t("if empty, it will create a new canvas file every time"))
+                .addSearch((cb) =>{
+                    new FileSuggest(this.app, cb.inputEl);
+                    cb.setPlaceholder(t("Example: folder/filename.canvas"))
+                    .setValue(this.plugin.settings.canvasFilePath)
+                    .onChange((value) => {
+                        if(value.endsWith(".canvas")){
+                            this.plugin.settings.canvasFilePath = value;
+                        }else{
+                            this.plugin.settings.canvasFilePath = "";
+                        }
+                    })
+                }
+        )
+        new Setting(canvasAdditionSection)
+            .setName(t("set default width and height for cards"))
+            .addText((cb) => {
+
+                cb.inputEl.placeholder = t("card width");
+                cb.setValue(this.plugin.settings.cardWidth.toString())
+                    .onChange((value) => {
+                        if(/^[1-9]\d*$/.test(value)){
+                            this.plugin.settings.cardWidth = Number(value);
+                        }else{
+                            this.plugin.settings.cardWidth = 400;                        
+                        }
+                        
+                    })
+                }
+            )
+            .addText((cb) => {
+                cb.inputEl.placeholder = t("card height");
+                cb.setValue(this.plugin.settings.cardHeight.toString())
+                    .onChange((value) => {
+                        if(/^[1-9]\d*$/.test(value)){
+                            this.plugin.settings.cardHeight = Number(value);
+                        }else{
+                            this.plugin.settings.cardHeight = 240;                        
+                        }
+                        
+                    })
+                }
+            )
 
         if(this.plugin.settings.IndexButton == true){
             new Setting(branchToolbarDiv)
@@ -320,7 +380,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomIndex)
                     .onChange((value) =>{
                         this.plugin.settings.RandomIndex = value;
-                        this.plugin.settings.RefreshIndexViewFlag = true;
+                        this.plugin.RefreshIndexViewFlag = true;
                     }) 
                 )
         }
@@ -331,7 +391,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomMainNote)
                     .onChange((value) =>{
                         this.plugin.settings.RandomMainNote = value;
-                        this.plugin.settings.RefreshIndexViewFlag = true;
+                        this.plugin.RefreshIndexViewFlag = true;
                     }) 
                 )
         }
@@ -341,7 +401,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.TableView)
                 .onChange((value) =>{
                     this.plugin.settings.TableView = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 }) 
             )     
         
@@ -350,7 +410,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.ListTree)
                 .onChange((value) =>{
                     this.plugin.settings.ListTree = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 }) 
             )
 
@@ -368,7 +428,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             }).addToggle(toggle => toggle.setValue(this.plugin.settings.HistoryToggle)
             .onChange((value) =>{
                 this.plugin.settings.HistoryToggle = value;
-                this.plugin.settings.RefreshIndexViewFlag = true;
+                this.plugin.RefreshIndexViewFlag = true;
             }) 
         )
 
@@ -380,18 +440,13 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FamilyGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.FamilyGraphToggle = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 })
             ).addExtraButton((cb)=>{
                 
             cb.setIcon("settings")
             .onClick(()=>{
-                if(familySectionDiv.getAttr("style") == "display:block"){                        
-                    familySectionDiv.setAttribute("style","display:none") ;
-                }else{                      
-                    familySectionDiv.setAttribute("style","display:block") ;
-                }                  
-                    
+                this.hideDiv(familySectionDiv);                    
             })            
         })  
         
@@ -410,7 +465,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfFamilyGraph = 200;                        
                     }
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                     
                 })
             }
@@ -426,7 +481,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfFamilyGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfFamilyGraph = value;
-                this.plugin.settings.RefreshIndexViewFlag = true;
+                this.plugin.RefreshIndexViewFlag = true;
             })
         );
 
@@ -436,16 +491,12 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.InlinksGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.InlinksGraphToggle = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
-                    if(inlinksSectionDiv.getAttr("style") == "display:block"){                        
-                        inlinksSectionDiv.setAttribute("style","display:none") ;
-                    }else{                      
-                        inlinksSectionDiv.setAttribute("style","display:block") ;
-                    }
+                    this.hideDiv(inlinksSectionDiv);
                 })
             })
         
@@ -464,7 +515,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfInlinksGraph = 200;                        
                     }
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                     
                 })
             }
@@ -480,7 +531,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfInlinksGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfInlinksGraph = value;
-                this.plugin.settings.RefreshIndexViewFlag = true;
+                this.plugin.RefreshIndexViewFlag = true;
             })
         );
 
@@ -490,16 +541,12 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .addToggle(toggle => toggle.setValue(this.plugin.settings.OutlinksGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.OutlinksGraphToggle = value;
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
-                    if(outlinksSectionDiv.getAttr("style") == "display:block"){                        
-                        outlinksSectionDiv.setAttribute("style","display:none") ;
-                    }else{                      
-                        outlinksSectionDiv.setAttribute("style","display:block") ;
-                    }
+                    this.hideDiv(outlinksSectionDiv);
                 })
             })
         
@@ -518,7 +565,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }else{
                         this.plugin.settings.HeightOfOutlinksGraph = 200;                        
                     }
-                    this.plugin.settings.RefreshIndexViewFlag = true;
+                    this.plugin.RefreshIndexViewFlag = true;
                     
                 })
             }
@@ -534,7 +581,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.DirectionOfOutlinksGraph)
             .onChange((value) => {
                 this.plugin.settings.DirectionOfOutlinksGraph = value;
-                this.plugin.settings.RefreshIndexViewFlag = true;
+                this.plugin.RefreshIndexViewFlag = true;
             })
         );
         
@@ -546,7 +593,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setValue(this.plugin.settings.FileExtension)
             .onChange((value) => {
                 this.plugin.settings.FileExtension = value;
-                this.plugin.settings.RefreshIndexViewFlag = true;
+                this.plugin.RefreshIndexViewFlag = true;
             })
         )
         
@@ -572,13 +619,19 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         this.openTabSection(this.plugin.settings.SectionTab,topButtonsDiv);
     }
 
+    hideDiv(div:HTMLDivElement){
+
+        if(div.getAttr("style") == "display:block"){                        
+            div.setAttribute("style","display:none") ;
+        }else{                      
+            div.setAttribute("style","display:block") ;
+        }
+    }
+
     async hide() {
-        if(this.plugin.settings.RefreshIndexViewFlag === true){
+        if(this.plugin.RefreshIndexViewFlag === true){
             this.app.workspace.trigger("zk-navigation:refresh-index-graph");
         }
         this.plugin.saveData(this.plugin.settings);
     }
-
-    
-
 }

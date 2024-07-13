@@ -63,7 +63,7 @@ export class ZKGraphView extends ItemView {
         this.registerEvent(this.app.workspace.on("active-leaf-change", async(leaf)=>{  
             
             if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length > 0){  
-                if(this.app.workspace.getActiveViewOfType(FileView)||this.app.workspace.getActiveViewOfType(ZKGraphView)){             
+                if(this.app.workspace.getActiveViewOfType(FileView)){             
                     refresh();
                 }
             }             

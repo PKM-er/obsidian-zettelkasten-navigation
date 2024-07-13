@@ -1,4 +1,4 @@
-import { FileView, Notice, Plugin, TFile } from "obsidian";
+import { FileView, Notice, Plugin, TFile, moment} from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNavigationSettngTab } from "src/settings/settings";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
@@ -68,7 +68,6 @@ interface ZKNavigationSettings {
     MainNoteButton: boolean;
     MainNoteButtonText: string;
     SelectMainNote: string;
-    RefreshIndexViewFlag: boolean;
     settingIcon:boolean;
     MainNoteSuggestMode: string;
     ListTree: boolean;
@@ -77,6 +76,11 @@ interface ZKNavigationSettings {
     HistoryMaxCount: number;
     HistoryListShow: boolean;
     ListTreeShow: boolean;
+    exportCanvas: boolean;
+    cardWidth: number;
+    cardHeight: number;
+    canvasFilePath: string;
+    siblingsOrder: string;
 }
 
 //Default value for setting field
@@ -112,7 +116,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     DirectionOfFamilyGraph: "LR",
     DirectionOfInlinksGraph: "TB",
     DirectionOfOutlinksGraph: "TB",
-    BranchToolbra: true,
+    BranchToolbra: false,
     RandomIndex: true,
     RandomMainNote: true,
     TableView: true,
@@ -120,7 +124,6 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     MainNoteButton: true,
     MainNoteButtonText: t("Main notes"),
     SelectMainNote: '',
-    RefreshIndexViewFlag: false,
     settingIcon: true,
     MainNoteSuggestMode: 'fuzzySuggest',
     ListTree: true,
@@ -129,12 +132,20 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     HistoryMaxCount: 20,
     HistoryListShow: false,
     ListTreeShow: false,
+    exportCanvas: true,
+    cardWidth: 400,
+    cardHeight: 240,
+    canvasFilePath: "",
+    siblingsOrder: "number",    
 }
 
 export default class ZKNavigationPlugin extends Plugin {
 
     settings: ZKNavigationSettings;
     FileforLocaLgraph: string = "";
+    indexViewOffsetWidth: number = 0;
+    indexViewOffsetHeight: number = 0;
+    RefreshIndexViewFlag: boolean = false;
 
     async loadSettings() {
         this.settings = Object.assign(
@@ -180,8 +191,8 @@ export default class ZKNavigationPlugin extends Plugin {
                         this.settings.zoomPanScaleArr = [];
                         this.settings.BranchTab = 0;
                         this.settings.FoldNodeArr = [];  
+                        this.RefreshIndexViewFlag = true;
                         await this.openIndexView();
-                        this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }
                 }
 
@@ -191,8 +202,8 @@ export default class ZKNavigationPlugin extends Plugin {
                     this.settings.zoomPanScaleArr = [];
                     this.settings.BranchTab = 0;
                     this.settings.FoldNodeArr = [];  
+                    this.RefreshIndexViewFlag = true;
                     await this.openIndexView();
-                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 }
 
             } else {
@@ -283,6 +294,7 @@ export default class ZKNavigationPlugin extends Plugin {
                             this.settings.zoomPanScaleArr = [];
                             this.settings.BranchTab = 0;
                             this.settings.FoldNodeArr = [];  
+                            this.RefreshIndexViewFlag = true;
                             await this.openIndexView();
                         }
                     }
@@ -293,6 +305,7 @@ export default class ZKNavigationPlugin extends Plugin {
                         this.settings.zoomPanScaleArr = [];
                         this.settings.BranchTab = 0;
                         this.settings.FoldNodeArr = []; 
+                        this.RefreshIndexViewFlag = true;
                         await this.openIndexView();
                     }
 
@@ -318,9 +331,15 @@ export default class ZKNavigationPlugin extends Plugin {
              active:true,
          });
         }
+        
         this.app.workspace.revealLeaf(
          this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE)[0]
+         
         );
+
+        if(this.RefreshIndexViewFlag === true){
+            this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+        }
     }
 
     async openGraphView() {
