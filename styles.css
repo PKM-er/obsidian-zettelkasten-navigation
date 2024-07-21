@@ -37,7 +37,7 @@ padding: 5px;
   padding: 5px;
   padding-left: 10px;
   padding-right: 15px;
-  width: auto;
+  max-width: 50%;
 }
 
 .zk-tool-buttons {
@@ -46,6 +46,8 @@ padding: 5px;
   right: 10px;
   display: flex;
   justify-content: center;
+  max-width: 50%;
+  flex-wrap: wrap;
 }
 
 .zk-tool-buttons > .clickable-icon {
@@ -60,7 +62,7 @@ padding: 5px;
 }
 
 .zk-index-link > span {
-  padding: 5px;
+  padding-left: 5px;
 }
 
 .zk-index-link > span :hover {
@@ -182,16 +184,17 @@ padding: 5px;
   background-color: rgba(var(--color-blue-rgb), 0.1);
 }
 
-.zk-history-container, .zk-list-tree-container {
-  position: fixed;
-  background-color: var(--background-primary);
-  width: 350px;
-  margin-right: 1%;
-  float: right;
+.recent-item{
+  position: relative;
+}
+
+.recent-close-button{  
+  position: absolute;
   right: 0;
-  top: 80px;
-  border-radius: 5px;
-  overflow-x: auto;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5); 
-  z-index: 1000;   
+  top:0;
+  display: none;
+}
+
+.nav-buttons-container > input{
+  width: 80%;
 }

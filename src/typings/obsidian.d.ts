@@ -14,4 +14,18 @@ declare module "obsidian"{
             callback: ()=>unknown
         ):EventRef;
     }
+
+    interface Workspace{
+        on(
+            name:"zk-navigation:refresh-outline-view",
+            callback: ()=>unknown
+        ):EventRef;
+    }
+
+    interface Workspace{
+        on(
+            name:"zk-navigation:refresh-recent-view",
+            callback: ()=>unknown
+        ):EventRef;
+    }
 }

@@ -40,10 +40,11 @@ export async function ID_formatting(id: string, arr: string[], siblingsOrder:str
 }
 
 // translating different ID fields(filename/attribute/prefix of filename) into standard ZKNode array
-export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]> {
+export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
     let mainNoteFiles:TFile[] = this.app.vault.getMarkdownFiles();
-    let mainNotes:ZKNode[] = [];
+    
+    plugin.MainNotes = [];
 
     if (plugin.settings.FolderOfMainNotes !== '') {
         mainNoteFiles = mainNoteFiles.filter(
@@ -75,9 +76,11 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]>
             title: '',
             displayText: '',
             ctime: "",
+            randomId: random(16),
             nodeSons:1,
             startY:0,
             height:0,
+            isRoot: false,
         }
 
         let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -161,19 +164,18 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin): Promise<ZKNode[]>
             node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
         }
 
-        mainNotes.push(node);
+        plugin.MainNotes.push(node);
     }
 
-    mainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
+    plugin.MainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
 
-    for (let i = 0; i < mainNotes.length; i++) {
-
-        mainNotes[i].position = i;
-
+    for (let i = 0; i < plugin.MainNotes.length; i++) {
+        let node = plugin.MainNotes[i];
+        node.position = i;
+        if(!plugin.MainNotes.find(n=>n.IDArr.toString() == node.IDArr.slice(0,-1).toString())){
+            node.isRoot = true;
+        }
     }
-
-    return mainNotes;
-
 }
 
 export const random = (e: number) => {

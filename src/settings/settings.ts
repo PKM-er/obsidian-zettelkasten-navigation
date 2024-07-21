@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { App, ButtonComponent, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, ButtonComponent, PluginSettingTab, Setting } from "obsidian";
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 import { t } from "../lang/helper";
@@ -60,6 +60,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     .setValue(this.plugin.settings.FolderOfMainNotes)
                     .onChange((value) => {
                         this.plugin.settings.FolderOfMainNotes = value;
+                        this.plugin.RefreshIndexViewFlag = true;
                     })
             });
 
@@ -71,6 +72,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 cb.setValue(this.plugin.settings.TagOfMainNotes)
                     .onChange((value) => {
                         this.plugin.settings.TagOfMainNotes = value;
+                        this.plugin.RefreshIndexViewFlag = true;
                     })
             });
         
@@ -83,6 +85,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .setValue(this.plugin.settings.IDFieldOption)
                 .onChange((value) => {
                     this.plugin.settings.IDFieldOption = value;
+                    this.plugin.RefreshIndexViewFlag = true;
                     this.display();
                 })
             );
@@ -95,6 +98,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         cb.setValue(this.plugin.settings.TitleField)
                             .onChange((value) => {
                                 this.plugin.settings.TitleField = value;
+                                this.plugin.RefreshIndexViewFlag = true;
                             })
                     );
                 break;
@@ -105,6 +109,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         cb.setValue(this.plugin.settings.IDField)
                             .onChange((value) => {
                                 this.plugin.settings.IDField = value;
+                                this.plugin.RefreshIndexViewFlag = true;
                             })
                     );
                 break;
@@ -118,6 +123,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         .setValue(this.plugin.settings.Separator)
                         .onChange((value) => {
                             this.plugin.settings.Separator = value;
+                            this.plugin.RefreshIndexViewFlag = true;
                         })
                     );
                 break
@@ -133,6 +139,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             cb.setValue(this.plugin.settings.CustomCreatedTime)
                 .onChange((value) => {
                     this.plugin.settings.CustomCreatedTime = value;
+                    this.plugin.RefreshIndexViewFlag = true;
                 })
         );
 
@@ -201,6 +208,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     .setValue(this.plugin.settings.FolderOfIndexes)
                     .onChange((value) => {
                         this.plugin.settings.FolderOfIndexes = value;
+                        this.plugin.RefreshIndexViewFlag = true;
                     })
             });
 
@@ -395,6 +403,24 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     }) 
                 )
         }
+
+        new Setting(branchToolbarDiv)
+            .setName(t("all trees"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.showAllToggle)
+                .onChange((value) =>{
+                    this.plugin.settings.showAllToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                }) 
+            )
+
+        new Setting(branchToolbarDiv)
+            .setName(t("growing animation"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.play)
+                .onChange((value) =>{
+                    this.plugin.settings.play = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                }) 
+            )
         
         new Setting(branchToolbarDiv)
             .setName(t("table view"))

@@ -73,9 +73,21 @@ export class expandGraphModal extends Modal {
         link.textContent = nodeArr[i].getText();
         nodeArr[i].textContent = "";
         nodeArr[i].appendChild(link);
-        nodeArr[i].addEventListener("click", (event: MouseEvent) => {
+        nodeGArr[i].addEventListener("click", (event: MouseEvent) => {
             if(event.ctrlKey){
                 this.app.workspace.openLinkText("", path, 'tab');                
+            }else if(event.shiftKey){
+                this.plugin.FileforLocaLgraph = path;
+                this.plugin.openGraphView();
+            }else if(event.altKey){
+                let mainNote = this.plugin.MainNotes.find(n=>n.file.path == path);
+                
+                if(mainNote){
+                    this.plugin.clearShowingSettings();
+                    this.plugin.settings.SelectMainNote = mainNote.file.path;
+                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+                }
+
             }else{
                 this.app.workspace.openLinkText("",path)
             }

@@ -1,5 +1,5 @@
 import ZKNavigationPlugin, { FoldNode, ZoomPanScale } from "main";
-import { ButtonComponent, DropdownComponent, ExtraButtonComponent, FileView, ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid, moment } from "obsidian";
+import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid, moment, setTooltip } from "obsidian";
 import { t } from "src/lang/helper";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
 import { mainNoteFuzzyModal, mainNoteModal } from "src/modal/mainNoteModal";
@@ -19,9 +19,11 @@ export interface ZKNode {
     title: string;
     displayText: string;
     ctime: string;
+    randomId: string;
     nodeSons: number; //use for caculating when export to canvas
     startY: number; //use for caculating when export to canvas
     height: number; //use for caculating when export to canvas
+    isRoot: boolean;
 }
 
 interface BrancAllhNodes{
@@ -32,9 +34,6 @@ interface BrancAllhNodes{
 export class ZKIndexView extends ItemView {
 
     plugin: ZKNavigationPlugin;
-    MainNotes: ZKNode[];
-    mainNoteFiles: TFile[];
-    tableArr: ZKNode[];
     branchAllNodes: BrancAllhNodes[];
 
     constructor(leaf: WorkspaceLeaf, plugin: ZKNavigationPlugin) {
@@ -60,13 +59,10 @@ export class ZKIndexView extends ItemView {
             if (this.plugin.indexViewOffsetHeight !== this.containerEl.offsetHeight ||
                 this.plugin.indexViewOffsetWidth !== this.containerEl.offsetWidth){
                 
-                this.refreshBranchMermaid(); 
+                this.app.workspace.trigger("zk-navigation:refresh-index-graph");
 
             }       
         }
-
-        
-         
     }
 
     async IndexViewInterfaceInit() {
@@ -77,10 +73,7 @@ export class ZKIndexView extends ItemView {
 
         const toolbarDiv = containerEl.createDiv("zk-index-toolbar");
 
-        const showGraphDiv = containerEl.createDiv();
-        showGraphDiv.id = "show-graph-div";
-
-        const indexMermaidDiv = showGraphDiv.createDiv("zk-index-mermaid-container");
+        const indexMermaidDiv = containerEl.createDiv("zk-index-mermaid-container");
         indexMermaidDiv.id = "zk-index-mermaid-container";
 
         indexMermaidDiv.empty();
@@ -94,18 +87,18 @@ export class ZKIndexView extends ItemView {
             mainNoteButton.setCta();
             mainNoteButton.onClick(() => {
                 if (this.plugin.settings.MainNoteSuggestMode === "IDOrder") {
-                    new mainNoteModal(this.app, this.plugin, this.MainNotes, (selectZKNode) =>{
+                    new mainNoteModal(this.app, this.plugin, this.plugin.MainNotes, (selectZKNode) =>{
                         this.plugin.settings.SelectMainNote = selectZKNode.file.path;
                         this.plugin.settings.SelectIndex = "";
-                        this.clearShowingSettings();
-                        this.refreshBranchMermaid();
+                        this.plugin.clearShowingSettings();
+                        this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open();
                 }else {
-                    new mainNoteFuzzyModal(this.app, this.plugin, this.MainNotes, (selectZKNode) =>{
+                    new mainNoteFuzzyModal(this.app, this.plugin, this.plugin.MainNotes, (selectZKNode) =>{
                         this.plugin.settings.SelectMainNote = selectZKNode.file.path;
                         this.plugin.settings.SelectIndex = "";
-                        this.clearShowingSettings();
-                        this.refreshBranchMermaid();
+                        this.plugin.clearShowingSettings();
+                        this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open()
                 }
             })
@@ -119,18 +112,18 @@ export class ZKIndexView extends ItemView {
             indexButton.setCta();
             indexButton.onClick(() => {
                 if (this.plugin.settings.SuggestMode === "keywordOrder") {
-                    new indexModal(this.app, this.plugin, this.MainNotes, (index) => {
+                    new indexModal(this.app, this.plugin, this.plugin.MainNotes, (index) => {
                         this.plugin.settings.SelectIndex = index.path;
                         this.plugin.settings.SelectMainNote = "";
-                        this.clearShowingSettings();
-                        this.refreshBranchMermaid();
+                        this.plugin.clearShowingSettings();
+                        this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open();
                 } else {
-                    new indexFuzzyModal(this.app, this.plugin, this.MainNotes, (index) => {
+                    new indexFuzzyModal(this.app, this.plugin, this.plugin.MainNotes, (index) => {
                         this.plugin.settings.SelectIndex = index.path;
                         this.plugin.settings.SelectMainNote = "";
-                        this.clearShowingSettings();
-                        this.refreshBranchMermaid();
+                        this.plugin.clearShowingSettings();
+                        this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open();
                 }
             });
@@ -149,8 +142,8 @@ export class ZKIndexView extends ItemView {
             .setValue(this.plugin.settings.StartingPoint)
             .onChange((StartPoint) => {
                 this.plugin.settings.StartingPoint = StartPoint;
-                this.clearShowingSettings(this.plugin.settings.BranchTab);
-                this.refreshBranchMermaid();
+                this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
+                this.app.workspace.trigger("zk-navigation:refresh-index-graph");
             });
 
         const displayLevelDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
@@ -163,8 +156,8 @@ export class ZKIndexView extends ItemView {
             .setValue(this.plugin.settings.DisplayLevel)
             .onChange((DisplayLevel) => {
                 this.plugin.settings.DisplayLevel = DisplayLevel;
-                this.clearShowingSettings(this.plugin.settings.BranchTab);
-                this.refreshBranchMermaid();
+                this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
+                this.app.workspace.trigger("zk-navigation:refresh-index-graph");
             });
 
         const nodeTextDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
@@ -178,10 +171,20 @@ export class ZKIndexView extends ItemView {
             .setValue(this.plugin.settings.NodeText)
             .onChange((NodeText) => {
                 this.plugin.settings.NodeText = NodeText;
-                this.refreshBranchMermaid();
+                this.app.workspace.trigger("zk-navigation:refresh-index-graph");;
             });
 
         await this.refreshBranchMermaid();
+
+        if(this.plugin.settings.SelectIndex == "" && this.plugin.settings.SelectMainNote == ""
+            && this.plugin.settings.showAll == false
+        ){
+            let index = Math.floor(Math.random()*(this.plugin.MainNotes.length));
+
+            this.plugin.settings.SelectMainNote = this.plugin.MainNotes[index].file.path;
+
+            await this.refreshBranchMermaid();
+        }
         
     }
 
@@ -226,7 +229,6 @@ export class ZKIndexView extends ItemView {
         if(this.app.workspace.layoutReady){
 
             this.refreshIndexLayout();
-            
         }else{
             this.app.workspace.onLayoutReady(()=>{
                 
@@ -241,21 +243,21 @@ export class ZKIndexView extends ItemView {
         if (this.plugin.settings.FolderOfMainNotes == '' && this.plugin.settings.TagOfMainNotes == '') {
 
             new Notice(t("❌Setting error: no folder or tag specified for main notes!"));
+            return;
 
-        } else {            
-            
+        } else {        
             await this.IndexViewInterfaceInit();
-            
+
         }
     }
 
     async refreshBranchMermaid() {
-        this.plugin.RefreshIndexViewFlag = false;
-        let indexMermaidDiv = document.getElementById("zk-index-mermaid-container");
+
+        const indexMermaidDiv = document.getElementById("zk-index-mermaid-container");
 
         if(!indexMermaidDiv) return;
 
-        this.MainNotes = await mainNoteInit(this.plugin);
+        await mainNoteInit(this.plugin);
 
         indexMermaidDiv.empty(); 
 
@@ -295,13 +297,14 @@ export class ZKIndexView extends ItemView {
                 randomBtn.setIcon("dice-3").setTooltip(t("random main note"));
                 randomBtn.onClick(async ()=>{
                     
-                    if(this.plugin.settings.FolderOfMainNotes == ''){
+                    if(this.plugin.settings.FolderOfMainNotes == '' && this.plugin.settings.TagOfMainNotes == ''){
                         new Notice(t("❌Setting error: no folder or tag specified for main notes!"));
+                        return;
                     }else{              
-                        let randomMainNoteNode = this.MainNotes[Math.floor(Math.random()*this.MainNotes.length)];                          
+                        let randomMainNoteNode = this.plugin.MainNotes[Math.floor(Math.random()*this.plugin.MainNotes.length)];                          
                         this.plugin.settings.SelectMainNote = randomMainNoteNode.file.path;
-                        this.plugin.settings.SelectIndex = "";                        
-                        await this.clearShowingSettings();
+                        this.plugin.settings.SelectIndex = "";                      
+                        await this.plugin.clearShowingSettings();
                         await this.IndexViewInterfaceInit();                                    
                     }
                 })
@@ -315,16 +318,39 @@ export class ZKIndexView extends ItemView {
                     
                     if(this.plugin.settings.FolderOfIndexes == ''){
                         new Notice(t("❌Setting error: no folder specified for index!"));
+                        return;
                     }else{
                         const indexFiles = this.app.vault.getMarkdownFiles()
                         .filter(f => f.path.startsWith(this.plugin.settings.FolderOfIndexes + '/'));  
                         
                         let randomIndex = indexFiles[Math.floor(Math.random()*indexFiles.length)];
                         this.plugin.settings.SelectIndex = randomIndex.path;
-                        this.plugin.settings.SelectMainNote = "";                        
-                        await this.clearShowingSettings();
+                        this.plugin.settings.SelectMainNote = "";                  
+                        await this.plugin.clearShowingSettings();
                         await this.IndexViewInterfaceInit();                                    
                     }
+                })
+            }
+
+            if(this.plugin.settings.showAllToggle == true){
+                const showAllBtn = new ExtraButtonComponent(toolButtonsDiv);
+                showAllBtn.setIcon("trees").setTooltip(t("all trees"));
+                showAllBtn.onClick(async ()=>{
+                    this.plugin.settings.SelectIndex = "";
+                    this.plugin.settings.SelectMainNote = ""; 
+                    this.plugin.settings.showAll=true;  
+                    this.plugin.settings.DisplayLevel = "end";    
+                    await this.plugin.clearShowingSettings();
+                    await this.IndexViewInterfaceInit();   
+                })
+            }
+
+            if(this.plugin.settings.play == true){
+                const playBtn = new ExtraButtonComponent(toolButtonsDiv);
+                playBtn.setIcon("wand-2").setTooltip(t("growing animation"));
+                playBtn.onClick(()=>{
+                    this.plugin.settings.FoldNodeArr = []; 
+                    this.branchGrowing(); 
                 })
             }
             
@@ -333,58 +359,31 @@ export class ZKIndexView extends ItemView {
                 tableBtn.setIcon("table").setTooltip(t("table view"))
                 tableBtn.onClick(async ()=>{
                     await this.genericBranchNodes()
-                    new tableModal(this.app, this.plugin, this.tableArr).open();
+                    new tableModal(this.app, this.plugin, this.plugin.tableArr).open();
                 })
             }   
 
-            if(this.plugin.settings.ListTree == true){
-
-                let showGraphDiv = document.getElementById("show-graph-div");
-                if(!showGraphDiv) return;
-                
-                let listTreeDiv = showGraphDiv.createDiv("zk-list-tree-container");
-                listTreeDiv.id = "zk-list-tree-container";                
+            if(this.plugin.settings.ListTree == true){           
                 const listBtn = new ExtraButtonComponent(toolButtonsDiv);
                 listBtn.setIcon("list-tree").setTooltip(t("list tree"))
                 listBtn.onClick(async ()=>{
-                    
-                    if(this.plugin.settings.ListTreeShow === true){    
-                        this.plugin.settings.ListTreeShow = false;
-                    }else{                      
-                        this.plugin.settings.ListTreeShow = true;
-                    }
-                    await this.refreshListTree();
-                    await this.clearShowingSettings();
-                    await this.refreshBranchMermaid();
+                    await this.genericBranchNodes();
+                    this.plugin.openOutlineView();
                 })
 
             }  
 
-            if(this.plugin.settings.HistoryToggle == true){
-                
-                let showGraphDiv = document.getElementById("show-graph-div");
-                if(!showGraphDiv) return;
-
-                let historyListDiv = showGraphDiv.createDiv("zk-history-container");
-                historyListDiv.id = "zk-history-container";               
+            if(this.plugin.settings.HistoryToggle == true){             
 
                 const historyBtn = new ExtraButtonComponent(toolButtonsDiv);
                 historyBtn.setIcon("history").setTooltip(t("History List"));
-                historyBtn.onClick(async ()=>{
-                    if(this.plugin.settings.HistoryListShow === true){    
-                        this.plugin.settings.HistoryListShow = false;
-                    }else{                      
-                        this.plugin.settings.HistoryListShow = true;
-                        
-                    }
-                    await this.refreshHistoryList();
-                    await this.clearShowingSettings();
-                    await this.refreshBranchMermaid();
+                historyBtn.onClick(async ()=>{                    
+                   this.plugin.openRecentView();
                 })
             } 
 
         }  
-
+        
         if(this.plugin.settings.SelectIndex != ""){
 
             if(!this.plugin.settings.SelectIndex.startsWith(this.plugin.settings.FolderOfIndexes))
@@ -401,7 +400,7 @@ export class ZKIndexView extends ItemView {
 
         }else if(this.plugin.settings.SelectMainNote != ""){
 
-            let selectZKNode = this.MainNotes.filter(n=>n.file.path == this.plugin.settings.SelectMainNote)[0]
+            let selectZKNode = this.plugin.MainNotes.filter(n=>n.file.path == this.plugin.settings.SelectMainNote)[0]
             
             if(typeof selectZKNode === 'undefined'){
                 new Notice(`Invalid main note: ${this.plugin.settings.SelectMainNote}`)
@@ -416,17 +415,20 @@ export class ZKIndexView extends ItemView {
 
             this.unshiftHistoryList(selectZKNode.displayText, selectZKNode.file.path);
 
-        }              
+        }else if(this.plugin.settings.showAll == true){
+            indexLinkDiv.createEl('abbr', { text: t("all trees") }); 
+            branchEntranceNodeArr = this.plugin.MainNotes.filter(n=>n.isRoot == true);
+        }       
 
         if (indexFile instanceof TFile) {
-
+            
             let link = indexLinkDiv.createEl('a', { text: `【${indexFile.basename}】` });
             
             if(this.plugin.settings.SelectMainNote != ""){
                 
                 link.empty();
 
-                let node = this.MainNotes.filter(n=>n.file.path == this.plugin.settings.SelectMainNote)[0]
+                let node = this.plugin.MainNotes.filter(n=>n.file.path == this.plugin.settings.SelectMainNote)[0]
                 if(node){
                     link = indexLinkDiv.createEl('a', { text: `【${node.displayText}】`});
                 }
@@ -450,7 +452,10 @@ export class ZKIndexView extends ItemView {
                     sourcePath: indexFile.path,
                 })
             });
+        }
         
+        if(branchEntranceNodeArr.length >0){
+
             const mermaid = await loadMermaid();
             this.branchAllNodes = [];
             for (let i = 0; i < branchEntranceNodeArr.length; i++) {
@@ -463,13 +468,9 @@ export class ZKIndexView extends ItemView {
 
                 let { svg } = await mermaid.render(`${zkGraph.id}-svg`, branchMermaidStr);
                 zkGraph.insertAdjacentHTML('beforeend', svg);
+                  
+                zkGraph.children[0].setAttribute('width', "100%");
 
-                if(this.plugin.settings.HistoryListShow === true || this.plugin.settings.ListTreeShow === true){
-                    zkGraph.children[0].setAttribute('width', `${indexMermaidDiv.offsetWidth - 350}px`);   
-                }else{                    
-                    zkGraph.children[0].setAttribute('width', "100%");
-                }
-                
                 zkGraph.children[0].setAttr('height', `${this.containerEl.offsetHeight - 100}px`); 
                 
                 indexMermaidDiv.appendChild(zkGraph); 
@@ -531,7 +532,7 @@ export class ZKIndexView extends ItemView {
 
                     for (let foldNode of this.plugin.settings.FoldNodeArr.filter(n => n.graphID == zkGraph.id)) {
 
-                        let hideNodes = this.MainNotes.filter(n =>
+                        let hideNodes = this.plugin.MainNotes.filter(n =>
                             n.IDStr.startsWith(foldNode.nodeIDstr) && (n.IDStr !== foldNode.nodeIDstr)
                         );
 
@@ -558,7 +559,7 @@ export class ZKIndexView extends ItemView {
 
                     let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
                     let flowchartG = indexMermaid.querySelector("g.nodes");
-
+                    
                     if (flowchartG !== null) {
 
                         let nodeArr = flowchartG.getElementsByClassName("nodeLabel");
@@ -567,7 +568,7 @@ export class ZKIndexView extends ItemView {
                             let link = document.createElement('a');
                             link.addClass("internal-link");
                             let nodePosStr = nodeGArr[i].id.split('-')[1];
-                            let node = this.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
+                            let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
                             link.textContent = nodeArr[i].getText();
                             nodeArr[i].textContent = "";
                             nodeArr[i].appendChild(link);
@@ -577,7 +578,7 @@ export class ZKIndexView extends ItemView {
                                     this.app.workspace.openLinkText("", node.file.path, 'tab');
                                     event.stopPropagation();
                                 }
-                            })
+                            })                
 
                             nodeGArr[i].addEventListener("click", async (event: MouseEvent) => {
                                 if (event.ctrlKey) {
@@ -586,7 +587,7 @@ export class ZKIndexView extends ItemView {
                                 }else if(event.shiftKey){
                                     this.plugin.settings.SelectIndex = "";
                                     this.plugin.settings.SelectMainNote = node.file.path;
-                                    await this.clearShowingSettings();
+                                    await this.plugin.clearShowingSettings();
                                     await this.IndexViewInterfaceInit();
                                 }else if(event.altKey){
 
@@ -630,14 +631,14 @@ export class ZKIndexView extends ItemView {
                                     };                         
 
                                     if ((this.plugin.settings.FoldNodeArr.length === 0)) {
-                                        if (this.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
+                                        if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
                                             this.plugin.settings.FoldNodeArr.push(foldNode);
                                         }
                                     } else {
                                         if (typeof this.plugin.settings.FoldNodeArr.find(n =>
                                             (n.nodeIDstr == node.IDStr) && (n.graphID = zkGraph.id)) === "undefined"
                                         ) {
-                                            if (this.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
+                                            if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
                                                 this.plugin.settings.FoldNodeArr.push(foldNode);
                                             }
                                         } else {
@@ -667,14 +668,16 @@ export class ZKIndexView extends ItemView {
 
                 const branchTabs = document.getElementsByClassName("zk-index-mermaid")
                 indexLinkDiv.createEl('small', { text: ` >> `});
-
+                
                 for(let i = 0; i < branchTabs.length; i++){
 
                     let branchTab = indexLinkDiv.createEl('span').createEl('a', { text: `🌿${i+1} `,cls:"zK-branch-tab"});
+                    
+                    let node = branchEntranceNodeArr[i];
+                    setTooltip(branchTab,`${node.displayText} (${this.plugin.MainNotes.filter(n=>n.IDStr.startsWith(node.IDStr)).length})`)
 
                     branchTab.addEventListener("click", async () => {                        
                         await this.openBranchTab(i);
-                        await this.refreshListTree();
                     });
                     
                 }
@@ -685,18 +688,17 @@ export class ZKIndexView extends ItemView {
             
         }
 
-        if(this.plugin.settings.ListTreeShow === true){
-            await this.refreshListTree();
+        if(this.plugin.settings.ListTree === true){
+            await this.genericBranchNodes();
+            this.app.workspace.trigger("zk-navigation:refresh-outline-view");
         }
         
-        if(this.plugin.settings.HistoryListShow === true){            
-            await this.refreshHistoryList();
+        if(this.plugin.settings.HistoryToggle === true){ 
+            this.app.workspace.trigger("zk-navigation:refresh-recent-view");
         }
 
         this.plugin.indexViewOffsetWidth = this.containerEl.offsetWidth;
         this.plugin.indexViewOffsetHeight = this.containerEl.offsetHeight;
-
-
     }
     
 
@@ -714,6 +716,11 @@ export class ZKIndexView extends ItemView {
 
         branchGraph[tabNo].setAttribute("style", "display:block");
         branchTabs[tabNo].className = "zK-branch-tab-select";
+
+        if(this.plugin.settings.ListTree === true){
+            await this.genericBranchNodes();
+            this.app.workspace.trigger("zk-navigation:refresh-outline-view");
+        }
         
     }
 
@@ -734,7 +741,7 @@ export class ZKIndexView extends ItemView {
                     let branchFile = this.app.vault.getFileByPath(link);
 
                     if (branchFile) {
-                        let nodes = this.MainNotes.filter(l => l.file.path == branchFile?.path);
+                        let nodes = this.plugin.MainNotes.filter(l => l.file.path == branchFile?.path);
                         if (nodes.length > 0) {
                             branchNodeArr.push(nodes[0]);
                         }
@@ -758,7 +765,7 @@ export class ZKIndexView extends ItemView {
         // Starting node
         switch (this.plugin.settings.StartingPoint) {
             case "root":
-                let frontNodes = this.MainNotes.filter(n => entranceNode.IDStr.startsWith(n.IDStr));
+                let frontNodes = this.plugin.MainNotes.filter(n => entranceNode.IDStr.startsWith(n.IDStr));
 
                 if (frontNodes.length > 0) {
                     startNode = frontNodes[0];
@@ -767,7 +774,7 @@ export class ZKIndexView extends ItemView {
                     new Notice("Can't find the root of the branch!");
                 }
 
-                branchNodes = this.MainNotes.filter(n => n.IDStr.startsWith(startNode.IDStr));
+                branchNodes = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(startNode.IDStr));
 
                 break;
 
@@ -775,7 +782,7 @@ export class ZKIndexView extends ItemView {
                 if (entranceNode.IDArr.length > 1) {
                     let fatherArr = entranceNode.IDArr.slice(0, entranceNode.IDArr.length - 1);
 
-                    let fatherNode = this.MainNotes
+                    let fatherNode = this.plugin.MainNotes
                         .find(n => n.IDStr == fatherArr.toString());
 
                     if (typeof fatherNode !== 'undefined') {
@@ -790,13 +797,13 @@ export class ZKIndexView extends ItemView {
                 }
 
                 // only keep the father, siblings and sons of entranceNode
-                branchNodes = this.MainNotes
+                branchNodes = this.plugin.MainNotes
                     .filter(n => n.IDStr.startsWith(startNode.IDStr))
                     .filter(n => n.IDStr.startsWith(entranceNode.IDStr) || (n.IDArr.length <= entranceNode.IDArr.length));
 
                 break;
             default:
-                branchNodes = this.MainNotes.filter(n => n.IDStr.startsWith(entranceNode.IDStr));
+                branchNodes = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(entranceNode.IDStr));
 
         }
 
@@ -856,12 +863,6 @@ export class ZKIndexView extends ItemView {
         return mermaidStr;
     }
 
-    async clearShowingSettings(BranchTab:number=0){
-        this.plugin.settings.zoomPanScaleArr = [];
-        this.plugin.settings.BranchTab = BranchTab;
-        this.plugin.settings.FoldNodeArr = [];   
-    }
-
     unshiftHistoryList(displayText: string, filePath:string) {
 
         let a  = this.plugin.settings.HistoryList.find(n=>n.filePath == filePath);
@@ -886,57 +887,9 @@ export class ZKIndexView extends ItemView {
         }        
     }
 
-    async refreshHistoryList(){
-
-        let historyListDiv = document.getElementById("zk-history-container")
-        
-        if(!historyListDiv) return;
-
-        historyListDiv.empty();
-        
-        for(let i=0;i<this.plugin.settings.HistoryList.length;i++){
-
-            let line = historyListDiv.createEl('div', {text: `${i+1}. ${this.plugin.settings.HistoryList[i].displayText}`, cls:"vertical-tab-nav-item"});
-            line.addEventListener('click', async ()=>{
-                
-                if(this.plugin.settings.FolderOfIndexes !== '' && 
-                this.plugin.settings.HistoryList[i].filePath.startsWith(this.plugin.settings.FolderOfIndexes)){
-                    this.plugin.settings.SelectIndex = this.plugin.settings.HistoryList[i].filePath;
-                    this.plugin.settings.SelectMainNote = "";
-
-                }else{
-
-                    this.plugin.settings.SelectMainNote = this.plugin.settings.HistoryList[i].filePath;
-                    this.plugin.settings.SelectIndex = "";
-                }
-                
-                let history =  {
-                    displayText: this.plugin.settings.HistoryList[i].displayText,
-                    filePath: this.plugin.settings.HistoryList[i].filePath,
-                    openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-                }
-
-                this.plugin.settings.HistoryList.splice(i,1);
-                this.plugin.settings.HistoryList.unshift(history);
-                this.plugin.settings.zoomPanScaleArr = [];
-                this.plugin.settings.BranchTab = 0;
-                this.plugin.settings.FoldNodeArr = [];  
-                await this.refreshBranchMermaid();
-
-            })
-        }
-            
-        if(this.plugin.settings.HistoryListShow === true){
-            historyListDiv.setAttribute("style","display:block") ;
-        }else{
-            historyListDiv.setAttribute("style","display:none") ; 
-        }
-        
-    }
-
     async genericBranchNodes(){
 
-        this.tableArr = [];
+        this.plugin.tableArr = [];
 
         const tableBranch = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
 
@@ -947,122 +900,12 @@ export class ZKIndexView extends ItemView {
             for(let i=0;i<nodeGArr.length;i++){
 
                 let nodePosStr = nodeGArr[i].id.split('-')[1];
-                let node = this.MainNotes.filter(n => n.position == Number(nodePosStr))[0];            
-                this.tableArr.push(node);
+                let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];            
+                this.plugin.tableArr.push(node);
             }            
         }
         
     } 
-    
-    async createListTree(item:ZKNode, itemEl:HTMLElement){
-
-        let children = this.tableArr.filter(n=>n.IDArr.length === item.IDArr.length + 1 && n.IDStr.startsWith(item.IDStr))
-
-        let treeItem = itemEl.createDiv("tree-item");
-        let treeItemSelf = treeItem.createDiv("tree-item-self is-clickable mod-collapsible");
-
-        treeItemSelf.addEventListener(`mouseover`, (event: MouseEvent) => {
-            this.app.workspace.trigger(`hover-link`, {
-                event,
-                source: ZK_NAVIGATION,
-                hoverParent: this,
-                linktext: "",
-                targetEl: treeItemSelf,
-                sourcePath: item.file.path,
-            })
-        });
-
-        treeItemSelf.addEventListener("click", async (event: MouseEvent) => {            
-            if(event.ctrlKey){
-                navigator.clipboard.writeText(item.ID);
-                new Notice(item.ID + " copied");
-            }else if(event.shiftKey){
-                this.plugin.settings.SelectIndex = "";
-                this.plugin.settings.SelectMainNote = item.file.path;
-                await this.clearShowingSettings();
-                await this.IndexViewInterfaceInit();
-            }else if(event.altKey){
-                this.plugin.FileforLocaLgraph = item.file.path;
-                this.plugin.openGraphView();
-            }else{
-                this.app.workspace.openLinkText("", item.file.path);
-            }
-        })
-
-
-        const treeItemChildren = treeItem.createDiv("tree-item-children");
-        treeItemChildren.setAttr("style","display:none");
-
-        if(children.length > 0){
-            let treeItemIcon = treeItemSelf.createDiv("tree-item-icon collapse-icon is-collapsed");
-            let icon = new ExtraButtonComponent(treeItemIcon);
-            icon.setIcon("right-triangle");
-            treeItemIcon.addEventListener("click", (event: MouseEvent) => {
-
-                if(treeItemIcon.hasClass("is-collapsed")){
-                    treeItemIcon.removeClass("is-collapsed");
-                    treeItemChildren.setAttr("style","display:block");
-                }else{
-                    treeItemIcon.addClass("is-collapsed");
-                    treeItemChildren.setAttr("style","display:none");
-                }
-                
-                event.stopPropagation();
-            })
-
-            if(this.plugin.settings.StartingPoint == "father"){
-                if(item.IDArr.length < this.tableArr[0].IDArr.length + 2){
-                    if(treeItemIcon.hasClass("is-collapsed")){
-                        treeItemIcon.removeClass("is-collapsed");
-                        treeItemChildren.setAttr("style","display:block");
-                    }
-                }
-            }else{
-                if(item.IDArr.length === this.tableArr[0].IDArr.length){
-                    if(treeItemIcon.hasClass("is-collapsed")){
-                        treeItemIcon.removeClass("is-collapsed");
-                        treeItemChildren.setAttr("style","display:block");
-                    }
-                }
-            }
-            
-        }
-        
-        let treeIteminner = treeItemSelf.createDiv("tree-item-inner");
-        //treeIteminner.setText(`${item.ID}: ${item.title}`);
-        treeIteminner.setText(`${item.displayText}`);
-
-        for(let i=0;i<children.length;i++){
-            
-            await this.createListTree(children[i], treeItemChildren)
-        }
-
-    }
-
-    async refreshListTree(){
-
-        let listTreeDiv = document.getElementById("zk-list-tree-container")
-        
-        if(!listTreeDiv) return;
-
-        listTreeDiv.empty();
-
-        await this.genericBranchNodes();
-
-        if(this.tableArr.length > 0){
-
-            await this.createListTree(this.tableArr[0], listTreeDiv);
-            
-        }else{
-            new Notice("No contents!")
-        }
-
-        if(this.plugin.settings.ListTreeShow === true){
-            listTreeDiv.setAttribute("style","display:block") ;
-        }else{
-            listTreeDiv.setAttribute("style","display:none") ;
-        }
-    }
 
     async exportToCanvas(){
         let nodes = this.branchAllNodes.find(b=>b.branchTab == this.plugin.settings.BranchTab)?.branchNodes;
@@ -1122,6 +965,8 @@ export class ZKIndexView extends ItemView {
             }
         }
 
+        this.tightCards(nodes);
+
         let canvasNodeStr:string = "";
         let canvasEdgeStr:string = "";
         for(let i=0;i<nodes.length;i++){
@@ -1129,7 +974,7 @@ export class ZKIndexView extends ItemView {
             let positionX:number = (nodes[i].IDArr.length - nodes[0].IDArr.length)*(cardWidth + intervalX);
             let positionY:number = nodes[i].height;
             canvasNodeStr = canvasNodeStr + `
-            {"id":"${nodes[i].ID}","x":${positionX},"y":${positionY},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${nodes[i].file.path}"},`
+            {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${nodes[i].file.path}"},`
 
             let IDStr = nodes[i].IDStr;
             let IDArr = nodes[i].IDArr;
@@ -1138,7 +983,7 @@ export class ZKIndexView extends ItemView {
                         
             for(let son of sonNodes){
                 canvasEdgeStr = canvasEdgeStr + `
-                {"id":"${random(16)}","fromNode":"${nodes[i].ID}","fromSide":"right","toNode":"${son.ID}","toSide":"left"},`
+                {"id":"${random(16)}","fromNode":"${nodes[i].randomId}","fromSide":"right","toNode":"${son.randomId}","toSide":"left"},`
             }
 
         }
@@ -1170,7 +1015,7 @@ export class ZKIndexView extends ItemView {
             if(filePath == ""){
                 filePath = `${moment().format("YYYY-MM-DD HH.mm.ss")}.canvas`;                
             }
-            //new Notice(("create new canvas file: " + filePath));
+            new Notice("create new canvas file: " + filePath);
             targetfile = await this.app.vault.create(filePath, fileContent);
         }
 
@@ -1182,6 +1027,148 @@ export class ZKIndexView extends ItemView {
             }else{
                 this.app.workspace.openLinkText("",targetfile.path);
             }
+        }
+    }
+
+    tightCards(nodes:ZKNode[]){
+        const cardHeight = this.plugin.settings.cardHeight;
+        const intervalY =  cardHeight/8;
+
+        const maxLength =  Math.max(...nodes.map(n=>n.IDArr.length));
+        const minLength =  Math.min(...nodes.map(n=>n.IDArr.length));
+        
+
+        for(let i=maxLength-1;i>=minLength;i--){
+            let layerNodes = nodes.filter(n=>n.IDArr.length === i);
+            
+            for(let node of layerNodes){                
+                let sons = nodes.filter(n=>n.IDStr.startsWith(node.IDStr) && n.IDArr.length == i+1)
+                if(sons.length > 1){
+                    //上半子节点
+                    let upSons = sons.filter(n=>n.height + cardHeight < node.height + (cardHeight + intervalY)/2);
+                    for(let j=upSons.length-1;j>=0;j--){
+                        let gapYArr:number[] = [];                         
+                        let sequentNodes = nodes.filter(n=>n.IDStr.startsWith(upSons[j].IDStr));                        
+                        let maxLen =  Math.max(...sequentNodes.map(n=>n.IDArr.length));
+                        for(let k=upSons[j].IDArr.length;k<=maxLen;k++){
+                            let temLayerNodes = sequentNodes.filter(n=>n.IDArr.length === k);
+                            let maxHeightNode = temLayerNodes.find(n=>n.height == Math.max(...temLayerNodes.map(n=>n.height)));
+                            if(typeof maxHeightNode !== 'undefined'){                                
+                                let columnNodes = nodes.filter(n=>n.IDArr.length === k);
+                                let nextNodeIndex = columnNodes.indexOf(maxHeightNode) + 1;
+                                let nextNode = columnNodes[nextNodeIndex];
+                                if(typeof nextNode !== 'undefined'){
+                                    let gapY = nextNode.height - maxHeightNode.height - cardHeight;
+                                    if(gapY >= intervalY){
+                                        gapYArr.push(gapY);
+                                    }                                     
+                                }
+                            }
+                        }                        
+                        if(gapYArr.length > 0){
+                            if(j==upSons.length-1){
+                                let firstGapY = node.height + (cardHeight+intervalY)/2 - upSons[upSons.length-1].height - cardHeight; 
+                                if(firstGapY > intervalY){
+                                    gapYArr.push(firstGapY);
+                                }else{
+                                    continue;
+                                }
+                                gapYArr.push(firstGapY);
+                            }                           
+                            let minGapY = Math.min(...gapYArr);
+                            if(minGapY > intervalY){                             
+                                for(let item of sequentNodes){
+                                    nodes[nodes.indexOf(item)].height += (minGapY - intervalY); 
+                                }
+                            }
+                        }
+                    }
+
+                    //下半子节点
+                    let bottomSons = sons.filter(n=>n.height > node.height + (cardHeight + intervalY)/2);
+                    for(let j=0;j<bottomSons.length;j++){
+                        let gapYArr:number[] = [];                         
+                        let sequentNodes = nodes.filter(n=>n.IDStr.startsWith(bottomSons[j].IDStr));                        
+                        let maxLen =  Math.max(...sequentNodes.map(n=>n.IDArr.length));
+                        for(let k=bottomSons[j].IDArr.length;k<=maxLen;k++){
+                            let temLayerNodes = sequentNodes.filter(n=>n.IDArr.length === k);
+                            
+                            let minHeightNode = temLayerNodes.find(n=>n.height == Math.min(...temLayerNodes.map(n=>n.height)));
+                            if(typeof minHeightNode !== 'undefined'){                                
+                                let columnNodes = nodes.filter(n=>n.IDArr.length === k);
+                                let previousNodeIndex = columnNodes.indexOf(minHeightNode) - 1;
+                                let previousNode = columnNodes[previousNodeIndex]; 
+                                if(typeof previousNode !== 'undefined'){                                    
+                                    let gapY =  minHeightNode.height - previousNode.height - cardHeight;
+                                    if(gapY >= intervalY){
+                                        gapYArr.push(gapY);
+                                    }                               
+                                }
+                            }
+                        }                        
+                        if(gapYArr.length > 0){
+                            if(j==0){
+                                let firstGapY = bottomSons[0].height - node.height - (cardHeight-intervalY)/2;                        
+                                if(firstGapY > intervalY){
+                                    gapYArr.push(firstGapY);
+                                }else{
+                                    continue;
+                                }
+                                gapYArr.push(firstGapY);
+                            }               
+                            let minGapY = Math.min(...gapYArr);
+                            if(minGapY > intervalY){                             
+                                for(let item of sequentNodes){
+                                    nodes[nodes.indexOf(item)].height -= (minGapY - intervalY); 
+                                }
+                            }
+                        }
+                    }
+                }
+            }            
+        }        
+    }
+
+    branchGrowing(){
+        
+        const branchMermaid = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
+
+        if(branchMermaid == null) return;
+            
+        let nodeGArr = Array.from(branchMermaid.querySelectorAll("[id^='flowchart-']"));
+        let lines = Array.from(branchMermaid.querySelectorAll(`[id^='L-']`))
+        nodeGArr.forEach((item) => {
+            item.setAttribute("style", "display:none");
+        })
+        lines.forEach((item) => {
+            item.setAttribute("style", "display:none");
+        })
+
+        this.plugin.tableArr = [];
+        for(let i=0;i<nodeGArr.length;i++){
+
+            let nodePosStr = nodeGArr[i].id.split('-')[1];
+            let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];            
+            this.plugin.tableArr.push(node);
+        }             
+        
+        this.plugin.tableArr.sort((a, b) => a.ctime.localeCompare(b.ctime));
+        
+        let sec:number= 500;
+        for(let node of this.plugin.tableArr){            
+            
+            setTimeout(() => {
+                let nodeG = nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
+                if(nodeG){
+                    nodeG.setAttribute("style", "display:block");
+                }
+                let line = lines.find(n=>n.id.split('-')[2] == node.position.toString());
+                if(line){                
+                    line.setAttribute("style", "display:block");
+                }
+            }, sec);
+
+            sec = sec + 500;
         }
         
     }

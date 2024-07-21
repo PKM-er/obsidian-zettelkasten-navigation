@@ -55,7 +55,7 @@ export default {
     "Index button": "Index retrieval button",
     "Main Notes button": "Main notes retrieval button",
     "Name of main note button": "Name of main note button",
-    "Custom created time(optional)": "Custom created time(used in table view)",
+    "Custom created time(optional)": "Custom created time(used in table view and animation)",
     "Specify a frontmatter field for time of note created time": "Specify a frontmatter field for the time of main note creation",
     "History List": "recent retrieval",
     "And set the list length": "Set the max length",
@@ -95,6 +95,8 @@ export default {
     "export to canvas": "export to canvas",
     "select a main note": "select a main note",
     "select an index": "select an index",
+    "all trees": "all trees",
+    "growing animation": "start timelapse animation",
 
     // localView.ts
     "close relative": "close relative",
@@ -113,7 +115,7 @@ export default {
     "reveal current file in zk-index-graph": "reveal current file in zk-index-graph",
 
     //indexModal.ts
-    "Index folder not set!": "Index folder not set!",
+    "Index folder not set!": "❌Setting error: Index folder not set!",
     "No index can be found by path": "No index can be found by path",
 
     //tableView.ts

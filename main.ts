@@ -1,8 +1,10 @@
-import { FileView, Notice, Plugin, TFile, moment} from "obsidian";
+import { FileView, Notice, Plugin, TFile} from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNavigationSettngTab } from "src/settings/settings";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
-import { ZKIndexView, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
+import { ZKIndexView, ZKNode, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
+import { ZK_OUTLINE_TYPE, ZKOutlineView } from "src/view/outlineView";
+import { ZK_RECENT_TYPE, ZKRecentView } from "src/view/recentView";
 
 export interface FoldNode{
     graphID: string;
@@ -74,13 +76,15 @@ interface ZKNavigationSettings {
     HistoryList: History[];
     HistoryToggle: boolean;
     HistoryMaxCount: number;
-    HistoryListShow: boolean;
-    ListTreeShow: boolean;
     exportCanvas: boolean;
     cardWidth: number;
     cardHeight: number;
     canvasFilePath: string;
     siblingsOrder: string;
+    showAllToggle: boolean;
+    showAll: boolean;
+    play: boolean;
+    outlineLayer: number;
 }
 
 //Default value for setting field
@@ -116,11 +120,11 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     DirectionOfFamilyGraph: "LR",
     DirectionOfInlinksGraph: "TB",
     DirectionOfOutlinksGraph: "TB",
-    BranchToolbra: false,
+    BranchToolbra: true,
     RandomIndex: true,
     RandomMainNote: true,
     TableView: true,
-    IndexButton: false,
+    IndexButton: true,
     MainNoteButton: true,
     MainNoteButtonText: t("Main notes"),
     SelectMainNote: '',
@@ -130,18 +134,22 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     HistoryList: [],
     HistoryToggle: true,
     HistoryMaxCount: 20,
-    HistoryListShow: false,
-    ListTreeShow: false,
     exportCanvas: true,
     cardWidth: 400,
     cardHeight: 240,
     canvasFilePath: "",
-    siblingsOrder: "number",    
+    siblingsOrder: "number", 
+    showAll: false,
+    showAllToggle: true,
+    play: true,
+    outlineLayer: 2,
 }
 
 export default class ZKNavigationPlugin extends Plugin {
 
     settings: ZKNavigationSettings;
+    MainNotes: ZKNode[];
+    tableArr: ZKNode[];
     FileforLocaLgraph: string = "";
     indexViewOffsetWidth: number = 0;
     indexViewOffsetHeight: number = 0;
@@ -213,8 +221,7 @@ export default class ZKNavigationPlugin extends Plugin {
 
         this.registerEvent(
             this.app.workspace.on("file-menu", (menu, file, source) => {
-                console.log(source);
-
+                
                 if (
                     !(
                         source === "more-options" ||
@@ -246,6 +253,10 @@ export default class ZKNavigationPlugin extends Plugin {
         this.registerView(ZK_INDEX_TYPE, (leaf) => new ZKIndexView(leaf, this));
 
         this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf, this));
+
+        this.registerView(ZK_OUTLINE_TYPE, (leaf) => new ZKOutlineView(leaf, this));
+
+        this.registerView(ZK_RECENT_TYPE, (leaf) => new ZKRecentView(leaf, this));
               
         this.addRibbonIcon("ghost", t("open zk-index-graph"), async () => {
             
@@ -280,37 +291,7 @@ export default class ZKNavigationPlugin extends Plugin {
             id: "zk-index-graph-by-file",
             name: t("reveal current file in zk-index-graph"),
             callback: async ()=>{
-                let filePath = this.app.workspace.getActiveViewOfType(FileView)?.file?.path
-                
-                if(filePath && filePath.endsWith(".md")){
-
-                    let indexFlag:boolean = false;
-
-                    if(this.settings.FolderOfIndexes !== ""){
-                        if(filePath.startsWith(this.settings.FolderOfIndexes)){
-                            indexFlag = true;
-                            this.settings.SelectIndex = filePath;
-                            this.settings.SelectMainNote = "";
-                            this.settings.zoomPanScaleArr = [];
-                            this.settings.BranchTab = 0;
-                            this.settings.FoldNodeArr = [];  
-                            this.RefreshIndexViewFlag = true;
-                            await this.openIndexView();
-                        }
-                    }
-    
-                    if(!indexFlag){
-                        this.settings.SelectMainNote = filePath;
-                        this.settings.SelectIndex = "";
-                        this.settings.zoomPanScaleArr = [];
-                        this.settings.BranchTab = 0;
-                        this.settings.FoldNodeArr = []; 
-                        this.RefreshIndexViewFlag = true;
-                        await this.openIndexView();
-                    }
-
-                    return;
-                }
+                await this.revealFileInIndexView();
             }
         })
 
@@ -319,7 +300,7 @@ export default class ZKNavigationPlugin extends Plugin {
         {
             defaultMod:true,
             display:ZK_NAVIGATION,
-        });      
+        });     
 
     }
 
@@ -349,11 +330,76 @@ export default class ZKNavigationPlugin extends Plugin {
             type:ZK_GRAPH_TYPE,
             active:true,
         });
+        
        }
        this.app.workspace.revealLeaf(
         this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE)[0]
        );
        this.app.workspace.trigger("zk-navigation:refresh-local-graph");
+    }
+
+    async openOutlineView() {
+        if(this.app.workspace.getLeavesOfType(ZK_OUTLINE_TYPE).length === 0){
+         await this.app.workspace.getRightLeaf(false)?.setViewState({
+             type:ZK_OUTLINE_TYPE,
+             active:true,
+         });
+        }
+        this.app.workspace.revealLeaf(
+         this.app.workspace.getLeavesOfType(ZK_OUTLINE_TYPE)[0]
+        );
+        this.app.workspace.trigger("zk-navigation:refresh-outline-view");
+    
+    }
+
+    async openRecentView() {
+        if(this.app.workspace.getLeavesOfType(ZK_RECENT_TYPE).length === 0){
+         await this.app.workspace.getRightLeaf(false)?.setViewState({
+             type:ZK_RECENT_TYPE,
+             active:true,
+         });
+        }
+        this.app.workspace.revealLeaf(
+         this.app.workspace.getLeavesOfType(ZK_RECENT_TYPE)[0]
+        );
+        this.app.workspace.trigger("zk-navigation:refresh-recent-view");
+    
+    }
+
+    async clearShowingSettings(BranchTab:number=0){
+        this.settings.zoomPanScaleArr = [];
+        this.settings.BranchTab = BranchTab;
+        this.settings.FoldNodeArr = [];   
+    }
+
+    async revealFileInIndexView(){
+        
+        let filePath = this.app.workspace.getActiveViewOfType(FileView)?.file?.path
+        
+        if(filePath && filePath.endsWith(".md")){
+
+            let indexFlag:boolean = false;
+
+            if(this.settings.FolderOfIndexes !== ""){
+                if(filePath.startsWith(this.settings.FolderOfIndexes)){
+                    indexFlag = true;
+                    this.settings.SelectIndex = filePath;
+                    this.settings.SelectMainNote = "";
+                    this.clearShowingSettings();
+                    this.RefreshIndexViewFlag = true;
+                    await this.openIndexView();
+                }
+            }
+
+            if(!indexFlag){
+                this.settings.SelectMainNote = filePath;
+                this.settings.SelectIndex = "";
+                this.clearShowingSettings();
+                this.RefreshIndexViewFlag = true;
+                await this.openIndexView();
+            }
+            return;            
+        }
     }
 
     onunload() {

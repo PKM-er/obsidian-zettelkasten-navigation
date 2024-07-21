@@ -81,7 +81,7 @@ export default {
     "next": "向下一层",
     "end": "最后一层",
     "title": "标题",
-    "both": "ID + 标题",
+    "both": "id + 标题",
     "Current index: ": "当前关键词:",
     "random index": "随机关键词",
     "random main note": "随机主笔记",
@@ -95,6 +95,8 @@ export default {
     "export to canvas": "导出到白板",
     "select a main note": "选择一个主笔记",
     "select an index": "选择一个关键词",
+    "all trees": "所有树",
+    "growing animation": "播放分支生长动画",
 
     // localView.ts
     "close relative": "邻近",
@@ -113,7 +115,7 @@ export default {
     "reveal current file in zk-index-graph": "在关键词分支视图显示当前文件",
 
     //indexModal.ts
-    "Index folder not set!": "关键词文件夹没有设置!",
+    "Index folder not set!": "❌设置错误: 关键词文件夹没有设置!",
     "No index can be found by path": "指定文件夹找不到任何关键词：",
     
     //tableView.ts
