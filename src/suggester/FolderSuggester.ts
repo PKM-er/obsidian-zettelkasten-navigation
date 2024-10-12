@@ -11,7 +11,7 @@ export class FolderSuggest extends AbstractInputSuggest<TFolder> {
 
     getSuggestions(inputStr: string): TFolder[] {
         const abstractFiles = this.app.vault.getAllLoadedFiles();
-        const folders: TFolder[] = [];
+        let folders: TFolder[] = [];
         const lowerCaseInputStr = inputStr.toLowerCase();
 
         abstractFiles.forEach((folder: TAbstractFile) => {

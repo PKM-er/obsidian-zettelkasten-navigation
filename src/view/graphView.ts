@@ -1,8 +1,8 @@
 import ZKNavigationPlugin from "main";
-import { ExtraButtonComponent, FileView, ItemView, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
+import { ExtraButtonComponent, FileView, ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
 import { ZKNode, ZK_NAVIGATION } from "./indexView";
 import { t } from "src/lang/helper";
-import { mainNoteInit } from "src/utils/utils";
+import { displayWidth, mainNoteInit } from "src/utils/utils";
 import { expandGraphModal } from "src/modal/expandGraphModal";
 
 export const ZK_GRAPH_TYPE: string = "zk-graph-type"
@@ -12,6 +12,7 @@ export class ZKGraphView extends ItemView {
 
     plugin: ZKNavigationPlugin;
     currentFile: TFile | null;
+    familyNodeArr: ZKNode[] = [];
 
     constructor(leaf: WorkspaceLeaf, plugin: ZKNavigationPlugin) {
         super(leaf);
@@ -61,8 +62,9 @@ export class ZKGraphView extends ItemView {
         this.registerEvent(this.app.workspace.on("active-leaf-change", async(leaf)=>{  
             
             if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length > 0){  
-                if(this.app.workspace.getActiveViewOfType(FileView)){             
-                    refresh();
+                if(this.app.workspace.getActiveViewOfType(FileView)){    
+                    this.plugin.retrivalforLocaLgraph.type = '2';         
+                    refresh();                    
                 }
             }             
         }));
@@ -76,12 +78,33 @@ export class ZKGraphView extends ItemView {
         containerEl.empty();
         const graphMermaidDiv = containerEl.createDiv().createDiv("zk-graph-mermaid-container");
         
-        if(this.plugin.FileforLocaLgraph !== ""){
-            this.currentFile = this.app.vault.getFileByPath(this.plugin.FileforLocaLgraph);
-        }else{
-            this.currentFile = this.app.workspace.getActiveFile();
-        } 
-        this.plugin.FileforLocaLgraph = "";
+        await mainNoteInit(this.plugin);
+
+        switch (this.plugin.retrivalforLocaLgraph.type) {
+            case '1': //click graph
+                this.currentFile = this.app.vault.getFileByPath(this.plugin.retrivalforLocaLgraph.filePath);
+                break;
+            default: // open file
+                
+                this.currentFile = this.app.workspace.getActiveFile();
+                if(this.currentFile !== null){
+                    let path = this.currentFile.path;
+                    let nodes = this.familyNodeArr.filter(n=>n.file.path ==path);
+                    if(nodes.length > 0){
+                        this.plugin.retrivalforLocaLgraph.ID = nodes[0].ID;
+                    }else{
+                        nodes = this.plugin.MainNotes.filter(n=>n.file.path == path);
+
+                        if(nodes.length >0 ){
+                            this.plugin.retrivalforLocaLgraph.ID = nodes[0].ID;
+                        }                      
+                        
+                    }
+                    
+                    this.plugin.retrivalforLocaLgraph.filePath = path;
+                }
+                break;
+        }
 
         graphMermaidDiv.empty();
 
@@ -91,8 +114,8 @@ export class ZKGraphView extends ItemView {
             const svgPanZoom = require("svg-pan-zoom");
             if (this.plugin.settings.FamilyGraphToggle == true) {
                 
-                let familyNodeArr: ZKNode[] = await this.getFamilyNodes(this.currentFile);
-                let familyMermaidStr: string = await this.genericFamilyMermaidStr(this.currentFile, familyNodeArr, this.plugin.settings.DirectionOfFamilyGraph);
+                await this.getFamilyNodes(this.currentFile);
+                let familyMermaidStr: string = await this.genericFamilyMermaidStr(this.currentFile, this.plugin.settings.DirectionOfFamilyGraph);
 
                 const familyGraphContainer = graphMermaidDiv.createDiv("zk-family-graph-container");
                 const familyGraphTextDiv = familyGraphContainer.createDiv("zk-graph-text");
@@ -105,7 +128,7 @@ export class ZKGraphView extends ItemView {
                 let expandBtn = new ExtraButtonComponent(graphIconDiv);
                 expandBtn.setIcon("expand").setTooltip(t("expand graph"));
                 expandBtn.onClick(()=>{              
-                    new expandGraphModal(this.app,this.plugin, familyNodeArr, [], familyMermaidStr).open();
+                    new expandGraphModal(this.app,this.plugin, this.familyNodeArr, [], familyMermaidStr).open();
                 })
 
                 const familyTreeDiv = familyGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
@@ -147,7 +170,7 @@ export class ZKGraphView extends ItemView {
                     let link = document.createElement('a');
                     link.addClass("internal-link");
                     let nodePosStr = nodeGArr[i].id.split('-')[1];
-                    let node = familyNodeArr.filter(n=>n.position == Number(nodePosStr))[0];
+                    let node = this.familyNodeArr.filter(n=>n.position == Number(nodePosStr))[0];
                     link.textContent = nodeArr[i].getText();
                     nodeArr[i].textContent = "";
                     nodeArr[i].appendChild(link);
@@ -155,11 +178,22 @@ export class ZKGraphView extends ItemView {
                         if(event.ctrlKey){
                             this.app.workspace.openLinkText("", node.file.path, 'tab');
                         }else if(event.shiftKey){
-                            this.plugin.FileforLocaLgraph = node.file.path;
+                            this.plugin.retrivalforLocaLgraph = {
+                                type: '1',
+                                ID: node.ID,
+                                filePath: node.file.path,  
+                            }; 
                             this.plugin.openGraphView();
                         }else if(event.altKey){                 
                                 this.plugin.clearShowingSettings();
-                                this.plugin.settings.SelectMainNote = node.file.path;
+                                this.plugin.settings.lastRetrival = {
+                                    type: 'main',
+                                    ID: node.ID,
+                                    displayText: node.displayText,
+                                    filePath: node.file.path,
+                                    openTime: '',                        
+                                }
+                                new Notice("123")
                                 this.plugin.RefreshIndexViewFlag = true;
                                 this.plugin.openIndexView();
                         }else{
@@ -248,14 +282,25 @@ export class ZKGraphView extends ItemView {
                         if(event.ctrlKey){
                             this.app.workspace.openLinkText("", node.path, 'tab');
                         }else if(event.shiftKey){
-                            this.plugin.FileforLocaLgraph = node.path;
+                            this.plugin.retrivalforLocaLgraph = {
+                                type: '1',
+                                ID: '',
+                                filePath: node.path,
+            
+                            }; 
                             this.plugin.openGraphView();
                         }else if(event.altKey){
                             let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
                             
                             if(mainNote){
-                                this.plugin.clearShowingSettings();
-                                this.plugin.settings.SelectMainNote = mainNote.file.path;
+                                this.plugin.clearShowingSettings();                               
+                                this.plugin.settings.lastRetrival = {
+                                    type: 'main',
+                                    ID: mainNote.ID,
+                                    displayText: mainNote.displayText,
+                                    filePath: mainNote.file.path,
+                                    openTime: '',                        
+                                }
                                 this.plugin.RefreshIndexViewFlag = true;
                                 this.plugin.openIndexView();
                             }
@@ -350,15 +395,28 @@ export class ZKGraphView extends ItemView {
                         if(event.ctrlKey){
                             this.app.workspace.openLinkText("", node.path, 'tab');
                         }else if(event.shiftKey){
-                            this.plugin.FileforLocaLgraph = node.path;
+                            
+                            this.plugin.retrivalforLocaLgraph = {
+                                type: '1',
+                                ID: '',
+                                filePath: node.path,
+            
+                            }; 
                             this.plugin.openGraphView();
                         }else if(event.altKey){
                             let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
                             
                             if(mainNote){
                                 this.plugin.clearShowingSettings();
-                                this.plugin.settings.SelectMainNote = mainNote.file.path;
+                                this.plugin.settings.lastRetrival = {
+                                    type: 'main',
+                                    ID: mainNote.ID,
+                                    displayText: mainNote.displayText,
+                                    filePath: mainNote.file.path,
+                                    openTime: '',                        
+                                }
                                 this.plugin.RefreshIndexViewFlag = true;
+                                
                                 this.plugin.openIndexView();
                             }
 
@@ -385,12 +443,21 @@ export class ZKGraphView extends ItemView {
 
     async getFamilyNodes(currentFile: TFile) {
 
-        let familyNodeArr: ZKNode[] = [];
-        await mainNoteInit(this.plugin);
+        this.familyNodeArr = [];
 
-        let currentNode = this.plugin.MainNotes.filter(n => n.file == currentFile)[0];
+        let Nodes = this.plugin.MainNotes.filter(n => n.file == currentFile);
 
-        if (typeof currentNode !== 'undefined') {
+        if(Nodes.length > 0 ){
+            if(this.plugin.retrivalforLocaLgraph.ID !== ''){
+                Nodes = Nodes.filter(n=>n.ID == this.plugin.retrivalforLocaLgraph.ID);
+            }else{
+                this.plugin.retrivalforLocaLgraph.ID = Nodes[0].ID;
+            }            
+        }
+
+        if (Nodes.length > 0) {
+
+            let currentNode = Nodes[0];            
 
             if (currentNode.IDArr.length > 1) {
                 let fatherArr = currentNode.IDArr.slice(0, currentNode.IDArr.length - 1);
@@ -400,23 +467,36 @@ export class ZKGraphView extends ItemView {
 
                 if (fatherNode.length > 0) {
 
-                    familyNodeArr = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(fatherNode[0].IDStr))
+                    this.familyNodeArr = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(fatherNode[0].IDStr))
                         .filter(n => n.IDArr.length <= currentNode.IDArr.length ||
                             (n.IDStr.startsWith(currentNode.IDStr) && n.IDArr.length == currentNode.IDArr.length + 1)
                         );
 
                 } else {
-                    familyNodeArr = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(currentNode.IDStr)
+                    this.familyNodeArr = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(currentNode.IDStr)
                         && n.IDArr.length <= currentNode.IDArr.length + 1);
                 }
 
             } else {
-                familyNodeArr = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(currentNode.IDStr)
+                this.familyNodeArr = this.plugin.MainNotes.filter(n => n.IDStr.startsWith(currentNode.IDStr)
                     && n.IDArr.length <= currentNode.IDArr.length + 1);
             }
         }
 
-        return familyNodeArr;
+        //calculate width for siblings
+        if(this.plugin.settings.siblingLenToggle === true){
+            const maxLength =  Math.max(...this.familyNodeArr.map(n=>n.IDArr.length));
+            const minLength =  Math.min(...this.familyNodeArr.map(n=>n.IDArr.length));
+    
+            for(let i=minLength;i<=maxLength;i++){
+                let layerNodes = this.familyNodeArr.filter(n=>n.IDArr.length === i);
+                let maxTextLen = Math.max(...layerNodes.map(n=>displayWidth(n.displayText)));
+                for(let node of layerNodes){
+                    node.fixWidth = 6 * maxTextLen;
+                }
+            }
+            
+        }
     }
 
     async getInlinks(currentFile: TFile) {
@@ -469,11 +549,13 @@ export class ZKGraphView extends ItemView {
         let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction2};\n`
 
-
         let currentNode: ZKNode[] = [];
 
-        if (this.plugin.MainNotes.length > 0) {
-            currentNode = this.plugin.MainNotes.filter(n => n.file === currentFile);
+        if(this.familyNodeArr.length > 0 ){
+            currentNode = this.familyNodeArr.filter(n=>n.file == currentFile)
+            if(currentNode.length == 0){
+                currentNode = this.plugin.MainNotes.filter(n => n.file === currentFile);
+            }
         }
 
         if (currentNode.length > 0) {
@@ -501,16 +583,19 @@ export class ZKGraphView extends ItemView {
         
         return mermaidStr;
 
-        
-
     }
 
-    async genericFamilyMermaidStr(currentFile: TFile, Nodes: ZKNode[], direction:string) {
+    async genericFamilyMermaidStr(currentFile: TFile, direction:string) {
         let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};`;
 
-        for (let node of Nodes) {
-            mermaidStr = mermaidStr + `${node.position}("${node.displayText}");\n`;
+        for (let node of this.familyNodeArr) {
+
+            if(this.plugin.settings.siblingLenToggle === true && this.plugin.settings.NodeText !== "id"){
+                mermaidStr = mermaidStr + `${node.position}("<p style='width:${node.fixWidth}px;margin:0px;'>${node.displayText}</p>");\n`;
+            }else{
+                mermaidStr = mermaidStr + `${node.position}("${node.displayText}");\n`;
+            }
 
             if (node.file == currentFile) {
                 //黄底                
@@ -523,9 +608,9 @@ export class ZKGraphView extends ItemView {
             
         }
 
-        for (let node of Nodes) {
+        for (let node of this.familyNodeArr) {
 
-            let sonNodes = Nodes.filter(n => (n.IDArr.length - 1 == node.IDArr.length)
+            let sonNodes = this.familyNodeArr.filter(n => (n.IDArr.length - 1 == node.IDArr.length)
                 && n.IDStr.startsWith(node.IDStr) && n.ID.startsWith(node.ID));
 
             for (let son of sonNodes) {
@@ -537,7 +622,7 @@ export class ZKGraphView extends ItemView {
 
         if(this.plugin.settings.RedDashLine === true){
 
-            for (let node of Nodes){
+            for (let node of this.familyNodeArr){
                 if (/^[a-zA-Z]$/.test(node.file.basename.slice(-1))) {
                     //红色虚线边
                     mermaidStr = mermaidStr + `style ${node.position} stroke:#f66,stroke-width:2px,stroke-dasharray: 1 \n`;

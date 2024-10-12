@@ -28,4 +28,13 @@ declare module "obsidian"{
             callback: ()=>unknown
         ):EventRef;
     }
+
+    interface App {
+        commands:{
+            commands:{
+                [id:string]: Command;
+            };
+            executeCommandById: (id: string) => void;
+        }
+    }
 }

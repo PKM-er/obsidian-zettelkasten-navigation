@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { App, FuzzySuggestModal, SuggestModal, renderMatches } from "obsidian";
+import { App, FuzzySuggestModal, Notice, SuggestModal, renderMatches } from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNode } from "src/view/indexView";
 
@@ -16,23 +16,36 @@ export class mainNoteModal extends SuggestModal<ZKNode>{
       this.plugin = plugin;
       this.MainNotes = MainNotes;
       this.setPlaceholder(t("select a main note"));
+      this.limit = plugin.settings.maxLenMainModel;
     }
 
     getSuggestions(query: string):ZKNode[] {
       let mainNotes:ZKNode[] = [];
       this.query = query;
-      mainNotes = this.MainNotes.filter(node => node.displayText.toLowerCase().startsWith(query.toLowerCase()));
+      mainNotes = this.MainNotes.filter(node => node.ID.toLowerCase().startsWith(query.toLowerCase()) 
+      || node.title.toLowerCase().startsWith(query.toLowerCase()));
       
       return mainNotes;
     }
 
     renderSuggestion(node: ZKNode, el:HTMLElement) {
-      renderMatches(el, node.displayText, [[0, this.query.length]]);
+      let displayText = `${node.ID}: ${node.title}`;
+      renderMatches(el, displayText, [[0, this.query.length]], this.getPosition(node));
     }
 
     onChooseSuggestion(node: ZKNode, evt: MouseEvent | KeyboardEvent) {
       this.selectZKNode = node;
       this.onSubmit(this.selectZKNode);
+    }
+
+    getPosition(node:ZKNode){
+      let position:number = 0;
+      if(node.ID.toLocaleLowerCase().startsWith(this.query.toLocaleLowerCase())){
+        position = 0
+      }else{
+        position = node.ID.length + 2;
+      }
+      return position;
     }
 
 }
@@ -50,6 +63,7 @@ export class mainNoteFuzzyModal extends FuzzySuggestModal<ZKNode> {
       this.plugin = plugin;
       this.MainNotes = MainNotes;
       this.setPlaceholder(t("select a main note"));
+      this.limit = plugin.settings.maxLenMainModel;
     }
   
     getItems(): ZKNode[] {

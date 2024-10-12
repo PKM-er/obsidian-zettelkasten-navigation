@@ -1,6 +1,7 @@
 import { FileView, Notice, Plugin, TFile} from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNavigationSettngTab } from "src/settings/settings";
+import { mainNoteInit } from "src/utils/utils";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
 import { ZKIndexView, ZKNode, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
 import { ZK_OUTLINE_TYPE, ZKOutlineView } from "src/view/outlineView";
@@ -23,17 +24,32 @@ export interface ZoomPanScale{
     pan:Point;
 }
 
-export interface History {
+export interface Retrival {
+    type: string;
+    ID: string;
     displayText: string;
     filePath: string;
     openTime: string;
+}
+
+export interface LocalRetrival {
+    type: string; //'1': click graph to refresh localgraph; '2': open file to refresh localgraph
+    ID: string;
+    filePath: string;
+}
+
+export interface NodeCommand {
+    id: string;
+    name: string;
+    icon: string;
+    copyType:number;
+    active: boolean;
 }
 
 //settings fields
 interface ZKNavigationSettings {
     FolderOfMainNotes: string;
     FolderOfIndexes: string;
-    SelectIndex: string;
     StartingPoint: string;
     DisplayLevel: string;
     NodeText: string;
@@ -69,11 +85,10 @@ interface ZKNavigationSettings {
     IndexButton: boolean;
     MainNoteButton: boolean;
     MainNoteButtonText: string;
-    SelectMainNote: string;
     settingIcon:boolean;
     MainNoteSuggestMode: string;
     ListTree: boolean;
-    HistoryList: History[];
+    HistoryList: Retrival[];
     HistoryToggle: boolean;
     HistoryMaxCount: number;
     exportCanvas: boolean;
@@ -85,13 +100,20 @@ interface ZKNavigationSettings {
     showAll: boolean;
     play: boolean;
     outlineLayer: number;
+    maxLenMainModel: number;
+    maxLenIndexModel: number;
+    multiIDToggle: boolean;
+    multiIDField: string;
+    lastRetrival: Retrival;
+    NodeCommands: NodeCommand[];
+    siblingLenToggle: boolean;
+    dispalyTimeToggle: boolean;
 }
 
 //Default value for setting field
 const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FolderOfMainNotes: '',
     FolderOfIndexes: '',
-    SelectIndex: '',
     StartingPoint: 'father',
     DisplayLevel: 'end',
     NodeText: "both",
@@ -124,10 +146,9 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     RandomIndex: true,
     RandomMainNote: true,
     TableView: true,
-    IndexButton: true,
+    IndexButton: false,
     MainNoteButton: true,
     MainNoteButtonText: t("Main notes"),
-    SelectMainNote: '',
     settingIcon: true,
     MainNoteSuggestMode: 'fuzzySuggest',
     ListTree: true,
@@ -143,14 +164,26 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     showAllToggle: true,
     play: true,
     outlineLayer: 2,
+    maxLenMainModel: 100,
+    maxLenIndexModel: 100,
+    multiIDToggle: false,
+    multiIDField: '',
+    lastRetrival: {type:'', ID:'',displayText:'', filePath:'', openTime:''},
+    NodeCommands: [],
+    siblingLenToggle: false,
+    dispalyTimeToggle: false,
 }
 
 export default class ZKNavigationPlugin extends Plugin {
 
     settings: ZKNavigationSettings;
-    MainNotes: ZKNode[];
-    tableArr: ZKNode[];
-    FileforLocaLgraph: string = "";
+    MainNotes: ZKNode[] = [];
+    tableArr: ZKNode[] = [];
+    retrivalforLocaLgraph: LocalRetrival = {
+        type: '2',
+        ID: '',
+        filePath: '',
+    };
     indexViewOffsetWidth: number = 0;
     indexViewOffsetHeight: number = 0;
     RefreshIndexViewFlag: boolean = false;
@@ -194,8 +227,14 @@ export default class ZKNavigationPlugin extends Plugin {
                 if(this.settings.FolderOfIndexes !== ""){
                     if(para.file.startsWith(this.settings.FolderOfIndexes)){
                         indexFlag = true;
-                        this.settings.SelectIndex = para.file;
-                        this.settings.SelectMainNote = "";
+                        
+                        this.settings.lastRetrival = {
+                            type: 'index',
+                            ID: '',
+                            displayText: '',
+                            filePath: file.path,
+                            openTime: '',  
+                        };
                         this.settings.zoomPanScaleArr = [];
                         this.settings.BranchTab = 0;
                         this.settings.FoldNodeArr = [];  
@@ -205,8 +244,14 @@ export default class ZKNavigationPlugin extends Plugin {
                 }
 
                 if(!indexFlag){
-                    this.settings.SelectMainNote = para.file;
-                    this.settings.SelectIndex = "";
+                    
+                    this.settings.lastRetrival = {
+                        type: 'main',
+                        ID: '',
+                        displayText: '',
+                        filePath: file.path,
+                        openTime: '',  
+                    };
                     this.settings.zoomPanScaleArr = [];
                     this.settings.BranchTab = 0;
                     this.settings.FoldNodeArr = [];  
@@ -348,7 +393,7 @@ export default class ZKNavigationPlugin extends Plugin {
         this.app.workspace.revealLeaf(
          this.app.workspace.getLeavesOfType(ZK_OUTLINE_TYPE)[0]
         );
-        this.app.workspace.trigger("zk-navigation:refresh-outline-view");
+        await this.app.workspace.trigger("zk-navigation:refresh-outline-view");
     
     }
 
@@ -375,7 +420,7 @@ export default class ZKNavigationPlugin extends Plugin {
     async revealFileInIndexView(){
         
         let filePath = this.app.workspace.getActiveViewOfType(FileView)?.file?.path
-        
+
         if(filePath && filePath.endsWith(".md")){
 
             let indexFlag:boolean = false;
@@ -383,17 +428,32 @@ export default class ZKNavigationPlugin extends Plugin {
             if(this.settings.FolderOfIndexes !== ""){
                 if(filePath.startsWith(this.settings.FolderOfIndexes)){
                     indexFlag = true;
-                    this.settings.SelectIndex = filePath;
-                    this.settings.SelectMainNote = "";
+                    
+                    this.settings.lastRetrival = {
+                        type: 'index',
+                        ID: '',
+                        displayText: '',
+                        filePath: filePath,
+                        openTime: '',  
+                    };
                     this.clearShowingSettings();
                     this.RefreshIndexViewFlag = true;
                     await this.openIndexView();
+                    
                 }
             }
 
             if(!indexFlag){
-                this.settings.SelectMainNote = filePath;
-                this.settings.SelectIndex = "";
+
+                await mainNoteInit(this);
+                
+                this.settings.lastRetrival = {
+                    type: 'main',
+                    ID: '',
+                    displayText: '',
+                    filePath: filePath,
+                    openTime: '',  
+                };
                 this.clearShowingSettings();
                 this.RefreshIndexViewFlag = true;
                 await this.openIndexView();

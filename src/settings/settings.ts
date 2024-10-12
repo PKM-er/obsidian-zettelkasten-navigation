@@ -1,9 +1,12 @@
-import ZKNavigationPlugin from "main";
-import { App, ButtonComponent, PluginSettingTab, Setting } from "obsidian";
+import ZKNavigationPlugin, { NodeCommand } from "main";
+import { App, ButtonComponent, ExtraButtonComponent, Notice, PluginSettingTab, Setting } from "obsidian";
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 import { t } from "../lang/helper";
 import { FileSuggest } from "src/suggester/FileSuggester";
+import { addCommandModal } from "src/modal/addCommandModal";
+import ChooseIconModal from "src/modal/chooseIconModal";
+import chooseCustomNameModal from "src/modal/chooseCustomNameModal";
 
 export class ZKNavigationSettngTab extends PluginSettingTab {
 
@@ -47,6 +50,12 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         localGraphButton.setButtonText(t("zk-local-graph-view"))
         .onClick(()=>{
             this.openTabSection(3,topButtonsDiv); 
+        })
+
+        const experimentalButton = new ButtonComponent(topButtonsDiv);
+        experimentalButton.setButtonText(t("experimental"))
+        .onClick(()=>{
+            this.openTabSection(4,topButtonsDiv); 
         })
 
         const mainNotesDiv = settingTabDiv.createDiv("zk-setting-section");
@@ -182,6 +191,24 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.settings.MainNoteSuggestMode = value;
                 })
             )  
+        
+        
+        new Setting(MainNoteButtonDiv)
+            .setName(t("List length"))
+            .setDesc(t("Maximum number of notes showing in Modal."))
+            .addText((cb) => {
+    
+                cb.inputEl.placeholder = "100(defaulf)";
+                cb.setValue(this.plugin.settings.maxLenMainModel.toString())
+                    .onChange((value) => {
+                        if(/^[1-9]\d*$/.test(value)){
+                            this.plugin.settings.maxLenMainModel = Number(value);
+                        }else{
+                            this.plugin.settings.maxLenMainModel = 100;                        
+                        }                        
+                    })
+                }
+            );
             
         new Setting(retrievalDiv)
             .setName(t("Index button"))
@@ -233,6 +260,23 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             )        
 
+        new Setting(indexButtonDiv)
+            .setName(t("List length"))
+            .setDesc(t("Maximum number of notes showing in Modal."))
+            .addText((cb) => {
+    
+                cb.inputEl.placeholder = "100(defaulf)";
+                cb.setValue(this.plugin.settings.maxLenIndexModel.toString())
+                    .onChange((value) => {
+                        if(/^[1-9]\d*$/.test(value)){
+                            this.plugin.settings.maxLenIndexModel = Number(value);
+                        }else{
+                            this.plugin.settings.maxLenIndexModel = 100;                        
+                        }                        
+                    })
+                }
+            );
+
         const indexGraphView = settingTabDiv.createDiv("zk-setting-section");
             
         new Setting(indexGraphView)
@@ -274,6 +318,15 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             );
 
         new Setting(branchSectionDiv)
+            .setName(t("same width for siblings"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.siblingLenToggle)
+                .onChange((value) => {
+                    this.plugin.settings.siblingLenToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+
+        new Setting(branchSectionDiv)
             .setName(t("Set red dash line for nodes with ID ends with letter"))
             .setDesc(t("In order to distinguish nodes which ID ends with letter and number"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.RedDashLine)
@@ -283,6 +336,14 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             );
 
+        new Setting(branchSectionDiv)
+            .setName(t("display created time"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.dispalyTimeToggle)
+                .onChange((value) => {
+                    this.plugin.settings.dispalyTimeToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
         new Setting(branchSectionDiv)
             .setName(t("Fold node toggle"))
             .setDesc(t("Open the fold icon(🟡🟢)"))
@@ -458,6 +519,44 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             }) 
         )
 
+        new Setting(indexGraphView)
+            .setName(t("Node menu"))
+            .addExtraButton((cb)=>{
+                cb.setIcon("settings")
+                .onClick(()=>{
+                    this.hideDiv(nodeMenuDiv);
+                })
+            })
+        
+        const nodeMenuDiv = indexGraphView.createDiv("zk-local-section")
+
+        const commandsDiv = nodeMenuDiv.createDiv();        
+        this.updateNodeMenu(commandsDiv);
+        
+        const addCommandBtnDiv = nodeMenuDiv.createDiv("zk-center-button setting-item");
+        
+        const addCommandBtn = new ButtonComponent(addCommandBtnDiv);
+        addCommandBtn
+        .setButtonText(t("Add command"))
+        .setCta()
+        .onClick(async()=>{
+            let command = await new addCommandModal(this.app, this.plugin).awaitSelection();
+            let icon;
+            if(!command.hasOwnProperty("icon")){
+                icon = await new ChooseIconModal(this.app, this.plugin).awaitSelection();
+            }
+            let name = await new chooseCustomNameModal(this.app, command.name).awaitSelection();
+            let newCommand:NodeCommand = {
+                id: command.id,
+                name: name || command.name,
+                icon: icon ?? command.icon!,
+                copyType: 0,
+                active: true,
+            }
+            this.plugin.settings.NodeCommands.push(newCommand);
+            this.updateNodeMenu(commandsDiv);
+        })
+
         const localGraphView = settingTabDiv.createDiv("zk-setting-section");
         //new Setting(settingTabDiv).setName(t("zk-local-graph-view")).setHeading(); 
         new Setting(localGraphView)
@@ -622,6 +721,34 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 this.plugin.RefreshIndexViewFlag = true;
             })
         )
+
+        const experimentalDiv = settingTabDiv.createDiv("zk-setting-section");
+        //new Setting(settingTabDiv).setName(t("zk-local-graph-view")).setHeading(); 
+        new Setting(experimentalDiv)
+            .setName(t("multiple IDs for main notes"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.multiIDToggle)
+                .onChange((value) => {
+                    this.plugin.settings.multiIDToggle = value;
+                })
+            ).addExtraButton((cb)=>{
+                
+            cb.setIcon("settings")
+            .onClick(()=>{
+                this.hideDiv(multiIDDiv);                    
+            })            
+        })  
+        
+        const multiIDDiv = experimentalDiv.createDiv("zk-local-section")
+        
+        new Setting(multiIDDiv)
+        .setName(t("Specify a frontmatter field(array) for multiple IDs"))
+        .addText((cb) =>
+            cb.setValue(this.plugin.settings.multiIDField)
+                .onChange((value) => {
+                    this.plugin.settings.multiIDField = value;
+                })
+        );
+
         
         this.initDiv(topButtonsDiv);
 
@@ -651,6 +778,83 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             div.setAttribute("style","display:none") ;
         }else{                      
             div.setAttribute("style","display:block") ;
+        }
+    }
+
+    async updateNodeMenu(nodeMenuDiv:HTMLDivElement){ 
+        
+        nodeMenuDiv.empty();
+
+        const commandsLen = this.plugin.settings.NodeCommands.length;
+        for(let i=0;i<commandsLen;i++){
+            let command = this.plugin.settings.NodeCommands[i];
+            let commandDiv = nodeMenuDiv.createEl('div',{cls:'setting-item'});
+            
+            new ExtraButtonComponent(commandDiv.createEl('div'))
+            .setIcon(command.icon)
+            .onClick(async ()=>{
+                let icon = await new ChooseIconModal(this.app, this.plugin).awaitSelection();
+                command.icon = icon;
+                this.updateNodeMenu(nodeMenuDiv);
+            })
+            
+            commandDiv.createEl('div',{text:command.name,cls:'command-text'});
+            let copyIcon = '';
+            let copyText = ''
+            switch(command.copyType){
+                case 1:
+                    copyIcon = 'copy';
+                    copyText = 'id';
+                    break;
+                case 2:
+                    copyIcon = 'documents';
+                    copyText = t('file path');
+                    break;
+                case 3:
+                    copyIcon = 'calendar';
+                    copyText = t('created time');
+                    break;
+                default:
+                    copyIcon = 'circle-dashed';
+                    copyText = t('none');
+                    break;
+            }
+
+            new ExtraButtonComponent(commandDiv.createEl('div'))
+            .setIcon(copyIcon)
+            .setTooltip(t("auto-copy: ") + copyText)
+            .onClick(async ()=>{
+                command.copyType = (command.copyType + 1) % 4;
+                this.updateNodeMenu(nodeMenuDiv);             
+            })            
+
+            new ExtraButtonComponent(commandDiv.createEl('div'))
+            .setIcon('arrow-down')
+            .onClick(async ()=>{
+                if(commandsLen > 1){
+                    [this.plugin.settings.NodeCommands[i],this.plugin.settings.NodeCommands[(i+1)%commandsLen]] =                     
+                    [this.plugin.settings.NodeCommands[(i+1)%commandsLen], this.plugin.settings.NodeCommands[i]]
+                }
+                this.updateNodeMenu(nodeMenuDiv);             
+            })
+
+            new ExtraButtonComponent(commandDiv.createEl('div'))
+            .setIcon('arrow-up')
+            .onClick(async ()=>{
+                if(commandsLen > 1){
+                    [this.plugin.settings.NodeCommands[i],this.plugin.settings.NodeCommands[(i-1+commandsLen)%commandsLen]] =                     
+                    [this.plugin.settings.NodeCommands[(i-1+commandsLen)%commandsLen], this.plugin.settings.NodeCommands[i]]
+                }
+                this.updateNodeMenu(nodeMenuDiv);                      
+            })
+
+            new ButtonComponent(commandDiv)
+            .setIcon('trash').setCta()
+            .setClass('mod-warning')
+            .onClick(()=>{
+                this.plugin.settings.NodeCommands.splice(i,1);
+                this.updateNodeMenu(nodeMenuDiv);   
+            })
         }
     }
 

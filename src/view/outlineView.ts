@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { debounce, ExtraButtonComponent, IconName, ItemView, Notice, SliderComponent, WorkspaceLeaf } from "obsidian"
+import { debounce, ExtraButtonComponent, IconName, ItemView, Menu, Notice, SliderComponent, WorkspaceLeaf } from "obsidian"
 import { t } from "src/lang/helper"
 import { ZK_NAVIGATION, ZKNode } from "./indexView";
 
@@ -9,8 +9,8 @@ export const ZK_OUTLINE_VIEW: string = t("list tree")
 export class ZKOutlineView extends ItemView {
 
     plugin:ZKNavigationPlugin;
-    maxLength:number;
-    minLength:number;
+    maxLength:number = 0;
+    minLength:number = 0;
     defautLength:number
 
     constructor(leaf: WorkspaceLeaf, plugin: ZKNavigationPlugin) {
@@ -98,13 +98,24 @@ export class ZKOutlineView extends ItemView {
                 navigator.clipboard.writeText(item.ID);
                 new Notice(item.ID + " copied");
             }else if(event.shiftKey){
-                this.plugin.settings.SelectIndex = "";
-                this.plugin.settings.SelectMainNote = item.file.path;
+                this.plugin.settings.lastRetrival =  {
+                    type: 'main',
+                    ID: item.ID,
+                    displayText: item.displayText,
+                    filePath: item.file.path,
+                    openTime: '',
+                }
                 await this.plugin.clearShowingSettings();
                 this.plugin.RefreshIndexViewFlag = true;
                 this.plugin.openIndexView();
             }else if(event.altKey){
-                this.plugin.FileforLocaLgraph = item.file.path;
+                
+                this.plugin.retrivalforLocaLgraph = {
+                    type: '1',
+                    ID: item.ID,
+                    filePath: item.file.path,
+
+                }; 
                 this.plugin.openGraphView();
             }else{
                 this.app.workspace.openLinkText("", item.file.path);

@@ -39,7 +39,7 @@ export default {
     "Enter a number to set the height of graph in pixels.": "输入一个像素值来设置视图的高度.",
     "all file extension": "检索所有类型出链",
     ".md only": "仅检索.md类型出链",
-    "Index graph styles": "视图样式设置",
+    "Index graph styles": "显示设置",
     "Height of close-relative graph": "邻近视图高度",
     "Height of inlinks graph": "入链视图高度",
     "Height of outlinks graph": "出链视图高度",
@@ -69,8 +69,28 @@ export default {
     "siblings order description": "【数字优先】: 1->2...->a->b;【字母优先】: a->b...->1->2;",
     'number first': "数字优先",
     'letter first': "字母优先",
-
-
+    "List length": "最大条数",
+    "Maximum number of notes showing in Modal.": "设置在弹框中显示的最大笔记条数.",
+    "Node menu": "节点菜单",
+    "create node": "创建节点",
+    "specify a command name": "指定命令名称",
+    "delete node": "删除节点",
+    "custom command": "自选命令",
+    'Open command palette': '打开命令面板',
+    "experimental": "⚠实验性功能",
+    "multiple IDs for main notes": "一个主笔记允许多个ID",
+    "Specify a frontmatter field(array) for multiple IDs":"指定一个属性字段(数组)来保存多个ID",
+    "auto-copy ID": "自动复制节点ID",    
+    "auto-copy-des": "自动复制节点对象 {id, path, created}",
+    "same width for siblings": "设置手足节点同宽",
+    "display created time": "显示创建时间（当光标悬停在节点链接时）",
+    "created": "创建时间",
+    "Add command": "添加命令",    
+    "auto-copy: ": '自动复制: ',
+    'file path': '文件路径',
+    'created time':'创建时间',
+    'none': '不复制',
+    
     // indexView.ts
     "Display from : ": "起点：",
     "To : ": "终点：",
@@ -122,4 +142,17 @@ export default {
     "note's ID": "笔记编号(ID)",
     "note's title": "笔记标题",
     "Time of creation": "创建时间",
+
+    //addCommandModal.ts
+    "choose a command to add": "选择一个命令并添加",
+	"to navigate": "导航",
+	"to choose an icon": "选中一个图标",
+	"to cancel": "取消",
+    "Use a custom name": "使用一个自定义名称",
+    "Save": "保存",
+    "Choose a custom Name for your new Command": "为你的命令添加一个自定义名称",
+    "to save":"保存",
+    "Choose a Icon for your new Command": "为你的命令添加一个图标",
+    "to choose a custom icon": "选择一个图标",
+
 }

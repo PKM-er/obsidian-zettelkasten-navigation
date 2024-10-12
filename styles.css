@@ -196,5 +196,25 @@ padding: 5px;
 }
 
 .nav-buttons-container > input{
-  width: 80%;
+  width: 100%;
+}
+
+.zk-center-button{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.command-text{
+  width: 70%;
+}
+
+.zk-name-input-wrapper{
+  display:flex;
+  gap:8px;
+  align-items:center
+}
+
+.zk-name-input-wrapper button{
+  margin:8px
 }

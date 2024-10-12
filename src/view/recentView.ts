@@ -62,25 +62,12 @@ export class ZKRecentView extends ItemView {
             
             line.addEventListener('click', async ()=>{
                 
-                if(this.plugin.settings.FolderOfIndexes !== '' && 
-                    item.filePath.startsWith(this.plugin.settings.FolderOfIndexes)){
-                    this.plugin.settings.SelectIndex = item.filePath;
-                    this.plugin.settings.SelectMainNote = "";
+                this.plugin.settings.lastRetrival = item;
+                this.plugin.settings.lastRetrival.openTime = moment().format("YYYY-MM-DD HH:mm:ss");
 
-                }else{
-
-                    this.plugin.settings.SelectMainNote = item.filePath;
-                    this.plugin.settings.SelectIndex = "";
-                }
-                
-                let history =  {
-                    displayText: item.displayText,
-                    filePath: item.filePath,
-                    openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-                }
 
                 this.plugin.settings.HistoryList.splice(i,1);
-                this.plugin.settings.HistoryList.unshift(history);
+                this.plugin.settings.HistoryList.unshift( this.plugin.settings.lastRetrival);
                 this.plugin.settings.zoomPanScaleArr = [];
                 this.plugin.settings.BranchTab = 0;
                 this.plugin.settings.FoldNodeArr = [];  

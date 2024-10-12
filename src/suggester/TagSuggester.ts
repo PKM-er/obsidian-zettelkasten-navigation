@@ -9,9 +9,20 @@ export class TagSuggest extends AbstractInputSuggest<string> {
         this.inputEl = inputEl
     }
     getSuggestions(inputStr: string): string[] {
-
         // @ts-expect-error
-        return Object.keys(this.app.metadataCache.getTags());
+        const allTags = Object.keys(this.app.metadataCache.getTags());
+        let tags: string[] = [];
+        const lowerCaseInputStr = inputStr.toLowerCase();
+
+        allTags.forEach((tag: string) => {
+            if (
+                tag.toLowerCase().contains(lowerCaseInputStr)
+            ) {
+                tags.push(tag);
+            }
+        });
+        
+        return tags;
     }
 
     renderSuggestion(tag: string, el: HTMLElement): void {

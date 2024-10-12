@@ -77,14 +77,27 @@ export class expandGraphModal extends Modal {
             if(event.ctrlKey){
                 this.app.workspace.openLinkText("", path, 'tab');                
             }else if(event.shiftKey){
-                this.plugin.FileforLocaLgraph = path;
+                //this.plugin.FileforLocaLgraph = path;
+                this.plugin.retrivalforLocaLgraph = {
+                    type: '1',
+                    ID: '',
+                    filePath: path,  
+                }; 
                 this.plugin.openGraphView();
             }else if(event.altKey){
-                let mainNote = this.plugin.MainNotes.find(n=>n.file.path == path);
+                let mainNotes = this.plugin.MainNotes.filter(n=>n.file.path == path);
                 
-                if(mainNote){
+                if(mainNotes.length > 0){
                     this.plugin.clearShowingSettings();
-                    this.plugin.settings.SelectMainNote = mainNote.file.path;
+                    //this.plugin.settings.SelectMainNote = mainNote.file.path;
+                    this.plugin.settings.lastRetrival = {
+                        type: 'main',
+                        ID: mainNotes[0].ID,
+                        displayText: mainNotes[0].displayText,
+                        filePath: mainNotes[0].file.path,
+                        openTime: '',                        
+                    }
+                    this.plugin.RefreshIndexViewFlag = true;
                     this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 }
 

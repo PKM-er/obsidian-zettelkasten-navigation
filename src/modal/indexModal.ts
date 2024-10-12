@@ -23,6 +23,7 @@ export class indexModal extends SuggestModal<ZKIndex> {
     this.plugin = plugin;
     this.MainNotes = MainNotes;
     this.setPlaceholder(t("select an index"));
+    this.limit = plugin.settings.maxLenIndexModel;
   }
 
   // Returns all available suggestions.
@@ -107,6 +108,7 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
     this.plugin = plugin;
     this.MainNotes = MainNotes;
     this.setPlaceholder(t("select an index"));
+    this.limit = plugin.settings.maxLenIndexModel;
   }
 
   getItems(): ZKIndex[] {
@@ -140,10 +142,12 @@ export class indexFuzzyModal extends FuzzySuggestModal<ZKIndex> {
           for (let link of frontLinks) {
            let file = this.app.vault.getFileByPath(link);
            if(file !== null){              
-              let outlink = this.MainNotes.find(n=>n.file === file);
-              if(typeof outlink !== 'undefined'){
-                let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink!.IDStr)).length;
-                outlinks.push(outlink.ID+` (${count.toString()})`);
+              let outlinkArr = this.MainNotes.filter(n=>n.file === file);
+              if(outlinkArr.length > 0){
+                for(let outlink of outlinkArr){
+                  let count = this.MainNotes.filter(n=>n.IDStr.startsWith(outlink!.IDStr)).length;
+                  outlinks.push(outlink.ID+` (${count.toString()})`);
+                }
               }else{
                 outlinks.push(file.basename);
               }

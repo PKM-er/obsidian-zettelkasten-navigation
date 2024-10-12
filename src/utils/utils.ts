@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { TFile } from "obsidian";
+import { moment, Notice, TFile } from "obsidian";
 import { ZKNode } from "src/view/indexView";
 
 // formatting Luhmann style IDs
@@ -81,6 +81,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
             startY:0,
             height:0,
             isRoot: false,
+            fixWidth: 0,
         }
 
         let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -108,7 +109,12 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
                 if (nodeCache !== null) {
                     if (typeof nodeCache.frontmatter !== 'undefined' && plugin.settings.IDField !== "") {
                         let id = nodeCache.frontmatter[plugin.settings.IDField];
-                        if (typeof id == "string" && id.length > 0) {
+                        if(Array.isArray(id)){
+                            node.ID = id[0].toString();
+                            node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
+                            node.IDStr = node.IDArr.toString();
+                            node.title = note.basename;
+                        }else if (typeof id == "string" && id.length > 0) {
                             node.ID = id;
                             node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
                             node.IDStr = node.IDArr.toString();
@@ -131,7 +137,65 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
             default:
             // do nothing
         }
+        
+        if (plugin.settings.CustomCreatedTime.length > 0) {
+            
+           let ctime = nodeCache?.frontmatter?.[plugin.settings.CustomCreatedTime];
 
+           if(ctime){
+                node.ctime = ctime.toString();
+           }            
+        }
+
+        if(node.ctime === ""){         
+            node.ctime = moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
+        }
+
+        plugin.MainNotes.push(node);
+    }
+
+    if(plugin.settings.multiIDToggle == true && plugin.settings.multiIDField != ''){
+        
+        let duplicateNodes:ZKNode[] = [];
+
+        for (let i = 0; i < plugin.MainNotes.length; i++) {
+            let node = plugin.MainNotes[i];
+            let IDs = this.app.metadataCache.getFileCache(node.file).frontmatter[plugin.settings.multiIDField];
+            if(IDs){
+                if(Array.isArray(IDs)){
+                    for(let j = 0; j < IDs.length; j++){
+                        let nodeDup =  Object.assign({}, node);
+                        nodeDup.ID = IDs[j].toString();
+                        nodeDup.IDArr = await ID_formatting(nodeDup.ID, [], plugin.settings.siblingsOrder);
+                        nodeDup.IDStr = nodeDup.IDArr.toString();
+                        nodeDup.randomId = random(16);
+                        duplicateNodes.push(nodeDup)
+                    }
+                }else if(typeof IDs == "string"){
+                    let nodeDup =  Object.assign({}, node);
+                    nodeDup.ID = IDs;
+                    nodeDup.IDArr = await ID_formatting(nodeDup.ID, [], plugin.settings.siblingsOrder);
+                    nodeDup.IDStr = nodeDup.IDArr.toString();
+                    nodeDup.randomId = random(16);
+                    duplicateNodes.push(nodeDup)
+                }
+            }
+        }
+        if(duplicateNodes.length > 0){
+            plugin.MainNotes.push(...duplicateNodes);
+            plugin.MainNotes = uniqueBy(plugin.MainNotes);
+        }
+    }
+
+    plugin.MainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
+
+    for (let i = 0; i < plugin.MainNotes.length; i++) {
+        let node = plugin.MainNotes[i];
+        node.position = i;
+        if(!plugin.MainNotes.find(n=>n.IDArr.toString() == node.IDArr.slice(0,-1).toString())){
+            node.isRoot = true;
+        }
+        
         switch (plugin.settings.NodeText) {
             case "id":
                 node.displayText = node.ID;
@@ -149,32 +213,6 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
             default:
             //do nothing
         }
-
-        
-        if (plugin.settings.CustomCreatedTime.length > 0) {
-            
-           let ctime = nodeCache?.frontmatter?.[plugin.settings.CustomCreatedTime];
-
-           if(ctime){
-                node.ctime = ctime.toString();
-           }            
-        }
-
-        if(node.ctime === ""){         
-            node.ctime = window.moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
-        }
-
-        plugin.MainNotes.push(node);
-    }
-
-    plugin.MainNotes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
-
-    for (let i = 0; i < plugin.MainNotes.length; i++) {
-        let node = plugin.MainNotes[i];
-        node.position = i;
-        if(!plugin.MainNotes.find(n=>n.IDArr.toString() == node.IDArr.slice(0,-1).toString())){
-            node.isRoot = true;
-        }
     }
 }
 
@@ -185,3 +223,26 @@ export const random = (e: number) => {
 	}
 	return t.join("");
 };
+
+
+function uniqueBy(arr: ZKNode[]) {
+    const map = new Map();
+    const result = [];
+    for (const item of arr) {
+      const compoundKey = item.ID + '_' + item.file.path;
+      if (!map.has(compoundKey)) {
+        map.set(compoundKey, true);
+        result.push(item);
+      }
+    }
+    return result;
+}
+
+export function displayWidth(str:string){
+    let length = 0;
+    for (let i = 0; i < str.length; i++) {
+        const charCode = str.charCodeAt(i);
+        length += charCode >= 0 && charCode <= 128 ? 1 : 2;
+    }
+    return length;
+}
