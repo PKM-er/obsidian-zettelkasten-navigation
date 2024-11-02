@@ -71,9 +71,6 @@ interface ZKNavigationSettings {
     BranchTab: number;
     FileExtension:string; // "all" or ".md only"
     SectionTab:number;    
-    HeightOfFamilyGraph: number;
-    HeightOfInlinksGraph: number;
-    HeightOfOutlinksGraph: number;
     DirectionOfBranchGraph: string;
     DirectionOfFamilyGraph: string;
     DirectionOfInlinksGraph: string;
@@ -107,14 +104,17 @@ interface ZKNavigationSettings {
     lastRetrival: Retrival;
     NodeCommands: NodeCommand[];
     siblingLenToggle: boolean;
-    dispalyTimeToggle: boolean;
+    displayTimeToggle: boolean;
+    playControllerToggle: boolean;
+    nodeColor: string;
+    datetimeFormat: string;
 }
 
 //Default value for setting field
 const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FolderOfMainNotes: '',
     FolderOfIndexes: '',
-    StartingPoint: 'father',
+    StartingPoint: 'parent',
     DisplayLevel: 'end',
     NodeText: "both",
     FamilyGraphToggle: true,
@@ -135,9 +135,6 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     BranchTab: 0,
     FileExtension: "md",
     SectionTab: 0,
-    HeightOfFamilyGraph: 200,
-    HeightOfInlinksGraph: 200,
-    HeightOfOutlinksGraph: 200,
     DirectionOfBranchGraph: "LR",
     DirectionOfFamilyGraph: "LR",
     DirectionOfInlinksGraph: "TB",
@@ -171,7 +168,10 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     lastRetrival: {type:'', ID:'',displayText:'', filePath:'', openTime:''},
     NodeCommands: [],
     siblingLenToggle: false,
-    dispalyTimeToggle: false,
+    displayTimeToggle: false,
+    playControllerToggle: true,
+    nodeColor: "#FFFFAA",
+    datetimeFormat: "yyyy-MM-DD HH:mm"
 }
 
 export default class ZKNavigationPlugin extends Plugin {
@@ -212,7 +212,7 @@ export default class ZKNavigationPlugin extends Plugin {
 
                 } 
 
-                if(para.from && ["root","father","branch"].includes(para.from)){
+                if(para.from && ["root","parent","index"].includes(para.from)){
                     this.settings.StartingPoint = para.from;
                 }
                 if(para.to && ["next","end"].includes(para.to)){

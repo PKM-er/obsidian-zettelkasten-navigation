@@ -30,30 +30,35 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
 
         const mainNoteButton = new ButtonComponent(topButtonsDiv);
         mainNoteButton.setButtonText(t("ZK main notes"))
+        .setClass("vertical-tab-nav-item")
         .onClick(()=>{
             this.openTabSection(0,topButtonsDiv);          
         })
 
         const retrievalButton = new ButtonComponent(topButtonsDiv);
         retrievalButton.setButtonText(t("Retrieval"))
+        .setClass("vertical-tab-nav-item")
         .onClick(()=>{
             this.openTabSection(1,topButtonsDiv);
         })
 
         const indexGraphButton = new ButtonComponent(topButtonsDiv);
         indexGraphButton.setButtonText(t("zk-index-graph-view"))
+        .setClass("vertical-tab-nav-item")
         .onClick(()=>{
             this.openTabSection(2,topButtonsDiv);
         })
 
         const localGraphButton = new ButtonComponent(topButtonsDiv);
         localGraphButton.setButtonText(t("zk-local-graph-view"))
+        .setClass("vertical-tab-nav-item")
         .onClick(()=>{
             this.openTabSection(3,topButtonsDiv); 
         })
 
         const experimentalButton = new ButtonComponent(topButtonsDiv);
         experimentalButton.setButtonText(t("experimental"))
+        .setClass("vertical-tab-nav-item")
         .onClick(()=>{
             this.openTabSection(4,topButtonsDiv); 
         })
@@ -169,7 +174,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             })
         
-        const MainNoteButtonDiv = retrievalDiv.createDiv("zk-local-section");
+        const MainNoteButtonDiv = retrievalDiv.createDiv("zk-local-section zk-hidden");
 
         new Setting(MainNoteButtonDiv)
             .setName(t("Name of main note button"))
@@ -225,7 +230,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             })
         
-        const indexButtonDiv = retrievalDiv.createDiv("zk-local-section");
+        const indexButtonDiv = retrievalDiv.createDiv("zk-local-section zk-hidden");
 
         new Setting(indexButtonDiv)
             .setName(t("Indexes folder location"))
@@ -288,7 +293,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             })
         
-        const branchSectionDiv = indexGraphView.createDiv("zk-local-section")
+        const branchSectionDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
        
         new Setting(branchSectionDiv)
         .setName(t("direction of graph"))
@@ -338,18 +343,40 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
 
         new Setting(branchSectionDiv)
             .setName(t("display created time"))
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.dispalyTimeToggle)
+            .setDesc(t("Set datetime format"))
+            .addText((cb)=>{
+                cb.inputEl.placeholder = "yyyy-MM-DD HH:mm";
+                cb.setValue(this.plugin.settings.datetimeFormat)
+                    .onChange((value) =>{
+                        if(value === ""){
+                            this.plugin.settings.datetimeFormat = "yyyy-MM-DD HH:mm";
+                        }else{
+                            this.plugin.settings.datetimeFormat = value;
+                            this.plugin.RefreshIndexViewFlag = true;
+                        }
+                    })
+            })
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.displayTimeToggle)
                 .onChange((value) => {
-                    this.plugin.settings.dispalyTimeToggle = value;
+                    this.plugin.settings.displayTimeToggle = value;
                     this.plugin.RefreshIndexViewFlag = true;
                 })
             );
+
         new Setting(branchSectionDiv)
             .setName(t("Fold node toggle"))
             .setDesc(t("Open the fold icon(🟡🟢)"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FoldToggle)
                 .onChange((value) => {
                     this.plugin.settings.FoldToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+        new Setting(branchSectionDiv)
+            .setName(t("Set color for nodes"))
+            .addColorPicker(color => color.setValue(this.plugin.settings.nodeColor)
+                .onChange((value)=>{
+                    this.plugin.settings.nodeColor =  value;
                     this.plugin.RefreshIndexViewFlag = true;
                 })
             );
@@ -370,7 +397,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 });
             })        
         
-        const branchToolbarDiv = indexGraphView.createDiv("zk-local-section")
+        const branchToolbarDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
 
         new Setting(branchToolbarDiv)
                 .setName(t("settings"))
@@ -396,7 +423,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 }) 
             )
         
-        const canvasAdditionSection = branchToolbarDiv.createDiv("zk-local-section")
+        const canvasAdditionSection = branchToolbarDiv.createDiv("zk-local-section zk-hidden")
         new Setting(canvasAdditionSection)
             .setName(t("set the fixed path for exported canvas file"))
             .setDesc(t("if empty, it will create a new canvas file every time"))
@@ -482,6 +509,15 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.RefreshIndexViewFlag = true;
                 }) 
             )
+
+        new Setting(branchToolbarDiv)
+            .setName(t("play controller"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.playControllerToggle)
+                .onChange((value) =>{
+                    this.plugin.settings.playControllerToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                }) 
+            )
         
         new Setting(branchToolbarDiv)
             .setName(t("table view"))
@@ -528,7 +564,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             })
         
-        const nodeMenuDiv = indexGraphView.createDiv("zk-local-section")
+        const nodeMenuDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
 
         const commandsDiv = nodeMenuDiv.createDiv();        
         this.updateNodeMenu(commandsDiv);
@@ -561,7 +597,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         //new Setting(settingTabDiv).setName(t("zk-local-graph-view")).setHeading(); 
         new Setting(localGraphView)
             .setName(t("Open close-relative graph"))
-            .setDesc(t("Mermaid graph to display father, siblings and sons"))
+            .setDesc(t("Mermaid graph to display parent, siblings and sons"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FamilyGraphToggle)
                 .onChange((value) => {
                     this.plugin.settings.FamilyGraphToggle = value;
@@ -575,26 +611,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             })            
         })  
         
-        const familySectionDiv = localGraphView.createDiv("zk-local-section")
-        
-        new Setting(familySectionDiv)
-        .setName(t("Height of close-relative graph"))
-        .setDesc(t("Enter a number to set the height of graph in pixels."))
-        .addText((cb) => {
-
-            cb.inputEl.placeholder = "200(defaulf)";
-            cb.setValue(this.plugin.settings.HeightOfFamilyGraph.toString())
-                .onChange((value) => {
-                    if(/^[1-9]\d*$/.test(value)){
-                        this.plugin.settings.HeightOfFamilyGraph = Number(value);
-                    }else{
-                        this.plugin.settings.HeightOfFamilyGraph = 200;                        
-                    }
-                    this.plugin.RefreshIndexViewFlag = true;
-                    
-                })
-            }
-        );
+        const familySectionDiv = localGraphView.createDiv("zk-local-section zk-hidden")
 
         new Setting(familySectionDiv)
         .setName(t("direction of graph"))
@@ -625,27 +642,8 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             })
         
-        const inlinksSectionDiv = localGraphView.createDiv("zk-local-section")
+        const inlinksSectionDiv = localGraphView.createDiv("zk-local-section zk-hidden")
         
-        new Setting(inlinksSectionDiv)
-        .setName(t("Height of inlinks graph"))
-        .setDesc(t("Enter a number to set the height of graph in pixels."))
-        .addText((cb) => {
-
-            cb.inputEl.placeholder = "200(defaulf)";
-            cb.setValue(this.plugin.settings.HeightOfInlinksGraph.toString())
-                .onChange((value) => {
-                    if(/^[1-9]\d*$/.test(value)){
-                        this.plugin.settings.HeightOfInlinksGraph = Number(value);
-                    }else{
-                        this.plugin.settings.HeightOfInlinksGraph = 200;                        
-                    }
-                    this.plugin.RefreshIndexViewFlag = true;
-                    
-                })
-            }
-        );
-
         new Setting(inlinksSectionDiv)
         .setName(t("direction of graph"))
         .addDropdown(options => options
@@ -675,26 +673,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             })
         
-        const outlinksSectionDiv = localGraphView.createDiv("zk-local-section")
-        
-        new Setting(outlinksSectionDiv)
-        .setName(t("Height of outlinks graph"))
-        .setDesc(t("Enter a number to set the height of graph in pixels."))
-        .addText((cb) => {
-
-            cb.inputEl.placeholder = "200(defaulf)";
-            cb.setValue(this.plugin.settings.HeightOfOutlinksGraph.toString())
-                .onChange((value) => {
-                    if(/^[1-9]\d*$/.test(value)){
-                        this.plugin.settings.HeightOfOutlinksGraph = Number(value);
-                    }else{
-                        this.plugin.settings.HeightOfOutlinksGraph = 200;                        
-                    }
-                    this.plugin.RefreshIndexViewFlag = true;
-                    
-                })
-            }
-        );
+        const outlinksSectionDiv = localGraphView.createDiv("zk-local-section zk-hidden")
 
         new Setting(outlinksSectionDiv)
         .setName(t("direction of graph"))
@@ -723,9 +702,9 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         )
 
         const experimentalDiv = settingTabDiv.createDiv("zk-setting-section");
-        //new Setting(settingTabDiv).setName(t("zk-local-graph-view")).setHeading(); 
         new Setting(experimentalDiv)
             .setName(t("multiple IDs for main notes"))
+            .setDesc(t("multiple IDs description"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.multiIDToggle)
                 .onChange((value) => {
                     this.plugin.settings.multiIDToggle = value;
@@ -738,7 +717,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             })            
         })  
         
-        const multiIDDiv = experimentalDiv.createDiv("zk-local-section")
+        const multiIDDiv = experimentalDiv.createDiv("zk-local-section zk-hidden")
         
         new Setting(multiIDDiv)
         .setName(t("Specify a frontmatter field(array) for multiple IDs"))
@@ -759,12 +738,13 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         const buttons = topButtonsDiv.querySelectorAll('button');
 
         for(let i=0; i<sections.length;i++){
-            sections[i].setAttribute("style", "display:none");
-            buttons[i].removeClass("top-button-select")
+            sections[i].addClass("zk-hidden")
+
+            buttons[i].removeClass("is-active"); 
         }
 
-        sections[selectNo].setAttribute("style", "display:block");
-        buttons[selectNo].addClass("top-button-select")
+        sections[selectNo].removeClass("zk-hidden")
+        buttons[selectNo].addClass("is-active");
         this.plugin.settings.SectionTab = selectNo;
     }
 
@@ -774,10 +754,10 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
 
     hideDiv(div:HTMLDivElement){
 
-        if(div.getAttr("style") == "display:block"){                        
-            div.setAttribute("style","display:none") ;
-        }else{                      
-            div.setAttribute("style","display:block") ;
+        if(!div.classList.contains("zk-hidden")){
+            div.addClass("zk-hidden");
+        }else{
+            div.removeClass("zk-hidden");
         }
     }
 

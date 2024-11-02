@@ -27,8 +27,8 @@ export class expandGraphModal extends Modal {
 
     let { svg } = await mermaid.render(`zk-expand-graph-svg`, `${this.mermaidStr}`);
     svgGraph.insertAdjacentHTML('beforeend', svg);
-    svgGraph.children[0].setAttribute('width', "100%");
-    svgGraph.children[0].setAttribute('height', `${this.contentEl.offsetHeight - 5}px`); 
+    svgGraph.children[0].addClass("zk-full-width");
+    svgGraph.children[0].setAttribute('height', `${this.modalEl.offsetHeight - 50}px`); 
 
     this.contentEl.appendChild(svgGraph);
 

@@ -18,7 +18,7 @@ export interface ZKNode {
     file: TFile;
     title: string;
     displayText: string;
-    ctime: string;
+    ctime: number;
     randomId: string;
     nodeSons: number; //used for caculating card position when export to canvas
     startY: number; //used for caculating card position when export to canvas
@@ -32,10 +32,24 @@ interface BrancAllhNodes{
     branchNodes: ZKNode[];
 }
 
+interface PlayStates{
+    current: number;
+    total: number;
+    nodeGArr: Element[];
+    lines: Element[];
+}
+
 export class ZKIndexView extends ItemView {
 
     plugin: ZKNavigationPlugin;
     branchAllNodes: BrancAllhNodes[];
+
+    playStatus: PlayStates = {
+        current:0,
+        total:0,
+        nodeGArr:[],
+        lines:[],
+    }
 
     constructor(leaf: WorkspaceLeaf, plugin: ZKNavigationPlugin) {
         super(leaf);
@@ -55,8 +69,8 @@ export class ZKIndexView extends ItemView {
     
     onResize(){
 
-        if(this.containerEl.offsetHeight !== 0){
-        
+        if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length > 0 && this.containerEl.offsetHeight !== 0){
+            
             if (this.plugin.indexViewOffsetHeight !== this.containerEl.offsetHeight ||
                 this.plugin.indexViewOffsetWidth !== this.containerEl.offsetWidth){
                 
@@ -77,7 +91,6 @@ export class ZKIndexView extends ItemView {
         indexMermaidDiv.id = "zk-index-mermaid-container";
 
         indexMermaidDiv.empty();
-
 
         if(this.plugin.settings.MainNoteButton == true){
 
@@ -161,8 +174,8 @@ export class ZKIndexView extends ItemView {
 
         const startPoint = new DropdownComponent(startingDiv);
         startPoint
-            .addOption("father", t("father"))
-            .addOption("branch", t("branch"))
+            .addOption("index", t("index"))
+            .addOption("parent", t("parent"))
             .addOption("root", t("root"))
             .setValue(this.plugin.settings.StartingPoint)
             .onChange((StartPoint) => {
@@ -197,6 +210,7 @@ export class ZKIndexView extends ItemView {
             .onChange((NodeText) => {
                 this.plugin.settings.NodeText = NodeText;
                 this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+                this.app.workspace.trigger("zk-navigation:refresh-local-graph");
             });
 
         await this.refreshBranchMermaid();  
@@ -288,9 +302,8 @@ export class ZKIndexView extends ItemView {
         indexLinkDiv.empty();
         
         if(this.plugin.settings.BranchToolbra == true){
-            const toolButtonsDiv = indexMermaidDiv.createDiv("zk-tool-buttons");
+            const toolButtonsDiv = indexMermaidDiv.createDiv("zk-tool-buttons"); 
             toolButtonsDiv.empty();
-
             if(this.plugin.settings.settingIcon == true){
                 const settingBtn = new ExtraButtonComponent(toolButtonsDiv);
                 settingBtn.setIcon("settings").setTooltip(t("settings"));
@@ -387,9 +400,57 @@ export class ZKIndexView extends ItemView {
             if(this.plugin.settings.play == true){
                 const playBtn = new ExtraButtonComponent(toolButtonsDiv);
                 playBtn.setIcon("wand-2").setTooltip(t("growing animation"));
-                playBtn.onClick(()=>{
+                playBtn.onClick(async ()=>{
                     this.plugin.settings.FoldNodeArr = []; 
-                    this.branchGrowing(); 
+                    await this.branchGrowing(); 
+                })
+            }
+
+            if(this.plugin.settings.playControllerToggle === true){
+                
+                const playControllerDiv = indexMermaidDiv.createDiv("zk-play-controller");
+                                
+                const previousBtn = new ExtraButtonComponent(playControllerDiv);
+                previousBtn
+                .setIcon('arrow-left')
+                .onClick(async ()=>{
+                    this.playStatus.current = (this.playStatus.current - 1 + this.playStatus.total) % this.playStatus.total;
+                    await this.branchAnimation();
+                })
+
+                const nextBtn = new ExtraButtonComponent(playControllerDiv);
+                nextBtn
+                .setIcon('arrow-right')
+                .onClick(async ()=>{
+                    this.playStatus.current = (this.playStatus.current + 1) % this.playStatus.total;
+                    await this.branchAnimation();
+                })
+
+                const fullScreenBtn = new ExtraButtonComponent(playControllerDiv);
+                fullScreenBtn
+                .setIcon('fullscreen')
+                .onClick(()=>{
+                    
+                    let toggleClassList:string[] = [
+                        '.workspace-ribbon.side-dock-ribbon.mod-left',
+                        '.workspace-split.mod-horizontal.mod-left-split',
+                        '.workspace-tab-header-container',
+                        '.titlebar-button-container.mod-right',
+                        `.status-bar`,
+                    ];
+                    toggleClassList.forEach((cls) => {
+                        const elements = document.querySelectorAll(cls);
+                        if (cls && elements) {
+                            elements.forEach((element, i) => {
+                                const cname = 'zk-hidden';
+                                if(element.classList.contains(cname)){
+                                    element.removeClass(cname);
+                                } else{
+                                    element.addClass(cname);
+                                }
+                            });
+                        }
+                    });
                 })
             }
             
@@ -430,7 +491,6 @@ export class ZKIndexView extends ItemView {
                 
                 if(selectZKNodes.length > 0){
                     if(this.plugin.settings.lastRetrival.ID !== ''){
-                        //selectZKNodes = selectZKNodes.filter(n=>n.ID == this.plugin.settings.lastRetrival.ID)
                         let nodeIndex = selectZKNodes.findIndex(n=>n.ID == this.plugin.settings.lastRetrival.ID);
                         if(nodeIndex !== -1){
                             this.plugin.settings.BranchTab = nodeIndex;
@@ -545,7 +605,7 @@ export class ZKIndexView extends ItemView {
                 
                 zkGraph.insertAdjacentHTML('beforeend', svg);
                   
-                zkGraph.children[0].setAttribute('width', "100%");
+                zkGraph.children[0].addClass("zk-full-width");
 
                 zkGraph.children[0].setAttr('height', `${this.containerEl.offsetHeight - 100}px`); 
                 
@@ -616,19 +676,19 @@ export class ZKIndexView extends ItemView {
                             let hideNodeGArr = indexMermaid.querySelectorAll(`[id^='flowchart-${hideNode.position}']`);
 
                             hideNodeGArr.forEach((item) => {
-                                item.setAttribute("style", "display:none");
+                                item.addClass("zk-hidden")
                             })
 
                             let hideLines = indexMermaid.querySelectorAll(`[id^='L-${hideNode.position}']`);
 
                             hideLines.forEach((item) => {
-                                item.setAttribute("style", "display:none");
+                                item.addClass("zk-hidden")
                             })
                         }
 
                         let hideLines = indexMermaid.querySelectorAll(`[id^='L-${foldNode.position}']`);
                         hideLines.forEach((item) => {
-                            item.setAttribute("style", "display:none");
+                            item.addClass("zk-hidden")
                         })
 
                     }
@@ -669,7 +729,7 @@ export class ZKIndexView extends ItemView {
                                                     copyStr = node.file.path;
                                                     break;
                                                 case 3:
-                                                    copyStr = node.ctime;
+                                                    copyStr = moment(node.ctime).format(this.plugin.settings.datetimeFormat);
                                                     break;
                                                 default:
                                                     break;
@@ -684,10 +744,10 @@ export class ZKIndexView extends ItemView {
                                 menu.showAtMouseEvent(event);
                             });
 
-                            if(this.plugin.settings.dispalyTimeToggle === true){
+                            if(this.plugin.settings.displayTimeToggle === true){
                                 let nodeParent = nodeArr[i].parentElement;
                                 if(nodeParent !== null){
-                                    setTooltip(nodeParent, `${t("created")}: ${node.ctime}`)
+                                    setTooltip(nodeParent, `${t("created")}: ${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}`)
                                 }
                             }
 
@@ -798,13 +858,14 @@ export class ZKIndexView extends ItemView {
                 
                 for(let i = 0; i < branchTabs.length; i++){
 
-                    let branchTab = indexLinkDiv.createEl('span').createEl('a', { text: `🌿${i+1} `,cls:"zK-branch-tab"});
+                    let branchTab = indexLinkDiv.createEl('span').createEl('a', { text: `🌿${i+1} `,cls:"zk-branch-tab"});
                     
                     let node = branchEntranceNodeArr[i];
                     setTooltip(branchTab,`${node.displayText} (${this.plugin.MainNotes.filter(n=>n.IDStr.startsWith(node.IDStr)).length})`)
                     
                     branchTab.addEventListener("click", async () => {                        
                         await this.openBranchTab(i);
+                        this.resetController();
                     });                   
                     
                 }
@@ -824,24 +885,56 @@ export class ZKIndexView extends ItemView {
             this.app.workspace.trigger("zk-navigation:refresh-recent-view");
         }
 
+        if(this.plugin.settings.playControllerToggle === true){
+            this.resetController();
+        }
+
         this.plugin.indexViewOffsetWidth = this.containerEl.offsetWidth;
         this.plugin.indexViewOffsetHeight = this.containerEl.offsetHeight;
+    }
+
+    resetController(){
+        
+        this.genericBranchNodes();
+        
+        this.plugin.tableArr.sort((a, b) => a.ctime - b.ctime);
+    
+        const branchMermaid = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
+
+        if(branchMermaid == null) return;            
+
+        this.playStatus = {
+            current:-1,
+            total:this.plugin.tableArr.length,
+            nodeGArr: Array.from(branchMermaid.querySelectorAll("[id^='flowchart-']")),
+            lines: Array.from(branchMermaid.querySelectorAll(`[id^='L-']`)),
+        }
+
+        this.playStatus.nodeGArr.forEach((item)=>{
+            item.removeClass("zk-hidden");
+        })
+
+        this.playStatus.lines.forEach((item)=>{
+            item.removeClass("zk-hidden");
+        })
+        
     }
 
     async openBranchTab(tabNo:number){
 
         this.plugin.settings.BranchTab = tabNo;        
 
-        const branchGraph = document.getElementsByClassName("zk-index-mermaid")
-        const branchTabs = document.querySelectorAll('[class^="zK-branch-tab"]')
+        const branchGraph = document.getElementsByClassName("zk-index-mermaid");
+        const branchTabs = document.getElementsByClassName("zk-branch-tab");
 
         for(let i=0; i<branchGraph.length;i++){
-            branchGraph[i].setAttribute("style", "display:none");
-            branchTabs[i].className = "zK-branch-tabs";
+            branchGraph[i].addClass("zk-hidden");
+            branchTabs[i].removeClass("zk-branch-tab-select");
+
         }
 
-        branchGraph[tabNo].setAttribute("style", "display:block");
-        branchTabs[tabNo].className = "zK-branch-tab-select";
+        branchGraph[tabNo].removeClass("zk-hidden");
+        branchTabs[tabNo].addClass("zk-branch-tab-select");
 
         if(this.plugin.settings.ListTree === true){
             await this.genericBranchNodes();
@@ -904,7 +997,7 @@ export class ZKIndexView extends ItemView {
 
                 break;
 
-            case "father":
+            case "parent":
                 if (entranceNode.IDArr.length > 1) {
                     let fatherArr = entranceNode.IDArr.slice(0, entranceNode.IDArr.length - 1);
 
@@ -969,15 +1062,12 @@ export class ZKIndexView extends ItemView {
             if(this.plugin.settings.siblingLenToggle === true && this.plugin.settings.NodeText !== "id"){
                 mermaidStr = mermaidStr + `${node.position}("<p style='width:${node.fixWidth}px;margin:0px;'>${node.displayText}</p>");\n`;
             }else{
-                mermaidStr = mermaidStr + `${node.position}("${node.displayText}");\n`;
+                mermaidStr = mermaidStr + `${node.position}("${node.displayText}");`;
             }
             
             if (node.IDStr.startsWith(entranceNode.IDStr)) {
-                //黄底                
-                mermaidStr = mermaidStr + `style ${node.position} fill:#ffa,stroke:#333,stroke-width:1px \n`;
-
+                mermaidStr = mermaidStr + `style ${node.position} fill:${this.plugin.settings.nodeColor},stroke:#333,stroke-width:1px \n`;
             } else {
-                //白底
                 mermaidStr = mermaidStr + `style ${node.position} fill:#fff; \n`;
             }
 
@@ -1271,48 +1361,61 @@ export class ZKIndexView extends ItemView {
         }        
     }
 
-    branchGrowing(){
-        
-        const branchMermaid = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
+    async branchGrowing(){
 
-        if(branchMermaid == null) return;
-            
-        let nodeGArr = Array.from(branchMermaid.querySelectorAll("[id^='flowchart-']"));
-        let lines = Array.from(branchMermaid.querySelectorAll(`[id^='L-']`))
-        nodeGArr.forEach((item) => {
-            item.setAttribute("style", "display:none");
+        this.playStatus.nodeGArr.forEach((item) => {
+            item.addClass('zk-hidden');
         })
-        lines.forEach((item) => {
-            item.setAttribute("style", "display:none");
+        this.playStatus.lines.forEach((item) => {
+            item.addClass('zk-hidden');
         })
 
-        this.plugin.tableArr = [];
-        for(let i=0;i<nodeGArr.length;i++){
-
-            let nodePosStr = nodeGArr[i].id.split('-')[1];
-            let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];            
-            this.plugin.tableArr.push(node);
-        }             
-        
-        this.plugin.tableArr.sort((a, b) => a.ctime.localeCompare(b.ctime));
-        
         let sec:number= 500;
         for(let node of this.plugin.tableArr){            
             
             setTimeout(() => {
-                let nodeG = nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
+                let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
                 if(nodeG){
-                    nodeG.setAttribute("style", "display:block");
+                    nodeG.removeClass('zk-hidden');
                 }
-                let line = lines.find(n=>n.id.split('-')[2] == node.position.toString());
+                let line = this.playStatus.lines.find(n=>n.id.split('-')[2] == node.position.toString());
                 if(line){                
-                    line.setAttribute("style", "display:block");
+                    line.removeClass('zk-hidden');
                 }
             }, sec);
 
             sec = sec + 500;
         }
         
+    }
+
+    async branchAnimation(){
+
+        let split = this.playStatus.current+1;
+        let showNodes = this.plugin.tableArr.slice(0, split);
+        let hideNodes = this.plugin.tableArr.slice(split);
+
+        for(let node of showNodes){
+            let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
+            if(nodeG){
+                nodeG.removeClass('zk-hidden');
+            }
+            let line = this.playStatus.lines.find(n=>n.id.split('-')[2] == node.position.toString());
+            if(line){                
+                line.removeClass('zk-hidden');
+            }
+        }
+        
+        for(let node of hideNodes){
+            let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
+            if(nodeG){
+                nodeG.addClass('zk-hidden');
+            }
+            let line = this.playStatus.lines.find(n=>n.id.split('-')[2] == node.position.toString());
+            if(line){                
+                line.addClass('zk-hidden');
+            }
+        }
     }
     
     async onClose() {

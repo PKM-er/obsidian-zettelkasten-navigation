@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { App, MarkdownRenderer, Modal, TFile } from "obsidian";
+import { App, MarkdownRenderer, Modal, moment, TFile } from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNode, ZK_NAVIGATION } from "src/view/indexView";
 
@@ -44,7 +44,7 @@ export class tableModal extends Modal {
             outlinkStr = `<ul>${outlinkStr}</ul>`;
         }
 
-        this.data = this.data + `|[[${node.ID}]]|${node.title}|${inlinksStr}|${outlinkStr}|${node.ctime}|\n`
+        this.data = this.data + `|[[${node.ID}]]|${node.title}|${inlinksStr}|${outlinkStr}|${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}|\n`
     }
 }
 

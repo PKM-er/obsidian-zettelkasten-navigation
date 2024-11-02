@@ -13,11 +13,12 @@ export class ZKGraphView extends ItemView {
     plugin: ZKNavigationPlugin;
     currentFile: TFile | null;
     familyNodeArr: ZKNode[] = [];
+    graphHeight:number = 0;
+    countOfGraphs:number = 0
 
     constructor(leaf: WorkspaceLeaf, plugin: ZKNavigationPlugin) {
         super(leaf);
         this.plugin = plugin;
-
     }
 
     getViewType(): string {
@@ -29,6 +30,15 @@ export class ZKGraphView extends ItemView {
 
     getIcon(): string {
         return "network"
+    }
+
+    onResize(){
+        
+        if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length > 0){
+                            
+            this.app.workspace.trigger("zk-navigation:refresh-local-graph");
+   
+        }
     }
 
     async onOpen() {
@@ -76,8 +86,11 @@ export class ZKGraphView extends ItemView {
     refreshLocalGraph = async () => {
         let { containerEl } = this;
         containerEl.empty();
+
+        this.countGraphs();
+        this.graphHeight = Math.floor(containerEl.offsetHeight / this.countOfGraphs - 10);
+
         const graphMermaidDiv = containerEl.createDiv().createDiv("zk-graph-mermaid-container");
-        
         await mainNoteInit(this.plugin);
 
         switch (this.plugin.retrivalforLocaLgraph.type) {
@@ -136,8 +149,8 @@ export class ZKGraphView extends ItemView {
                 familyTreeDiv.id = "zk-family-tree";                    
                 let { svg } = await mermaid.render(`${familyTreeDiv.id}-svg`, `${familyMermaidStr}`);
                 familyTreeDiv.insertAdjacentHTML('beforeend', svg);
-                familyTreeDiv.children[0].setAttribute('width', "100%");
-                familyTreeDiv.children[0].setAttribute('height', `${this.plugin.settings.HeightOfFamilyGraph}px`);    
+                familyTreeDiv.children[0].addClass("zk-full-width");
+                familyTreeDiv.children[0].setAttribute('height', `${this.graphHeight}px`);    
                 graphMermaidDiv.appendChild(familyTreeDiv);
                                                    
                 let panZoomTiger = svgPanZoom(`#${familyTreeDiv.id}-svg`, {
@@ -193,7 +206,6 @@ export class ZKGraphView extends ItemView {
                                     filePath: node.file.path,
                                     openTime: '',                        
                                 }
-                                new Notice("123")
                                 this.plugin.RefreshIndexViewFlag = true;
                                 this.plugin.openIndexView();
                         }else{
@@ -238,8 +250,8 @@ export class ZKGraphView extends ItemView {
                 inlinksDiv.id = "zk-inlinks";
                 let { svg } = await mermaid.render(`${inlinksDiv.id}-svg`, inlinkMermaidStr);
                 inlinksDiv.insertAdjacentHTML('beforeend', svg);
-                inlinksDiv.children[0].setAttribute('width', "100%");
-                inlinksDiv.children[0].setAttribute('height', `${this.plugin.settings.HeightOfInlinksGraph}px`); 
+                inlinksDiv.children[0].addClass("zk-full-width");
+                inlinksDiv.children[0].setAttribute('height', `${this.graphHeight}px`); 
                 graphMermaidDiv.appendChild(inlinksDiv);
                 
                 let panZoomTiger = svgPanZoom(`#${inlinksDiv.id}-svg`, {
@@ -290,19 +302,33 @@ export class ZKGraphView extends ItemView {
                             }; 
                             this.plugin.openGraphView();
                         }else if(event.altKey){
-                            let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
-                            
-                            if(mainNote){
-                                this.plugin.clearShowingSettings();                               
+                            if(this.plugin.settings.FolderOfIndexes !== '' && node.path.startsWith(this.plugin.settings.FolderOfIndexes)){
+                                this.plugin.clearShowingSettings(); 
                                 this.plugin.settings.lastRetrival = {
-                                    type: 'main',
-                                    ID: mainNote.ID,
-                                    displayText: mainNote.displayText,
-                                    filePath: mainNote.file.path,
+                                    type: 'index',
+                                    ID: '',
+                                    displayText: '',
+                                    filePath: node.path,
                                     openTime: '',                        
                                 }
                                 this.plugin.RefreshIndexViewFlag = true;
                                 this.plugin.openIndexView();
+                                
+                            }else{
+                                let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
+                            
+                                if(mainNote){
+                                    this.plugin.clearShowingSettings();                               
+                                    this.plugin.settings.lastRetrival = {
+                                        type: 'main',
+                                        ID: mainNote.ID,
+                                        displayText: mainNote.displayText,
+                                        filePath: mainNote.file.path,
+                                        openTime: '',                        
+                                    }
+                                    this.plugin.RefreshIndexViewFlag = true;
+                                    this.plugin.openIndexView();
+                                }
                             }
 
                         }else{
@@ -353,8 +379,8 @@ export class ZKGraphView extends ItemView {
                 outlinksDiv.id = "zk-outlinks";
                 let { svg } = await mermaid.render(`${outlinksDiv.id}-svg`, outlinkMermaidStr);
                 outlinksDiv.insertAdjacentHTML('beforeend', svg);
-                outlinksDiv.children[0].setAttribute('width', "100%");
-                outlinksDiv.children[0].setAttribute('height', `${this.plugin.settings.HeightOfOutlinksGraph}px`); 
+                outlinksDiv.children[0].addClass("zk-full-width");
+                outlinksDiv.children[0].setAttribute('height', `${this.graphHeight}px`); 
                 graphMermaidDiv.appendChild(outlinksDiv);
                 
                 let panZoomTiger = svgPanZoom(`#${outlinksDiv.id}-svg`, {
@@ -404,20 +430,33 @@ export class ZKGraphView extends ItemView {
                             }; 
                             this.plugin.openGraphView();
                         }else if(event.altKey){
-                            let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
-                            
-                            if(mainNote){
-                                this.plugin.clearShowingSettings();
+                            if(this.plugin.settings.FolderOfIndexes !== '' && node.path.startsWith(this.plugin.settings.FolderOfIndexes)){
+                                this.plugin.clearShowingSettings(); 
                                 this.plugin.settings.lastRetrival = {
-                                    type: 'main',
-                                    ID: mainNote.ID,
-                                    displayText: mainNote.displayText,
-                                    filePath: mainNote.file.path,
+                                    type: 'index',
+                                    ID: '',
+                                    displayText: '',
+                                    filePath: node.path,
                                     openTime: '',                        
                                 }
                                 this.plugin.RefreshIndexViewFlag = true;
-                                
                                 this.plugin.openIndexView();
+                                
+                            }else{
+                                let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
+                            
+                                if(mainNote){
+                                    this.plugin.clearShowingSettings();                               
+                                    this.plugin.settings.lastRetrival = {
+                                        type: 'main',
+                                        ID: mainNote.ID,
+                                        displayText: mainNote.displayText,
+                                        filePath: mainNote.file.path,
+                                        openTime: '',                        
+                                    }
+                                    this.plugin.RefreshIndexViewFlag = true;
+                                    this.plugin.openIndexView();
+                                }
                             }
 
                         }else{
@@ -560,10 +599,10 @@ export class ZKGraphView extends ItemView {
 
         if (currentNode.length > 0) {
             mermaidStr = mermaidStr + `${linkArr.length}("${currentNode[0].displayText}");
-            style ${linkArr.length} fill:#ffa,stroke:#333,stroke-width:1px \n`;;
+            style ${linkArr.length} fill:${this.plugin.settings.nodeColor},stroke:#333,stroke-width:1px \n`;
         } else {
             mermaidStr = mermaidStr + `${linkArr.length}("${currentFile.basename}");
-            style ${linkArr.length} fill:#ffa,stroke:#333,stroke-width:1px \n`;;
+            style ${linkArr.length} fill:${this.plugin.settings.nodeColor},stroke:#333,stroke-width:1px \n`;
         }
 
         for (let i = 0; i < linkArr.length; i++) {
@@ -598,8 +637,7 @@ export class ZKGraphView extends ItemView {
             }
 
             if (node.file == currentFile) {
-                //黄底                
-                mermaidStr = mermaidStr + `style ${node.position} fill:#ffa,stroke:#333,stroke-width:1px \n`;
+                mermaidStr = mermaidStr + `style ${node.position} fill:${this.plugin.settings.nodeColor},stroke:#333,stroke-width:1px \n`;
             } else {
                 //白底
                 mermaidStr = mermaidStr + `style ${node.position} fill:#fff; \n`;
@@ -631,6 +669,22 @@ export class ZKGraphView extends ItemView {
         }
 
         return mermaidStr;
+    }
+
+    countGraphs(){
+
+        let count = 0;
+        if(this.plugin.settings.FamilyGraphToggle === true){
+            count++;
+        }
+        if(this.plugin.settings.InlinksGraphToggle === true){
+            count++;
+        }
+        if(this.plugin.settings.OutlinksGraphToggle === true){
+            count++;
+        }
+        
+        this.countOfGraphs = count;
     }
 
     async onClose() {

@@ -77,7 +77,7 @@ export class ZKRecentView extends ItemView {
 
             })
 
-            const closeBtnDiv = line.createDiv("recent-close-button")
+            const closeBtnDiv = line.createDiv("recent-close-button zk-hidden")
             const closeBtn = new ExtraButtonComponent(closeBtnDiv);
             
             closeBtn.setIcon("x");
@@ -91,11 +91,11 @@ export class ZKRecentView extends ItemView {
             })
 
             line.addEventListener("mouseenter", function() {
-                closeBtnDiv.setAttr("style","display:block");
+                closeBtnDiv.removeClass("zk-hidden");
              });
               
             line.addEventListener("mouseleave", function() {
-                closeBtnDiv.setAttr("style","display:none");
+                closeBtnDiv.addClass("zk-hidden");
              });
         }
         

@@ -75,7 +75,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
             file: note,
             title: '',
             displayText: '',
-            ctime: "",
+            ctime: 0,
             randomId: random(16),
             nodeSons:1,
             startY:0,
@@ -143,12 +143,15 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
            let ctime = nodeCache?.frontmatter?.[plugin.settings.CustomCreatedTime];
 
            if(ctime){
-                node.ctime = ctime.toString();
+                let time = moment(ctime);
+                if(time.isValid()){
+                    node.ctime = time.valueOf();
+                }
            }            
         }
 
-        if(node.ctime === ""){         
-            node.ctime = moment(node.file.stat.ctime).format('YYYY-MM-DD HH:mm:ss')                
+        if(node.ctime === 0){         
+            node.ctime = node.file.stat.ctime         
         }
 
         plugin.MainNotes.push(node);
@@ -160,8 +163,9 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
         for (let i = 0; i < plugin.MainNotes.length; i++) {
             let node = plugin.MainNotes[i];
-            let IDs = this.app.metadataCache.getFileCache(node.file).frontmatter[plugin.settings.multiIDField];
-            if(IDs){
+            let fm = await this.app.metadataCache.getFileCache(node.file).frontmatter;
+            if(fm){
+                let IDs = fm[plugin.settings.multiIDField];
                 if(Array.isArray(IDs)){
                     for(let j = 0; j < IDs.length; j++){
                         let nodeDup =  Object.assign({}, node);

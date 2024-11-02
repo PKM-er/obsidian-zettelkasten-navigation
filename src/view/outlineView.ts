@@ -135,10 +135,10 @@ export class ZKOutlineView extends ItemView {
 
                 if(treeItemIcon.hasClass("is-collapsed")){
                     treeItemIcon.removeClass("is-collapsed");
-                    treeItemChildren.setAttr("style","display:block");
+                    treeItemChildren.removeClass("zk-hidden");
                 }else{
                     treeItemIcon.addClass("is-collapsed");
-                    treeItemChildren.setAttr("style","display:none");
+                    treeItemChildren.addClass("zk-hidden");
                 }
                 
                 event.stopPropagation();
@@ -146,7 +146,7 @@ export class ZKOutlineView extends ItemView {
 
             if(item.IDArr.length - this.minLength + 1 >= this.defautLength ){
                 treeItemIcon.addClass("is-collapsed")
-                treeItemChildren.setAttr("style","display:none");
+                treeItemChildren.addClass("zk-hidden");
             }
 
             for(let i=0;i<children.length;i++){
