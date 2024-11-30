@@ -47,7 +47,7 @@ export class ZKOutlineView extends ItemView {
         let { containerEl } = this;
         containerEl.empty();
         const headerDiv = containerEl.createDiv("nav-header").createDiv("nav-buttons-container");
-        
+        this.plugin.tableArr.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
         this.maxLength =  Math.max(...this.plugin.tableArr.map(n=>n.IDArr.length));
         this.minLength =  Math.min(...this.plugin.tableArr.map(n=>n.IDArr.length));
         this.defautLength = this.plugin.settings.outlineLayer;

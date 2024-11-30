@@ -55,7 +55,7 @@ export class expandGraphModal extends Modal {
             }                        
         }
     }
-    
+
     let nodeGArr = svgGraph.querySelectorAll("[id^='flowchart-']");
     let nodeArr = svgGraph.getElementsByClassName("nodeLabel");
 

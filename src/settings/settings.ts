@@ -286,10 +286,22 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             
         new Setting(indexGraphView)
             .setName(t("Index graph styles"))
+            .addDropdown(options => options
+                .addOption("structure", t("structure"))
+                .addOption("roadmap",t("roadmap"))
+                .setValue(this.plugin.settings.graphType)
+                .onChange((value) => {
+                    this.plugin.settings.graphType = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                    branchSectionDiv.addClass("zk-hidden");
+                })
+            )
             .addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
-                    this.hideDiv(branchSectionDiv);
+                    if(this.plugin.settings.graphType === "structure"){
+                        this.hideDiv(branchSectionDiv);
+                    }                    
                 })
             })
         

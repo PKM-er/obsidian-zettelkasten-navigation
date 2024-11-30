@@ -105,6 +105,7 @@ export default {
     "root": "root",
     "next": "next",
     "end": "end",
+    "id": "id",
     "title": "title",
     "both": "both",
     "Current index: ": "Index:",
@@ -122,6 +123,9 @@ export default {
     "select an index": "select a keyword",
     "all trees": "all trees",
     "growing animation": "start timelapse animation",
+    "structure": "structure",
+    "roadmap": "roadmap",
+    "style : ": "style : ",
 
 
     // localView.ts

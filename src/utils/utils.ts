@@ -1,5 +1,5 @@
-import ZKNavigationPlugin from "main";
-import { moment, Notice, TFile } from "obsidian";
+import ZKNavigationPlugin, { ZoomPanScale } from "main";
+import { loadMermaid, moment, Notice, TFile } from "obsidian";
 import { ZKNode } from "src/view/indexView";
 
 // formatting Luhmann style IDs
@@ -82,6 +82,8 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
             height:0,
             isRoot: false,
             fixWidth: 0,
+            branchName: "",
+            gitNodePos: 0,
         }
 
         let nodeCache = this.app.metadataCache.getFileCache(note);
@@ -249,4 +251,72 @@ export function displayWidth(str:string){
         length += charCode >= 0 && charCode <= 128 ? 1 : 2;
     }
     return length;
+}
+
+export async function addSvgPanZoom(
+    zkGraph:HTMLDivElement, 
+    indexMermaidDiv: HTMLElement, 
+    i:number, 
+    plugin:ZKNavigationPlugin, 
+    mermaidStr:string, height:number){
+    
+    const mermaid = await loadMermaid();
+    let { svg } = await mermaid.render(`${zkGraph.id}-svg`, mermaidStr);
+            
+    zkGraph.insertAdjacentHTML('beforeend', svg);
+    
+    zkGraph.children[0].addClass("zk-full-width");
+
+    zkGraph.children[0].setAttr('height', `${height}px`); 
+    
+    indexMermaidDiv.appendChild(zkGraph);
+
+    const svgPanZoom = require("svg-pan-zoom");
+            
+    let panZoomTiger = await svgPanZoom(`#${zkGraph.id}-svg`, {
+        zoomEnabled: true,
+        controlIconsEnabled: false,
+        fit: true,                    
+        center: true,
+        minZoom: 0.001,
+        maxZoom: 1000,
+        dblClickZoomEnabled: false,
+        zoomScaleSensitivity: 0.2,
+        
+        onZoom: async () => {                        
+            plugin.settings.zoomPanScaleArr[i].zoomScale = panZoomTiger.getZoom();
+
+        },
+        onPan: async ()=> {
+            plugin.settings.zoomPanScaleArr[i].pan = panZoomTiger.getPan();
+            
+        }
+    })
+
+    if(typeof plugin.settings.zoomPanScaleArr[i] === 'undefined'){
+        
+        const setSvg = document.getElementById(`${zkGraph.id}-svg`);
+        
+        if(setSvg !== null){
+            let a = setSvg.children[0].getAttr("style");
+            if(a){
+                let b = a.match(/\d([^\,]+)\d/g)
+                if(b !== null && Number(b[0]) > 1){
+                    panZoomTiger.zoom(1/Number(b[0]))
+                }                        
+            }
+            let zoomPanScale: ZoomPanScale = {
+                graphID: zkGraph.id,
+                zoomScale: panZoomTiger.getZoom(),
+                pan: panZoomTiger.getPan(),
+            };
+
+            plugin.settings.zoomPanScaleArr.push(zoomPanScale);
+        }
+
+    }else{
+        panZoomTiger.zoom(plugin.settings.zoomPanScaleArr[i].zoomScale);  
+        panZoomTiger.pan(plugin.settings.zoomPanScaleArr[i].pan); 
+                
+    }  
 }

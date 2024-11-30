@@ -1,10 +1,10 @@
-import ZKNavigationPlugin, { FoldNode, Retrival, ZoomPanScale } from "main";
-import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Menu, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid, moment, setTooltip } from "obsidian";
+import ZKNavigationPlugin, { FoldNode, Retrival } from "main";
+import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Menu, Notice, TFile, WorkspaceLeaf, debounce, moment, setTooltip } from "obsidian";
 import { t } from "src/lang/helper";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
 import { mainNoteFuzzyModal, mainNoteModal } from "src/modal/mainNoteModal";
 import { tableModal } from "src/modal/tableModal";
-import { displayWidth, mainNoteInit, random } from "src/utils/utils";
+import { addSvgPanZoom, displayWidth, mainNoteInit, random } from "src/utils/utils";
 
 export const ZK_INDEX_TYPE: string = "zk-index-type";
 export const ZK_INDEX_VIEW: string = t("zk-index-graph");
@@ -25,6 +25,8 @@ export interface ZKNode {
     height: number; //used for caculating card position when export to canvas
     isRoot: boolean;
     fixWidth: number; // used for setting the same width for siblings
+    branchName: string; // for generating gitGraph
+    gitNodePos: number; // for keeping node's position in gitBranch
 }
 
 interface BrancAllhNodes{
@@ -37,6 +39,23 @@ interface PlayStates{
     total: number;
     nodeGArr: Element[];
     lines: Element[];
+    labels: Element[];
+}
+
+export interface GitBranch{
+    branchName: string;
+    branchPoint: ZKNode;
+    nodes: ZKNode[];
+    currentPos: number
+    order: number;
+    positionX: number;
+    active: boolean;
+}
+
+interface AllGitBranch{    
+    branchTab: number;
+    gitBranches: GitBranch[];
+    indexNode: ZKNode;
 }
 
 export class ZKIndexView extends ItemView {
@@ -49,7 +68,14 @@ export class ZKIndexView extends ItemView {
         total:0,
         nodeGArr:[],
         lines:[],
-    }
+        labels:[]
+    };
+
+    gitBranches: GitBranch[];
+    order: number;
+    result: GitBranch[];
+    allGitBranch: AllGitBranch[];
+    fileContent: string;
 
     constructor(leaf: WorkspaceLeaf, plugin: ZKNavigationPlugin) {
         super(leaf);
@@ -203,7 +229,7 @@ export class ZKIndexView extends ItemView {
         nodeTextDiv.createEl("b", { text: t("Text : ") });
         const nodeText = new DropdownComponent(nodeTextDiv);
         nodeText
-            .addOption("id", "id")
+            .addOption("id", t("id"))
             .addOption("title", t("title"))
             .addOption("both", t("both"))
             .setValue(this.plugin.settings.NodeText)
@@ -212,6 +238,20 @@ export class ZKIndexView extends ItemView {
                 this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 this.app.workspace.trigger("zk-navigation:refresh-local-graph");
             });
+        
+        const graphTypeDiv = toolbarDiv.createDiv("zk-index-toolbar-block");
+        graphTypeDiv.createEl("b", {text: t("style : ")});
+        const graphType = new DropdownComponent(graphTypeDiv);
+        graphType
+            .addOption("structure", t("structure"))
+            .addOption("roadmap",t("roadmap"))
+            .setValue(this.plugin.settings.graphType)
+            .onChange((graphType)=>{
+                this.plugin.settings.graphType = graphType;
+                this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);   
+                this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+                this.app.workspace.trigger("zk-navigation:refresh-local-graph");
+            })
 
         await this.refreshBranchMermaid();  
     }
@@ -319,7 +359,13 @@ export class ZKIndexView extends ItemView {
                 const canvasBtn = new ExtraButtonComponent(toolButtonsDiv);
                 canvasBtn.setIcon("layout-dashboard").setTooltip(t("export to canvas"));
                 canvasBtn.onClick(async ()=>{
+                    if(this.plugin.settings.graphType === "structure"){
+                        await this.generateCanvasStr();
+                    }else{                        
+                        await this.generateCanvasStrGit();
+                    }
                     await this.exportToCanvas();
+                    
                 })
 
             }
@@ -398,11 +444,16 @@ export class ZKIndexView extends ItemView {
             }
 
             if(this.plugin.settings.play == true){
+
                 const playBtn = new ExtraButtonComponent(toolButtonsDiv);
                 playBtn.setIcon("wand-2").setTooltip(t("growing animation"));
                 playBtn.onClick(async ()=>{
-                    this.plugin.settings.FoldNodeArr = []; 
-                    await this.branchGrowing(); 
+                    if(this.plugin.settings.graphType === "structure"){
+                        this.plugin.settings.FoldNodeArr = []; 
+                        await this.branchGrowing(); 
+                    }else{
+                        await this.branchGrowingGit();
+                    }
                 })
             }
 
@@ -415,7 +466,12 @@ export class ZKIndexView extends ItemView {
                 .setIcon('arrow-left')
                 .onClick(async ()=>{
                     this.playStatus.current = (this.playStatus.current - 1 + this.playStatus.total) % this.playStatus.total;
-                    await this.branchAnimation();
+                    if(this.plugin.settings.graphType === "structure"){
+                        await this.branchPlaying();
+                    }else{
+                        await this.branchPlayingGit();
+                    }
+                    
                 })
 
                 const nextBtn = new ExtraButtonComponent(playControllerDiv);
@@ -423,7 +479,11 @@ export class ZKIndexView extends ItemView {
                 .setIcon('arrow-right')
                 .onClick(async ()=>{
                     this.playStatus.current = (this.playStatus.current + 1) % this.playStatus.total;
-                    await this.branchAnimation();
+                    if(this.plugin.settings.graphType === "structure"){
+                        await this.branchPlaying();
+                    }else{                      
+                        await this.branchPlayingGit();
+                    }
                 })
 
                 const fullScreenBtn = new ExtraButtonComponent(playControllerDiv);
@@ -458,7 +518,7 @@ export class ZKIndexView extends ItemView {
                 const tableBtn = new ExtraButtonComponent(toolButtonsDiv);
                 tableBtn.setIcon("table").setTooltip(t("table view"))
                 tableBtn.onClick(async ()=>{
-                    await this.genericBranchNodes();
+                    this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
                     new tableModal(this.app, this.plugin, this.plugin.tableArr).open();
                 })
             }   
@@ -467,7 +527,7 @@ export class ZKIndexView extends ItemView {
                 const listBtn = new ExtraButtonComponent(toolButtonsDiv);
                 listBtn.setIcon("list-tree").setTooltip(t("list tree"))
                 listBtn.onClick(async ()=>{
-                    await this.genericBranchNodes();
+                    this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
                     await this.plugin.openOutlineView();
                 })
 
@@ -591,293 +651,23 @@ export class ZKIndexView extends ItemView {
         
         if(branchEntranceNodeArr.length >0){
 
-            const mermaid = await loadMermaid();
-            this.branchAllNodes = [];
-            for (let i = 0; i < branchEntranceNodeArr.length; i++) {
+            switch(this.plugin.settings.graphType){
+                case "structure":
+                    await this.generateFlowchart(branchEntranceNodeArr, indexMermaidDiv);
+                    break;
+                case "roadmap":
+                    await this.generateGitgraph(branchEntranceNodeArr, indexMermaidDiv);
+                    break;
+                default:
+                    //do nothing
+            }    
 
-                const branchNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);
-                this.branchAllNodes.push({branchTab:i,branchNodes:branchNodes});
-                let branchMermaidStr = await this.genericIndexMermaidStr(branchNodes, branchEntranceNodeArr[i],this.plugin.settings.DirectionOfBranchGraph);
-                let zkGraph = indexMermaidDiv.createEl("div", { cls: "zk-index-mermaid" });
-                zkGraph.id = `zk-index-mermaid-${i}`;        
-
-                let { svg } = await mermaid.render(`${zkGraph.id}-svg`, branchMermaidStr);
-                
-                zkGraph.insertAdjacentHTML('beforeend', svg);
-                  
-                zkGraph.children[0].addClass("zk-full-width");
-
-                zkGraph.children[0].setAttr('height', `${this.containerEl.offsetHeight - 100}px`); 
-                
-                indexMermaidDiv.appendChild(zkGraph); 
-                
-                const svgPanZoom = require("svg-pan-zoom");
-                
-                let panZoomTiger = await svgPanZoom(`#${zkGraph.id}-svg`, {
-                    zoomEnabled: true,
-                    controlIconsEnabled: false,
-                    fit: true,                    
-                    center: true,
-                    minZoom: 0.001,
-                    maxZoom: 1000,
-                    dblClickZoomEnabled: false,
-                    zoomScaleSensitivity: 0.2,
-                    
-                    onZoom: async () => {                        
-                        this.plugin.settings.zoomPanScaleArr[i].zoomScale = panZoomTiger.getZoom();
-
-                    },
-                    onPan: async ()=> {
-                        this.plugin.settings.zoomPanScaleArr[i].pan = panZoomTiger.getPan();
-                        
-                    }
-                })
-                
-                if(typeof this.plugin.settings.zoomPanScaleArr[i] === 'undefined'){
-                    
-                    const setSvg = document.getElementById(`${zkGraph.id}-svg`);
-                    
-                    if(setSvg !== null){
-                        let a = setSvg.children[0].getAttr("style");
-                        if(a){
-                            let b = a.match(/\d([^\,]+)\d/g)
-                            if(b !== null && Number(b[0]) > 1){
-                                panZoomTiger.zoom(1/Number(b[0]))
-                            }                        
-                        }
-                        let zoomPanScale: ZoomPanScale = {
-                            graphID: zkGraph.id,
-                            zoomScale: panZoomTiger.getZoom(),
-                            pan: panZoomTiger.getPan(),
-                        };
-
-                        this.plugin.settings.zoomPanScaleArr.push(zoomPanScale);
-                    }
-
-                }else{
-                    
-                    panZoomTiger.zoom(this.plugin.settings.zoomPanScaleArr[i].zoomScale);  
-                    panZoomTiger.pan(this.plugin.settings.zoomPanScaleArr[i].pan); 
-                            
-                }   
-                
-                const indexMermaid = document.getElementById(zkGraph.id)
-
-                if (indexMermaid !== null) {
-                    
-
-                    for (let foldNode of this.plugin.settings.FoldNodeArr.filter(n => n.graphID == zkGraph.id)) {
-
-                        let hideNodes = this.plugin.MainNotes.filter(n =>
-                            n.IDStr.startsWith(foldNode.nodeIDstr) && (n.IDStr !== foldNode.nodeIDstr)
-                        );
-
-                        for (let hideNode of hideNodes) {
-                            let hideNodeGArr = indexMermaid.querySelectorAll(`[id^='flowchart-${hideNode.position}']`);
-
-                            hideNodeGArr.forEach((item) => {
-                                item.addClass("zk-hidden")
-                            })
-
-                            let hideLines = indexMermaid.querySelectorAll(`[id^='L-${hideNode.position}']`);
-
-                            hideLines.forEach((item) => {
-                                item.addClass("zk-hidden")
-                            })
-                        }
-
-                        let hideLines = indexMermaid.querySelectorAll(`[id^='L-${foldNode.position}']`);
-                        hideLines.forEach((item) => {
-                            item.addClass("zk-hidden")
-                        })
-
-                    }
-
-                    let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
-                    let flowchartG = indexMermaid.querySelector("g.nodes");
-                    
-                    if (flowchartG !== null) {
-
-                        let nodeArr = flowchartG.getElementsByClassName("nodeLabel");
-
-                        for (let i = 0; i < nodeArr.length; i++) {
-
-                            let link = document.createElement('a');
-                            link.addClass("internal-link");
-                            let nodePosStr = nodeGArr[i].id.split('-')[1];
-                            let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
-                            link.textContent = nodeArr[i].getText();
-                            nodeArr[i].textContent = "";
-                            nodeArr[i].appendChild(link);
-                            
-                            nodeArr[i].addEventListener('contextmenu', (event: MouseEvent) => {
-                                
-                                const menu = new Menu();
-
-                                for(let command of this.plugin.settings.NodeCommands){
-                                    menu.addItem((item) =>
-                                        item
-                                          .setTitle(command.name)
-                                          .setIcon(command.icon)
-                                          .onClick(async() => {
-                                            let copyStr:string = '';
-                                            switch(command.copyType){
-                                                case 1:
-                                                    copyStr = node.ID;
-                                                    break;
-                                                case 2:
-                                                    copyStr = node.file.path;
-                                                    break;
-                                                case 3:
-                                                    copyStr = moment(node.ctime).format(this.plugin.settings.datetimeFormat);
-                                                    break;
-                                                default:
-                                                    break;
-                                            }
-                                            if(copyStr !== ''){
-                                                await navigator.clipboard.writeText(copyStr);
-                                            }       
-                                            this.app.commands.executeCommandById(command.id); 
-                                          })
-                                    )
-                                }                                
-                                menu.showAtMouseEvent(event);
-                            });
-
-                            if(this.plugin.settings.displayTimeToggle === true){
-                                let nodeParent = nodeArr[i].parentElement;
-                                if(nodeParent !== null){
-                                    setTooltip(nodeParent, `${t("created")}: ${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}`)
-                                }
-                            }
-
-                            nodeArr[i].addEventListener("click", async (event: MouseEvent) => {
-                                if (event.ctrlKey) {
-                                    this.app.workspace.openLinkText("", node.file.path, 'tab');
-                                    event.stopPropagation();
-                                }
-                            })                
-
-                            nodeGArr[i].addEventListener("click", async (event: MouseEvent) => {
-                                if (event.ctrlKey) {
-                                    navigator.clipboard.writeText(node.ID)
-                                    new Notice(node.ID + " copied")
-                                }else if(event.shiftKey){
-                                    this.plugin.settings.lastRetrival =  {
-                                        type: 'main',
-                                        ID: node.ID,
-                                        displayText: node.displayText,
-                                        filePath: node.file.path,
-                                        openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-                                    }
-                                    await this.plugin.clearShowingSettings();
-                                    await this.IndexViewInterfaceInit();
-                                }else if(event.altKey){
-                                    this.plugin.retrivalforLocaLgraph = {
-                                        type: '1',
-                                        ID: node.ID,
-                                        filePath: node.file.path,
-                
-                                    };       
-                                    this.plugin.openGraphView();
-                                }else{
-                                    this.app.workspace.openLinkText("", node.file.path)
-                                }
-                            })
-
-                            nodeGArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
-                                this.app.workspace.trigger(`hover-link`, {
-                                    event,
-                                    source: ZK_NAVIGATION,
-                                    hoverParent: this,
-                                    linktext: node.file.basename,
-                                    targetEl: link,
-                                    sourcePath: node.file.path,
-                                })
-                            });
-
-                            if (this.plugin.settings.FoldToggle == true) {
-
-                                let foldIcon = document.createElement("span")
-                                nodeArr[i].parentNode?.insertAfter(foldIcon, nodeArr[i]);
-                                if (typeof this.plugin.settings.FoldNodeArr.find(n =>
-                                    (n.nodeIDstr == node.IDStr) && (n.graphID == zkGraph.id)) === "undefined"
-                                ) {
-                                    foldIcon.textContent = "🟡";
-                                } else {
-                                    foldIcon.textContent = "🟢";
-                                }
-                          
-                                foldIcon.addEventListener("click", async (event) => {
-
-                                    
-                                    let foldNode: FoldNode = {
-                                        graphID: zkGraph.id,
-                                        nodeIDstr: node.IDStr,
-                                        position: node.position,
-                                    };                         
-
-                                    if ((this.plugin.settings.FoldNodeArr.length === 0)) {
-                                        if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
-                                            this.plugin.settings.FoldNodeArr.push(foldNode);
-                                        }
-                                    } else {
-                                        if (typeof this.plugin.settings.FoldNodeArr.find(n =>
-                                            (n.nodeIDstr == node.IDStr) && (n.graphID = zkGraph.id)) === "undefined"
-                                        ) {
-                                            if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
-                                                this.plugin.settings.FoldNodeArr.push(foldNode);
-                                            }
-                                        } else {
-                                            this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(n =>
-                                                !(n.graphID == foldNode.graphID && n.nodeIDstr == foldNode.nodeIDstr)
-                                            );
-                                        }
-                                    }
-
-                                    if(foldIcon.textContent === "🟢" && event.ctrlKey){
-                                        this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(
-                                            n=>!n.nodeIDstr.startsWith(foldNode.nodeIDstr)
-                                        )                       
-                                    }                 
-                                    event.stopPropagation();
-
-                                    await this.refreshBranchMermaid();
-
-                                })
-                            }
-                        }
-                    }
-                }
-            }
-            
-            if(branchEntranceNodeArr.length > 1){
-
-                const branchTabs = document.getElementsByClassName("zk-index-mermaid")
-                indexLinkDiv.createEl('small', { text: ` >> `});
-                
-                for(let i = 0; i < branchTabs.length; i++){
-
-                    let branchTab = indexLinkDiv.createEl('span').createEl('a', { text: `🌿${i+1} `,cls:"zk-branch-tab"});
-                    
-                    let node = branchEntranceNodeArr[i];
-                    setTooltip(branchTab,`${node.displayText} (${this.plugin.MainNotes.filter(n=>n.IDStr.startsWith(node.IDStr)).length})`)
-                    
-                    branchTab.addEventListener("click", async () => {                        
-                        await this.openBranchTab(i);
-                        this.resetController();
-                    });                   
-                    
-                }
-                
-                await this.openBranchTab(this.plugin.settings.BranchTab);
-            }
-
+            await this.addBranchIcon(branchEntranceNodeArr, indexLinkDiv);
             
         }
 
         if(this.plugin.settings.ListTree === true){
-            await this.genericBranchNodes();
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
             this.app.workspace.trigger("zk-navigation:refresh-outline-view");
         }
         
@@ -893,30 +683,416 @@ export class ZKIndexView extends ItemView {
         this.plugin.indexViewOffsetHeight = this.containerEl.offsetHeight;
     }
 
+
+    async addBranchIcon(branchEntranceNodeArr:ZKNode[], indexLinkDiv:HTMLDivElement){
+        if(branchEntranceNodeArr.length > 1){
+
+            indexLinkDiv.createEl('small', { text: ` >> `});
+            
+            for(let i = 0; i < branchEntranceNodeArr.length; i++){
+
+                let branchTab = indexLinkDiv.createEl('span').createEl('a', { text: `🌿${i+1} `,cls:"zk-branch-tab"});
+                
+                let node = branchEntranceNodeArr[i];
+                setTooltip(branchTab,`${node.displayText} (${this.plugin.MainNotes.filter(n=>n.IDStr.startsWith(node.IDStr)).length})`)
+                
+                branchTab.addEventListener("click", async () => {                        
+                    await this.openBranchTab(i);
+                    this.resetController();
+                });                   
+                
+            }
+            
+            await this.openBranchTab(this.plugin.settings.BranchTab);
+        } 
+    }
+
+    async generateFlowchart(branchEntranceNodeArr:ZKNode[], indexMermaidDiv:HTMLElement){
+        this.branchAllNodes = [];
+        for (let i = 0; i < branchEntranceNodeArr.length; i++) {
+
+            const branchNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);
+            this.branchAllNodes.push({branchTab:i,branchNodes:branchNodes});
+            let mermaidStr = await this.generateFlowchartStr(branchNodes, branchEntranceNodeArr[i],this.plugin.settings.DirectionOfBranchGraph);
+            let zkGraph = indexMermaidDiv.createEl("div", { cls: "zk-index-mermaid" });
+            zkGraph.id = `zk-index-mermaid-${i}`;       
+
+            await addSvgPanZoom(zkGraph, indexMermaidDiv, i, this.plugin, mermaidStr, (this.containerEl.offsetHeight - 100));
+          
+            const indexMermaid = document.getElementById(zkGraph.id)
+
+            if (indexMermaid !== null) {
+
+                let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
+                let flowchartG = indexMermaid.querySelector("g.nodes");
+                
+                if (flowchartG !== null) {
+
+                    let nodeArr = flowchartG.getElementsByClassName("nodeLabel");
+
+                    for (let i = 0; i < nodeArr.length; i++) {
+
+                        let link = document.createElement('a');
+                        link.addClass("internal-link");
+                        let nodePosStr = nodeGArr[i].id.split('-')[1];
+                        let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
+                        link.textContent = nodeArr[i].getText();
+                        nodeArr[i].textContent = "";
+                        nodeArr[i].appendChild(link);
+                        
+                        nodeGArr[i].addEventListener('contextmenu', (event: MouseEvent) => {
+                            
+                            const menu = new Menu();
+
+                            for(let command of this.plugin.settings.NodeCommands){
+                                menu.addItem((item) =>
+                                    item
+                                      .setTitle(command.name)
+                                      .setIcon(command.icon)
+                                      .onClick(async() => {
+                                        let copyStr:string = '';
+                                        switch(command.copyType){
+                                            case 1:
+                                                copyStr = node.ID;
+                                                break;
+                                            case 2:
+                                                copyStr = node.file.path;
+                                                break;
+                                            case 3:
+                                                copyStr = moment(node.ctime).format(this.plugin.settings.datetimeFormat);
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        if(copyStr !== ''){
+                                            await navigator.clipboard.writeText(copyStr);
+                                        }       
+                                        this.app.commands.executeCommandById(command.id); 
+                                      })
+                                )
+                            }                                
+                            menu.showAtMouseEvent(event);
+                        });
+
+                        if(this.plugin.settings.displayTimeToggle === true){
+                            let nodeParent = nodeArr[i].parentElement;
+                            if(nodeParent !== null){
+                                setTooltip(nodeParent, `${t("created")}: ${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}`)
+                            }
+                        }
+
+                        nodeArr[i].addEventListener("click", async (event: MouseEvent) => {
+                            if (event.ctrlKey) {
+                                this.app.workspace.openLinkText("", node.file.path, 'tab');
+                                event.stopPropagation();
+                            }
+                        })                
+
+                        nodeGArr[i].addEventListener("click", async (event: MouseEvent) => {
+                            if (event.ctrlKey) {
+                                navigator.clipboard.writeText(node.ID)
+                                new Notice(node.ID + " copied")
+                            }else if(event.shiftKey){
+                                this.plugin.settings.lastRetrival =  {
+                                    type: 'main',
+                                    ID: node.ID,
+                                    displayText: node.displayText,
+                                    filePath: node.file.path,
+                                    openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                }
+                                await this.plugin.clearShowingSettings();
+                                await this.IndexViewInterfaceInit();
+                            }else if(event.altKey){
+                                this.plugin.retrivalforLocaLgraph = {
+                                    type: '1',
+                                    ID: node.ID,
+                                    filePath: node.file.path,
+            
+                                };       
+                                this.plugin.openGraphView();
+                            }else{
+                                this.app.workspace.openLinkText("", node.file.path)
+                            }
+                        })
+
+                        nodeGArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
+                            this.app.workspace.trigger(`hover-link`, {
+                                event,
+                                source: ZK_NAVIGATION,
+                                hoverParent: this,
+                                linktext: node.file.basename,
+                                targetEl: link,
+                                sourcePath: node.file.path,
+                            })
+                        });
+
+                        if (this.plugin.settings.FoldToggle == true) {
+
+                            let foldIcon = document.createElement("span")
+                            nodeArr[i].parentNode?.insertAfter(foldIcon, nodeArr[i]);
+                            if (typeof this.plugin.settings.FoldNodeArr.find(n =>
+                                (n.nodeIDstr == node.IDStr) && (n.graphID == zkGraph.id)) === "undefined"
+                            ) {
+                                foldIcon.textContent = "🟡";
+                            } else {
+                                foldIcon.textContent = "🟢";
+                            }
+                      
+                            foldIcon.addEventListener("click", async (event) => {
+
+                                
+                                let foldNode: FoldNode = {
+                                    graphID: zkGraph.id,
+                                    nodeIDstr: node.IDStr,
+                                    position: node.position,
+                                };                         
+
+                                if ((this.plugin.settings.FoldNodeArr.length === 0)) {
+                                    if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
+                                        this.plugin.settings.FoldNodeArr.push(foldNode);
+                                    }
+                                } else {
+                                    if (typeof this.plugin.settings.FoldNodeArr.find(n =>
+                                        (n.nodeIDstr == node.IDStr) && (n.graphID = zkGraph.id)) === "undefined"
+                                    ) {
+                                        if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
+                                            this.plugin.settings.FoldNodeArr.push(foldNode);
+                                        }
+                                    } else {
+                                        this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(n =>
+                                            !(n.graphID == foldNode.graphID && n.nodeIDstr == foldNode.nodeIDstr)
+                                        );
+                                    }
+                                }
+
+                                if(foldIcon.textContent === "🟢" && event.ctrlKey){
+                                    this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(
+                                        n=>!n.nodeIDstr.startsWith(foldNode.nodeIDstr)
+                                    )                       
+                                }                 
+                                event.stopPropagation();
+
+                                await this.refreshBranchMermaid();
+
+                            })
+                        }
+                    }
+                }
+                for (let foldNode of this.plugin.settings.FoldNodeArr.filter(n => n.graphID == zkGraph.id)) {
+                    
+                    let hideNodes = this.plugin.MainNotes.filter(n =>
+                        n.IDStr.startsWith(foldNode.nodeIDstr) && (n.IDStr !== foldNode.nodeIDstr)
+                    );
+
+                    for (let hideNode of hideNodes) {
+                        let hideNodeGArr = indexMermaid.querySelectorAll(`[id^='flowchart-${hideNode.position}']`);
+
+                        hideNodeGArr.forEach((item) => {
+                            item.setAttr("style", "display:none");
+                        })
+
+                        let hideLines = indexMermaid.querySelectorAll(`[id^='L-${hideNode.position}']`);
+
+                        hideLines.forEach((item) => {
+                            item.setAttr("style", "display:none");
+                        })
+                    }
+
+                    let hideLines = indexMermaid.querySelectorAll(`[id^='L-${foldNode.position}']`);
+                    hideLines.forEach((item) => {
+                        item.setAttr("style", "display:none");
+                    })
+                        
+                }
+
+            }
+        }
+    }
+
+    async generateGitgraph(branchEntranceNodeArr:ZKNode[], indexMermaidDiv:HTMLElement){
+        this.branchAllNodes = [];
+        this.allGitBranch = [];
+        for (let i = 0; i < branchEntranceNodeArr.length; i++) {
+
+            const branchNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);
+            this.branchAllNodes.push({branchTab:i,branchNodes:branchNodes});
+            
+            let mermaidStr = await this.generateGitgraphStr(branchNodes, branchEntranceNodeArr[i], i);
+            let zkGraph = indexMermaidDiv.createEl("div", { cls: "zk-index-mermaid" });
+            zkGraph.id = `zk-index-mermaid-${i}`;       
+
+            await addSvgPanZoom(zkGraph, indexMermaidDiv, i, this.plugin, mermaidStr, (this.containerEl.offsetHeight - 100));
+                        
+            const indexMermaid = document.getElementById(zkGraph.id)
+
+            if (indexMermaid !== null) {  
+
+                const gElements = indexMermaid.querySelectorAll('g.commit-bullets');
+
+                let temNode = gElements[1];
+                const circles = gElements[1].querySelectorAll("circle.commit")
+                const circleNodes = Array.from(circles);
+                gElements[1].textContent = "";
+                for(let j=0;j<circleNodes.length;j++){
+
+                    let link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+                    link.appendChild(circleNodes[j]);
+                    gElements[1].appendChild(link);
+                    
+                    let nodes = this.branchAllNodes[i].branchNodes;
+
+                    let nodeArr = nodes.filter(n=>n.gitNodePos === j);
+                    if(nodeArr.length > 0){
+                        let node = nodeArr[0];
+                        circleNodes[j].addEventListener("click", async (event: MouseEvent) => {  
+                            if (event.ctrlKey) {
+                                this.app.workspace.openLinkText("", node.file.path, 'tab');
+                            }else if(event.shiftKey){
+                                this.plugin.settings.lastRetrival =  {
+                                    type: 'main',
+                                    ID: node.ID,
+                                    displayText: node.displayText,
+                                    filePath: node.file.path,
+                                    openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                                }
+                                await this.plugin.clearShowingSettings();
+                                await this.IndexViewInterfaceInit();
+                            }else if(event.altKey){
+                                this.plugin.retrivalforLocaLgraph = {
+                                    type: '1',
+                                    ID: node.ID,
+                                    filePath: node.file.path,
+            
+                                };       
+                                this.plugin.openGraphView();
+                            }else{
+                                this.app.workspace.openLinkText("", node.file.path)
+                            }
+                            
+                        })
+                        circleNodes[j].addEventListener('contextmenu', (event: MouseEvent) => {
+                                    
+                            const menu = new Menu();
+                            for(let command of this.plugin.settings.NodeCommands){
+                                menu.addItem((item) =>
+                                    item
+                                    .setTitle(command.name)
+                                    .setIcon(command.icon)
+                                    .onClick(async() => {
+                                        let copyStr:string = '';
+                                        switch(command.copyType){
+                                            case 1:
+                                                copyStr = node.ID;
+                                                break;
+                                            case 2:
+                                                copyStr = node.file.path;
+                                                break;
+                                            case 3:
+                                                copyStr = moment(node.ctime).format(this.plugin.settings.datetimeFormat);
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                        if(copyStr !== ''){
+                                            await navigator.clipboard.writeText(copyStr);
+                                        }       
+                                        this.app.commands.executeCommandById(command.id); 
+                                    })
+                                )
+                            }                       
+                            menu.showAtMouseEvent(event);
+                        });
+                        circleNodes[j].addEventListener(`mouseover`, (event: MouseEvent) => {
+                            this.app.workspace.trigger(`hover-link`, {
+                                event,
+                                source: ZK_NAVIGATION,
+                                hoverParent: circleNodes[j],
+                                linktext: node.file.basename,
+                                targetEl: circleNodes[j],
+                                sourcePath: node.file.path,
+                            })
+                        });                            
+                    } 
+                }
+            }
+        }
+    }
+
     resetController(){
         
-        this.genericBranchNodes();
+        this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
         
         this.plugin.tableArr.sort((a, b) => a.ctime - b.ctime);
     
         const branchMermaid = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
 
-        if(branchMermaid == null) return;            
+        if(branchMermaid == null) return;      
+        if(this.plugin.settings.graphType === "structure") {
+            this.playStatus = {
+                current:-1,
+                total:this.plugin.tableArr.length,
+                nodeGArr: Array.from(branchMermaid.querySelectorAll("[id^='flowchart-']")),
+                lines: Array.from(branchMermaid.querySelectorAll(`[id^='L-']`)),
+                labels:[],
+            }
+    
+            this.playStatus.nodeGArr.forEach((item)=>{
+                item.removeClass("zk-hidden");
+            })
+    
+            this.playStatus.lines.forEach((item)=>{
+                item.removeClass("zk-hidden");
+            })
+        }else{
 
-        this.playStatus = {
-            current:-1,
-            total:this.plugin.tableArr.length,
-            nodeGArr: Array.from(branchMermaid.querySelectorAll("[id^='flowchart-']")),
-            lines: Array.from(branchMermaid.querySelectorAll(`[id^='L-']`)),
-        }
+            let nodeGArr:Element[] = [];
+            let lines:Element[] = [];
+            let lables:Element[] = [];
 
-        this.playStatus.nodeGArr.forEach((item)=>{
-            item.removeClass("zk-hidden");
-        })
+            const gElements = branchMermaid.querySelectorAll('g.commit-bullets');
+            gElements.forEach((gElement)=>{
+                const circleNodes = gElement.querySelectorAll("circle.commit");
+                if(circleNodes.length>0){
+                    nodeGArr = Array.from(circleNodes);
+                }
+            })            
 
-        this.playStatus.lines.forEach((item)=>{
-            item.removeClass("zk-hidden");
-        })
+            const aElements = branchMermaid.querySelectorAll('g.commit-arrows');
+            aElements.forEach((aElement)=>{
+                const pathNodes = aElement.querySelectorAll("path.arrow");
+                if(pathNodes.length>0){
+                    lines = Array.from(pathNodes);
+                }
+            })          
+
+            const lElements = branchMermaid.querySelectorAll('g.commit-labels');
+            lElements.forEach((lElement)=>{
+                const pathNodes = lElement.querySelectorAll("g");
+                if(pathNodes.length>0){
+                    lables = Array.from(pathNodes);
+                }
+            })
+
+            this.playStatus = {
+                current:-1,
+                total: this.plugin.tableArr.length,
+                nodeGArr: nodeGArr,
+                lines: lines,
+                labels: lables,
+            }    
+            this.playStatus.nodeGArr.forEach((item)=>{
+                item.removeClass("zk-hidden");
+            })
+    
+            this.playStatus.lines.forEach((item)=>{
+                item.removeClass("zk-hidden");
+            })  
+            this.playStatus.labels.forEach((item)=>{
+                item.removeClass("zk-hidden");
+            })        
+        }     
+
+
         
     }
 
@@ -937,7 +1113,7 @@ export class ZKIndexView extends ItemView {
         branchTabs[tabNo].addClass("zk-branch-tab-select");
 
         if(this.plugin.settings.ListTree === true){
-            await this.genericBranchNodes();
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
             this.app.workspace.trigger("zk-navigation:refresh-outline-view");
         }
         
@@ -1052,7 +1228,160 @@ export class ZKIndexView extends ItemView {
 
     }
 
-    async genericIndexMermaidStr(Nodes: ZKNode[], entranceNode: ZKNode, direction: string) {
+    async generateGitgraphStr(Nodes: ZKNode[], entranceNode: ZKNode, branchTab:number) {
+
+        this.generateGitBranch(Nodes,branchTab);
+        this.order = 0;
+        this.result = [];
+        let temBranches = this.gitBranches.filter(b=>b.branchName === "main");
+        this.gitBranches = this.gitBranches.filter(b=>b.branchName !== "main");
+        
+        if(temBranches.length > 0){
+            this.orderGitBranch(temBranches[0]);
+            let git:AllGitBranch = {
+                branchTab: branchTab,
+                gitBranches: this.result,
+                indexNode: entranceNode,
+            }
+            this.allGitBranch.push(git);
+            
+        }            
+
+        temBranches = this.result.filter(b=>b.branchName === "main")
+        this.gitBranches = this.result.filter(b=>b.branchName !== "main")
+        let gitNodePos:number = 0;
+        let gitStr:string = '';
+        while(temBranches.length > 0){
+            
+            let nextBranch = temBranches.reduce((min,obj) =>{
+                
+                return min && min.nodes[min.currentPos].ctime < obj.nodes[obj.currentPos].ctime? min:obj;
+            }, temBranches[0])
+            
+            let branchIndex = temBranches.indexOf(nextBranch);
+            
+            let nextNode = temBranches[branchIndex].nodes[temBranches[branchIndex].currentPos];
+            temBranches[branchIndex].currentPos = temBranches[branchIndex].currentPos + 1;
+                        
+            nextNode.gitNodePos = gitNodePos
+            gitNodePos = gitNodePos + 1;
+
+            if(nextBranch.active === false){
+                gitStr = gitStr + `checkout ${nextBranch.branchPoint.branchName}\n`
+                nextBranch.active = true;
+            }
+            gitStr = gitStr + `checkout ${nextBranch.branchName}
+            commit id: "${nextNode?.displayText}"`
+            
+            if(nextNode?.ID === entranceNode.ID){	
+                gitStr = gitStr + `tag: "index🌿"`// `type: HIGHLIGHT`
+            }
+            
+            gitStr = gitStr + `\n`
+        
+            //if(temBranches[branchIndex].nodes.length === 0){
+            if(temBranches[branchIndex].nodes.length === temBranches[branchIndex].currentPos){
+                temBranches.splice(branchIndex,1);
+            }
+            let newBranches = this.gitBranches.filter(n=>n.branchPoint.ID == nextNode?.ID);
+            // 必须先声明分支
+            for(let branch of newBranches){
+                temBranches.push(branch);
+                gitStr = gitStr + `branch ${branch.branchName} order: ${branch.order}\n`
+            }
+        }
+            
+        let mermaidStr: string = `%%{init: { 'logLevel': 'debug', 'theme': 'base', 'gitGraph': {'showBranches': false, 'parallelCommits': true, 'rotateCommitLabel': true}} }%%
+                                gitGraph
+                                ${gitStr}
+                                `;    
+        return mermaidStr; 
+    }
+
+    generateGitBranch(Nodes: ZKNode[], branchTab:number) {
+        const maxLength = Math.max(...Nodes.map(n=>n.IDArr.length));
+        const minLength = Math.min(...Nodes.map(n=>n.IDArr.length));
+
+        this.gitBranches = [];
+        
+        this.gitBranches.push({
+            branchName: "main",
+            branchPoint: Nodes[0],
+            nodes: Nodes.filter(l=>l.IDArr.length === minLength),
+            currentPos: 0,
+            order: 0,
+            positionX: 0,
+            active: true,
+        })
+
+        let index = this.branchAllNodes[branchTab].branchNodes.indexOf(Nodes[0])
+
+        if(index > -1){
+            this.branchAllNodes[branchTab].branchNodes[index].branchName = "main"
+        }
+
+        for(let i=minLength;i<maxLength;i++){
+            let layerNodes = Nodes.filter(n=>n.IDArr.length === i);
+	        for(let fatherNode of layerNodes){
+                let numberSons = Nodes.filter(n=>n.IDArr.length === i+1 && /[0-9]/.test(n.ID.slice(-1)) && n.IDArr.slice(0,-1).toString() === fatherNode.IDStr);
+                if(numberSons.length>0){
+                    let branchName = `B${this.gitBranches.length}`;
+                    let gitBranch: GitBranch = {
+                        branchName: branchName,
+                        branchPoint: fatherNode,
+                        nodes: numberSons,
+                        currentPos: 0,
+                        positionX: 0,
+                        order: 0,
+                        active: false,
+                    };
+                    this.gitBranches.push(gitBranch);
+                    for(let node of numberSons){
+                        let index = this.branchAllNodes[branchTab].branchNodes.indexOf(node);
+                        this.branchAllNodes[branchTab].branchNodes[index].branchName = branchName;							
+                    }	
+
+                }
+                let letterSons = Nodes.filter(n=>n.IDArr.length === i+1 && /[a-zA-Z]/.test(n.ID.slice(-1)) && n.IDArr.slice(0,-1).toString() === fatherNode.IDStr);
+                if(letterSons.length>0){
+                    let branchName = `B${this.gitBranches.length}`;
+                    let gitBranch: GitBranch = {
+                        branchName: branchName,
+                        branchPoint: fatherNode,
+                        nodes: letterSons,
+                        currentPos: 0,
+                        order: 0,
+                        positionX: 0,
+                        active: false,
+                    };
+                    this.gitBranches.push(gitBranch);
+                    for(let node of letterSons){
+                        let index = this.branchAllNodes[branchTab].branchNodes.indexOf(node);
+                        this.branchAllNodes[branchTab].branchNodes[index].branchName = branchName;							
+                    }	
+                }
+            }
+        }
+    }
+
+    orderGitBranch(current:GitBranch){
+        
+        current.order = this.order;
+        this.result.push(current);
+     
+        this.order = this.order + 1;				
+        for(let i=current.nodes.length-1;i>=0;i--){
+        let branches = this.gitBranches.filter(b=>b.branchPoint.ID === current.nodes[i].ID);
+            if(branches.length > 0){               
+                branches.sort((a, b) => a.nodes[0].ctime - b.nodes[0].ctime);
+                for(let next of branches){
+                    this.orderGitBranch(next);
+                }
+            }
+        }
+    }
+
+    async generateFlowchartStr(Nodes: ZKNode[], entranceNode: ZKNode, direction: string) {
 
         let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};\n`;
@@ -1119,29 +1448,10 @@ export class ZKIndexView extends ItemView {
         }        
     }
 
-    async genericBranchNodes(){
-
-        this.plugin.tableArr = [];
-
-        const tableBranch = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
-
-        if(tableBranch !== null){
-            
-            let nodeGArr = tableBranch.querySelectorAll("[id^='flowchart-']");
- 
-            for(let i=0;i<nodeGArr.length;i++){
-
-                let nodePosStr = nodeGArr[i].id.split('-')[1];
-                let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];            
-                this.plugin.tableArr.push(node);
-            }            
-        }
-        
-    } 
-
-    async exportToCanvas(){
+    async generateCanvasStr(){
         let nodes = this.branchAllNodes.find(b=>b.branchTab == this.plugin.settings.BranchTab)?.branchNodes;
         if(typeof nodes === 'undefined') return;        
+        nodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
 
         const cardWidth = this.plugin.settings.cardWidth;
         const cardHeight = this.plugin.settings.cardHeight;
@@ -1226,40 +1536,12 @@ export class ZKIndexView extends ItemView {
         if(canvasEdgeStr.length > 0 ){
             canvasEdgeStr = canvasEdgeStr.slice(0,-1);
         }
-        let fileContent:string = `{
+        this.fileContent = `{
         "nodes":[${canvasNodeStr}
         ],
         "edges":[${canvasEdgeStr}
 	    ]
         }`;
-        
-        let targetfile:any;
-        let filePath:string = "";
-        if(this.plugin.settings.canvasFilePath.endsWith(".canvas")){
-            filePath = this.plugin.settings.canvasFilePath;
-            targetfile = this.app.vault.getAbstractFileByPath(filePath);
-            if(targetfile && targetfile instanceof TFile){
-                await this.app.vault.modify(targetfile, fileContent); 
-            }
-        }
-
-        if(!(targetfile instanceof TFile)){
-            if(filePath == ""){
-                filePath = `${moment().format("YYYY-MM-DD HH.mm.ss")}.canvas`;                
-            }
-            new Notice("create new canvas file: " + filePath);
-            targetfile = await this.app.vault.create(filePath, fileContent);
-        }
-
-        if(targetfile instanceof TFile){
-            let leaf = this.app.workspace.getLeavesOfType("canvas").filter(l => l.getDisplayText() == targetfile.basename);
-            
-            if(leaf.length > 0){
-                this.app.workspace.revealLeaf(leaf[0]);
-            }else{
-                this.app.workspace.openLinkText("",targetfile.path);
-            }
-        }
     }
 
     tightCards(nodes:ZKNode[]){
@@ -1361,14 +1643,99 @@ export class ZKIndexView extends ItemView {
         }        
     }
 
+    async generateCanvasStrGit(){
+        const cardWidth = this.plugin.settings.cardWidth;
+        const cardHeight = this.plugin.settings.cardHeight;
+        const intervalX = cardWidth/4;
+        const intervalY =  cardHeight/4;
+
+        let gitBranches = this.allGitBranch.filter(n=>n.branchTab === this.plugin.settings.BranchTab)[0].gitBranches;
+
+        gitBranches.sort((a, b) => a.order - b.order);
+        for(let i=1; i<gitBranches.length;i++){
+            
+            for(let j=i-1;j>=0;j--){
+                
+                let node = gitBranches[j].nodes.find(n=>n.ID === gitBranches[i].branchPoint.ID)
+
+                if(node !== undefined){
+                    let index = gitBranches[j].nodes.indexOf(node);
+                    gitBranches[i].positionX = gitBranches[j].positionX + (cardWidth + intervalX) * (index + 1);
+                    break;
+                }
+            }                    
+        }
+        
+        let canvasNodeStr:string = "";
+        let canvasEdgeStr:string = "";
+
+        for(let branch of gitBranches){
+    
+            for(let i=0;i<branch.nodes.length;i++){                
+                canvasNodeStr = canvasNodeStr + `
+                {"id":"${branch.nodes[i].randomId}","x":${branch.positionX + (cardWidth+intervalX)*i},"y":${(cardHeight+intervalY)*branch.order},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${branch.nodes[i].file.path}"},`
+            }
+
+            for(let i=1;i<branch.nodes.length;i++){
+                canvasEdgeStr = canvasEdgeStr + `
+                {"id":"${random(16)}","fromNode":"${branch.nodes[i-1].randomId}","fromSide":"right","toNode":"${branch.nodes[i].randomId}","toSide":"left"},`
+            }
+
+            if(gitBranches.indexOf(branch) > 0){
+                canvasEdgeStr = canvasEdgeStr + `
+                {"id":"${random(16)}","fromNode":"${branch.branchPoint.randomId}","fromSide":"bottom","toNode":"${branch.nodes[0].randomId}","toSide":"left"},`
+            }        
+        }
+        if(canvasNodeStr.length > 0 ){
+            canvasNodeStr = canvasNodeStr.slice(0,-1);
+        }
+        if(canvasEdgeStr.length > 0 ){
+            canvasEdgeStr = canvasEdgeStr.slice(0,-1);
+        }
+        this.fileContent = `{
+        "nodes":[${canvasNodeStr}
+        ],
+        "edges":[${canvasEdgeStr}
+	    ]
+        }`;
+    }
+
+    async exportToCanvas(){
+        
+        let targetfile:any;
+        let filePath:string = "";
+        if(this.plugin.settings.canvasFilePath.endsWith(".canvas")){
+            filePath = this.plugin.settings.canvasFilePath;
+            targetfile = this.app.vault.getAbstractFileByPath(filePath);
+            if(targetfile && targetfile instanceof TFile){
+                await this.app.vault.modify(targetfile, this.fileContent); 
+            }
+        }
+
+        if(!(targetfile instanceof TFile)){
+            if(filePath == ""){
+                filePath = `${moment().format("YYYY-MM-DD HH.mm.ss")}.canvas`;                
+            }
+            new Notice("create new canvas file: " + filePath);
+            targetfile = await this.app.vault.create(filePath, this.fileContent);
+        }
+
+        if(targetfile instanceof TFile){
+            let leaf = this.app.workspace.getLeavesOfType("canvas").filter(l => l.getDisplayText() == targetfile.basename);
+            
+            if(leaf.length > 0){
+                this.app.workspace.revealLeaf(leaf[0]);
+            }else{
+                this.app.workspace.openLinkText("",targetfile.path);
+            }
+        }
+
+        this.fileContent = '';
+    }
+
     async branchGrowing(){
 
-        this.playStatus.nodeGArr.forEach((item) => {
-            item.addClass('zk-hidden');
-        })
-        this.playStatus.lines.forEach((item) => {
-            item.addClass('zk-hidden');
-        })
+        await this.hideBranchElements();
 
         let sec:number= 500;
         for(let node of this.plugin.tableArr){            
@@ -1389,13 +1756,44 @@ export class ZKIndexView extends ItemView {
         
     }
 
-    async branchAnimation(){
+    async branchGrowingGit(){
 
+        await this.hideBranchElements();
+        
+        let sec:number= 500;
+        for(let i=0;i<this.playStatus.nodeGArr.length;i++){            
+            
+            setTimeout(() => {
+                this.playStatus.current = i; 
+                this.branchPlayingGit()
+            }, sec);
+
+            sec = sec + 500;
+        }
+    }
+
+    async hideBranchElements(){
+        
+        this.playStatus.nodeGArr.forEach((item) => {
+            item.addClass('zk-hidden');
+        })
+        this.playStatus.lines.forEach((item) => {
+            item.addClass('zk-hidden');
+        })
+        this.playStatus.labels.forEach((item) => {
+            item.addClass('zk-hidden');
+        })
+
+        await this.toggleTagGit(true);
+    }
+
+    async branchPlaying(){
         let split = this.playStatus.current+1;
         let showNodes = this.plugin.tableArr.slice(0, split);
         let hideNodes = this.plugin.tableArr.slice(split);
-
+        
         for(let node of showNodes){
+            
             let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
             if(nodeG){
                 nodeG.removeClass('zk-hidden');
@@ -1407,6 +1805,7 @@ export class ZKIndexView extends ItemView {
         }
         
         for(let node of hideNodes){
+            
             let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
             if(nodeG){
                 nodeG.addClass('zk-hidden');
@@ -1417,9 +1816,73 @@ export class ZKIndexView extends ItemView {
             }
         }
     }
-    
+
+    async branchPlayingGit(){
+
+        let split = this.playStatus.current+1;
+
+        for(let el of this.playStatus.nodeGArr.slice(0,split)){
+            el.removeClass('zk-hidden');
+        }
+        for(let el of this.playStatus.lines.slice(0,split-1)){
+            el.removeClass('zk-hidden');
+        }
+        for(let el of this.playStatus.labels.slice(0,split)){
+            el.removeClass('zk-hidden');            
+        }
+
+        for(let el of this.playStatus.nodeGArr.slice(split)){
+            el.addClass('zk-hidden');
+        }
+        for(let el of this.playStatus.lines.slice(split-1)){
+            el.addClass('zk-hidden');
+        }
+        for(let el of this.playStatus.labels.slice(split)){
+            el.addClass('zk-hidden');
+        } 
+
+        let indexPos = this.allGitBranch[this.plugin.settings.BranchTab].indexNode.gitNodePos;
+
+        if(indexPos >= split){
+            await this.toggleTagGit(true);
+        }else{
+            await this.toggleTagGit(false);
+        }
+    }
+
+    async toggleTagGit(toggle:boolean){
+
+        const indexMermaid = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}`)
+        if(!indexMermaid) return;
+
+        let polygonEls = indexMermaid.querySelectorAll("polygon");
+        if(polygonEls.length>0){
+            if(toggle){
+                let nextEl1 = polygonEls[0].nextElementSibling
+                polygonEls[0].addClass('zk-hidden');
+                if(nextEl1){
+                    nextEl1.addClass('zk-hidden');
+                    let nextEl2 = nextEl1.nextElementSibling;
+                    if(nextEl2){
+                        nextEl2.addClass('zk-hidden');
+                    }
+                }
+                
+            }else{
+                let nextEl1 = polygonEls[0].nextElementSibling
+                polygonEls[0].removeClass('zk-hidden');
+                if(nextEl1){
+                    nextEl1.removeClass('zk-hidden');
+                    let nextEl2 = nextEl1.nextElementSibling;
+                    if(nextEl2){
+                        nextEl2.removeClass('zk-hidden');
+                    }
+                }                
+            }
+        }
+    }
+
     async onClose() {
         this.plugin.saveData(this.plugin.settings);
     }
-
 }

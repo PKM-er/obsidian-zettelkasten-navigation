@@ -108,6 +108,7 @@ interface ZKNavigationSettings {
     playControllerToggle: boolean;
     nodeColor: string;
     datetimeFormat: string;
+    graphType: string;
 }
 
 //Default value for setting field
@@ -171,7 +172,8 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     displayTimeToggle: false,
     playControllerToggle: true,
     nodeColor: "#FFFFAA",
-    datetimeFormat: "yyyy-MM-DD HH:mm"
+    datetimeFormat: "yyyy-MM-DD HH:mm",
+    graphType: "structure"
 }
 
 export default class ZKNavigationPlugin extends Plugin {
@@ -211,15 +213,19 @@ export default class ZKNavigationPlugin extends Plugin {
                     return;
 
                 } 
-
+                
                 if(para.from && ["root","parent","index"].includes(para.from)){
                     this.settings.StartingPoint = para.from;
+                    
                 }
                 if(para.to && ["next","end"].includes(para.to)){
                     this.settings.DisplayLevel = para.to;
                 }
                 if(para.text && ["id","title","both"].includes(para.text)){
                     this.settings.NodeText = para.text;
+                }
+                if(para.type && ["structure","roadmap"].includes(para.type)){
+                    this.settings.graphType = para.type;
                 }
 
                 let indexFlag:boolean = false;
