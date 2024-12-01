@@ -518,7 +518,7 @@ export class ZKIndexView extends ItemView {
                 const tableBtn = new ExtraButtonComponent(toolButtonsDiv);
                 tableBtn.setIcon("table").setTooltip(t("table view"))
                 tableBtn.onClick(async ()=>{
-                    this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
+                    this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
                     new tableModal(this.app, this.plugin, this.plugin.tableArr).open();
                 })
             }   
@@ -527,7 +527,7 @@ export class ZKIndexView extends ItemView {
                 const listBtn = new ExtraButtonComponent(toolButtonsDiv);
                 listBtn.setIcon("list-tree").setTooltip(t("list tree"))
                 listBtn.onClick(async ()=>{
-                    this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
+                    this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
                     await this.plugin.openOutlineView();
                 })
 
@@ -667,7 +667,7 @@ export class ZKIndexView extends ItemView {
         }
 
         if(this.plugin.settings.ListTree === true){
-            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
             this.app.workspace.trigger("zk-navigation:refresh-outline-view");
         }
         
@@ -1020,9 +1020,7 @@ export class ZKIndexView extends ItemView {
 
     resetController(){
         
-        this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
-        
-        this.plugin.tableArr.sort((a, b) => a.ctime - b.ctime);
+        this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.ctime - b.ctime);
     
         const branchMermaid = document.getElementById(`zk-index-mermaid-${this.plugin.settings.BranchTab}-svg`)
 
@@ -1113,7 +1111,7 @@ export class ZKIndexView extends ItemView {
         branchTabs[tabNo].addClass("zk-branch-tab-select");
 
         if(this.plugin.settings.ListTree === true){
-            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
             this.app.workspace.trigger("zk-navigation:refresh-outline-view");
         }
         
