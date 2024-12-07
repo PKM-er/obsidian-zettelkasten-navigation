@@ -116,8 +116,13 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
                             node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
                             node.IDStr = node.IDArr.toString();
                             node.title = note.basename;
-                        }else if (typeof id == "string" && id.length > 0) {
+                        }else if (typeof id == "string") {
                             node.ID = id;
+                            node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
+                            node.IDStr = node.IDArr.toString();
+                            node.title = note.basename;
+                        }else if(typeof id == 'number'){
+                            node.ID = id.toString();
                             node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
                             node.IDStr = node.IDArr.toString();
                             node.title = note.basename;
