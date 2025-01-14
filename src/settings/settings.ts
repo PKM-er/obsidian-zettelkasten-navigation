@@ -1,5 +1,5 @@
 import ZKNavigationPlugin, { NodeCommand } from "main";
-import { App, ButtonComponent, ExtraButtonComponent, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, ButtonComponent, ExtraButtonComponent, Notice, PluginSettingTab, setIcon, Setting } from "obsidian";
 import { FolderSuggest } from "../suggester/FolderSuggester";
 import { TagSuggest } from "src/suggester/TagSuggester";
 import { t } from "../lang/helper";
@@ -234,6 +234,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
 
         new Setting(indexButtonDiv)
             .setName(t("Indexes folder location"))
+            .setDesc(t("index_description"))
             .addSearch((cb) => {
                 new FolderSuggest(this.app, cb.inputEl);
                 cb.setPlaceholder(t("Example: folder1/folder2"))
@@ -410,9 +411,22 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             })        
         
         const branchToolbarDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
+        /*
+        new Setting(branchToolbarDiv)
+        .setName(t("settings"))
+        */
 
         new Setting(branchToolbarDiv)
                 .setName(t("settings"))
+                .then((setting)=>{
+                    const parentEl = setting.settingEl.parentElement;
+                    if(parentEl){
+                        parentEl.insertBefore(createDiv(), setting.settingEl);
+                    }
+                    const iconEl = createDiv();
+                    setting.settingEl.prepend(iconEl);
+                    setIcon(iconEl, "settings");
+                })
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.settingIcon)
                     .onChange((value) =>{
                         this.plugin.settings.settingIcon = value;
@@ -422,6 +436,15 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
     
         new Setting(branchToolbarDiv)
             .setName(t("export to canvas"))
+            .then((setting)=>{
+                const parentEl = setting.settingEl.parentElement;
+                if(parentEl){
+                    parentEl.insertBefore(createDiv(), setting.settingEl);
+                }
+                const iconEl = createDiv();
+                setting.settingEl.prepend(iconEl);
+                setIcon(iconEl, "layout-dashboard");
+            })
             .addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
@@ -482,20 +505,18 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 }
             )
 
-        if(this.plugin.settings.IndexButton == true){
-            new Setting(branchToolbarDiv)
-                .setName(t("random index"))
-                .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomIndex)
-                    .onChange((value) =>{
-                        this.plugin.settings.RandomIndex = value;
-                        this.plugin.RefreshIndexViewFlag = true;
-                    }) 
-                )
-        }
-
         if(this.plugin.settings.MainNoteButton == true){
             new Setting(branchToolbarDiv)
                 .setName(t("random main note"))
+                .then((setting)=>{
+                    const parentEl = setting.settingEl.parentElement;
+                    if(parentEl){
+                        parentEl.insertBefore(createDiv(), setting.settingEl);
+                    }
+                    const iconEl = createDiv();
+                    setting.settingEl.prepend(iconEl);
+                    setIcon(iconEl, "dice-3");
+                })
                 .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomMainNote)
                     .onChange((value) =>{
                         this.plugin.settings.RandomMainNote = value;
@@ -504,35 +525,55 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 )
         }
 
+        if(this.plugin.settings.IndexButton == true){
+            new Setting(branchToolbarDiv)
+                .setName(t("random index"))
+                .then((setting)=>{
+                    const parentEl = setting.settingEl.parentElement;
+                    if(parentEl){
+                        parentEl.insertBefore(createDiv(), setting.settingEl);
+                    }
+                    const iconEl = createDiv();
+                    setting.settingEl.prepend(iconEl);
+                    setIcon(iconEl, "dices");
+                })
+                .addToggle(toggle => toggle.setValue(this.plugin.settings.RandomIndex)
+                    .onChange((value) =>{
+                        this.plugin.settings.RandomIndex = value;
+                        this.plugin.RefreshIndexViewFlag = true;
+                    }) 
+                )
+        }
+
         new Setting(branchToolbarDiv)
             .setName(t("all trees"))
+            .then((setting)=>{
+                const parentEl = setting.settingEl.parentElement;
+                if(parentEl){
+                    parentEl.insertBefore(createDiv(), setting.settingEl);
+                }
+                const iconEl = createDiv();
+                setting.settingEl.prepend(iconEl);
+                setIcon(iconEl, "trees");
+            })
             .addToggle(toggle => toggle.setValue(this.plugin.settings.showAllToggle)
                 .onChange((value) =>{
                     this.plugin.settings.showAllToggle = value;
                     this.plugin.RefreshIndexViewFlag = true;
                 }) 
             )
-
-        new Setting(branchToolbarDiv)
-            .setName(t("growing animation"))
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.play)
-                .onChange((value) =>{
-                    this.plugin.settings.play = value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                }) 
-            )
-
-        new Setting(branchToolbarDiv)
-            .setName(t("play controller"))
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.playControllerToggle)
-                .onChange((value) =>{
-                    this.plugin.settings.playControllerToggle = value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                }) 
-            )
         
         new Setting(branchToolbarDiv)
             .setName(t("table view"))
+            .then((setting)=>{
+                const parentEl = setting.settingEl.parentElement;
+                if(parentEl){
+                    parentEl.insertBefore(createDiv(), setting.settingEl);
+                }
+                const iconEl = createDiv();
+                setting.settingEl.prepend(iconEl);
+                setIcon(iconEl, "table");
+            })
             .addToggle(toggle => toggle.setValue(this.plugin.settings.TableView)
                 .onChange((value) =>{
                     this.plugin.settings.TableView = value;
@@ -542,6 +583,15 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         
         new Setting(branchToolbarDiv)
             .setName(t("list tree"))
+            .then((setting)=>{
+                const parentEl = setting.settingEl.parentElement;
+                if(parentEl){
+                    parentEl.insertBefore(createDiv(), setting.settingEl);
+                }
+                const iconEl = createDiv();
+                setting.settingEl.prepend(iconEl);
+                setIcon(iconEl, "list-tree");
+            })
             .addToggle(toggle => toggle.setValue(this.plugin.settings.ListTree)
                 .onChange((value) =>{
                     this.plugin.settings.ListTree = value;
@@ -551,6 +601,15 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
 
         new Setting(branchToolbarDiv)
             .setName(t("History List"))
+            .then((setting)=>{
+                const parentEl = setting.settingEl.parentElement;
+                if(parentEl){
+                    parentEl.insertBefore(createDiv(), setting.settingEl);
+                }
+                const iconEl = createDiv();
+                setting.settingEl.prepend(iconEl);
+                setIcon(iconEl, "history");
+            })
             .setDesc(t("And set the list length"))
             .addSlider((cb) =>{
                 cb.setLimits(10,50,5)
@@ -566,9 +625,20 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 this.plugin.RefreshIndexViewFlag = true;
             }) 
         )
+        
+        new Setting(indexGraphView)
+            .setName(t("play controller"))
+            .setDesc(t("play_des"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.playControllerToggle)
+                .onChange((value) =>{
+                    this.plugin.settings.playControllerToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                }) 
+            )
 
         new Setting(indexGraphView)
             .setName(t("Node menu"))
+            .setDesc(t("node_menu_des"))
             .addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
@@ -732,7 +802,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         const multiIDDiv = experimentalDiv.createDiv("zk-local-section zk-hidden")
         
         new Setting(multiIDDiv)
-        .setName(t("Specify a frontmatter field(array) for multiple IDs"))
+        .setName(t("Specify a frontmatter field(list) for multiple IDs"))
         .addText((cb) =>
             cb.setValue(this.plugin.settings.multiIDField)
                 .onChange((value) => {

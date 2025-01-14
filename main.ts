@@ -95,7 +95,6 @@ interface ZKNavigationSettings {
     siblingsOrder: string;
     showAllToggle: boolean;
     showAll: boolean;
-    play: boolean;
     outlineLayer: number;
     maxLenMainModel: number;
     maxLenIndexModel: number;
@@ -160,7 +159,6 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     siblingsOrder: "number", 
     showAll: false,
     showAllToggle: true,
-    play: true,
     outlineLayer: 2,
     maxLenMainModel: 100,
     maxLenIndexModel: 100,

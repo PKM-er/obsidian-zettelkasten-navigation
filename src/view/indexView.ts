@@ -443,20 +443,6 @@ export class ZKIndexView extends ItemView {
                 })
             }
 
-            if(this.plugin.settings.play == true){
-
-                const playBtn = new ExtraButtonComponent(toolButtonsDiv);
-                playBtn.setIcon("wand-2").setTooltip(t("growing animation"));
-                playBtn.onClick(async ()=>{
-                    if(this.plugin.settings.graphType === "structure"){
-                        this.plugin.settings.FoldNodeArr = []; 
-                        await this.branchGrowing(); 
-                    }else{
-                        await this.branchGrowingGit();
-                    }
-                })
-            }
-
             if(this.plugin.settings.playControllerToggle === true){
                 
                 const playControllerDiv = indexMermaidDiv.createDiv("zk-play-controller");
@@ -512,6 +498,18 @@ export class ZKIndexView extends ItemView {
                         }
                     });
                 })
+
+                const playBtn = new ExtraButtonComponent(playControllerDiv);
+                playBtn.setIcon("wand-2").setTooltip(t("growing animation"));
+                playBtn.onClick(async ()=>{
+                    if(this.plugin.settings.graphType === "structure"){
+                        this.plugin.settings.FoldNodeArr = []; 
+                        await this.branchGrowing(); 
+                    }else{
+                        await this.branchGrowingGit();
+                    }
+                })
+
             }
             
             if(this.plugin.settings.TableView == true){
@@ -1514,7 +1512,7 @@ export class ZKIndexView extends ItemView {
             let positionX:number = (nodes[i].IDArr.length - nodes[0].IDArr.length)*(cardWidth + intervalX);
             let positionY:number = nodes[i].height;
             canvasNodeStr = canvasNodeStr + `
-            {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${nodes[i].file.path}"},`
+            {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"},`
 
             let IDStr = nodes[i].IDStr;
             let IDArr = nodes[i].IDArr;

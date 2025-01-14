@@ -1,5 +1,5 @@
 export default {
-    // setting.ts
+    // settings.ts
     "ZK main notes": "Main notes",
     "Main notes folder location": "⚠Main notes folder location",
     "Specify a folder location to identify main notes": "Specify a folder location to identify main notes",
@@ -18,6 +18,7 @@ export default {
     '"_"(underscore)': '"_"(underscore)',
     "Retrieval": "Retrieval",
     "Indexes folder location": "⚠Keyword files folder location",
+    "index_description": "A vaild keyword index file is a .md file includes a few main note links",
     "zk-index-graph-view": "zk-index-graph-view",
     "Name of index button": "Button name",
     "Suggest mode of index modal": "Suggest mode of keyword modal",
@@ -72,7 +73,8 @@ export default {
     'letter first': 'letter first',
     "List length": "List length",
     "Maximum number of notes showing in Modal.": "Maximum number of notes showing in Modal.",
-    "Node menu": "Node menu",    
+    "Node menu": "Node menu",   
+    "node_menu_des":"Right click to open the menu", 
     "create node": "create node",
     "specify a command name": "specify a command name",
     "delete node": "delete node",
@@ -81,7 +83,7 @@ export default {
     "experimental": "⚠experimental",
     "multiple IDs for main notes": "Allow multiple IDs for main notes",
     "multiple IDs description": "You can add a main note into other branches by assigning additional IDs",
-    "Specify a frontmatter field(array) for multiple IDs": "Specify a file property(array) for storing multiple IDs",
+    "Specify a frontmatter field(list) for multiple IDs": "Specify a file property(list) for storing multiple IDs",
     "auto-copy ID":"auto-copy ID",
     "auto-copy-des": "auto-copy {id, path, created}",
     "same width for siblings": "Set same width for siblings",
@@ -92,7 +94,8 @@ export default {
     'file path': 'file path',
     'created time':'created time',
     'none': 'none',
-    "play controller": "play controller",
+    "play controller": "Play controller",
+    "play_des": "open the play controller",
     "Set color for nodes": "Set color for branch's nodes",
     "Set datetime format": "Set datetime format",
 
