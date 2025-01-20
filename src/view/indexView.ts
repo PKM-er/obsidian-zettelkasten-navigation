@@ -1287,7 +1287,7 @@ export class ZKIndexView extends ItemView {
             }
         }
             
-        let mermaidStr: string = `%%{init: { 'logLevel': 'debug', 'theme': 'base', 'gitGraph': {'showBranches': false, 'parallelCommits': true, 'rotateCommitLabel': true}} }%%
+        let mermaidStr: string = `%%{init: { 'logLevel': 'debug', 'theme': 'base', 'gitGraph': {'showBranches': false, 'parallelCommits': ${this.plugin.settings.nodeClose}, 'rotateCommitLabel': true}} }%%
                                 gitGraph
                                 ${gitStr}
                                 `;    
@@ -1449,10 +1449,44 @@ export class ZKIndexView extends ItemView {
         if(typeof nodes === 'undefined') return;        
         nodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
 
-        const cardWidth = this.plugin.settings.cardWidth;
-        const cardHeight = this.plugin.settings.cardHeight;
-        const intervalX = cardWidth/2;
-        const intervalY =  cardHeight/8;
+        let cardWidth = this.plugin.settings.cardWidth;
+        let cardHeight = this.plugin.settings.cardHeight;
+        let intervalX = cardWidth/2;
+        let intervalY =  cardHeight/8;
+        let fromSide = "right";
+        let toSide = "left";
+        let direction = this.plugin.settings.DirectionOfBranchGraph;
+
+
+        switch(direction){
+            case "RL":
+                cardWidth = -cardWidth;
+                cardHeight = cardHeight;
+                intervalX = cardWidth/2;
+                intervalY =  cardHeight/8;
+                fromSide = "left";
+                toSide = "right";
+                break;
+            case "TB":
+                cardWidth = cardWidth;
+                cardHeight = cardHeight;
+                intervalX = cardHeight/8;
+                intervalY =  cardWidth/2;
+                fromSide = "bottom";
+                toSide = "top";
+                break;
+            case "BT":
+                cardWidth = -cardWidth;
+                cardHeight = cardHeight;
+                intervalX = -cardHeight/8;
+                intervalY =  -cardWidth/2;
+                fromSide = "top";
+                toSide = "bottom";
+                break;
+            default:
+
+                break;
+        }
 
         const maxLength =  Math.max(...nodes.map(n=>n.IDArr.length));
         const minLength =  Math.min(...nodes.map(n=>n.IDArr.length));
@@ -1503,7 +1537,7 @@ export class ZKIndexView extends ItemView {
             }
         }
 
-        this.tightCards(nodes);
+        this.tightCards(nodes, intervalY, cardHeight);
 
         let canvasNodeStr:string = "";
         let canvasEdgeStr:string = "";
@@ -1511,9 +1545,14 @@ export class ZKIndexView extends ItemView {
 
             let positionX:number = (nodes[i].IDArr.length - nodes[0].IDArr.length)*(cardWidth + intervalX);
             let positionY:number = nodes[i].height;
-            canvasNodeStr = canvasNodeStr + `
-            {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"},`
+            if(direction === "LR" || direction === "RL"){
+                canvasNodeStr = canvasNodeStr + `
+                {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"},`
+            }else{
+                canvasNodeStr = canvasNodeStr + `
+                {"id":"${nodes[i].randomId}","x":${positionY},"y":${positionX},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"},`
 
+            }
             let IDStr = nodes[i].IDStr;
             let IDArr = nodes[i].IDArr;
             
@@ -1521,7 +1560,7 @@ export class ZKIndexView extends ItemView {
                         
             for(let son of sonNodes){
                 canvasEdgeStr = canvasEdgeStr + `
-                {"id":"${random(16)}","fromNode":"${nodes[i].randomId}","fromSide":"right","toNode":"${son.randomId}","toSide":"left"},`
+                {"id":"${random(16)}","fromNode":"${nodes[i].randomId}","fromSide":"${fromSide}","toNode":"${son.randomId}","toSide":"${toSide}"},`
             }
 
         }
@@ -1540,13 +1579,10 @@ export class ZKIndexView extends ItemView {
         }`;
     }
 
-    tightCards(nodes:ZKNode[]){
-        const cardHeight = this.plugin.settings.cardHeight;
-        const intervalY =  cardHeight/8;
+    tightCards(nodes:ZKNode[], intervalY:number, cardHeight:number){
 
         const maxLength =  Math.max(...nodes.map(n=>n.IDArr.length));
         const minLength =  Math.min(...nodes.map(n=>n.IDArr.length));
-        
 
         for(let i=maxLength-1;i>=minLength;i--){
             let layerNodes = nodes.filter(n=>n.IDArr.length === i);

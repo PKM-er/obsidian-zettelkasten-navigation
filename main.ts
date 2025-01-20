@@ -108,6 +108,7 @@ interface ZKNavigationSettings {
     nodeColor: string;
     datetimeFormat: string;
     graphType: string;
+    nodeClose: boolean;
 }
 
 //Default value for setting field
@@ -171,7 +172,8 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     playControllerToggle: true,
     nodeColor: "#FFFFAA",
     datetimeFormat: "yyyy-MM-DD HH:mm",
-    graphType: "structure"
+    graphType: "structure",
+    nodeClose: false,
 }
 
 export default class ZKNavigationPlugin extends Plugin {

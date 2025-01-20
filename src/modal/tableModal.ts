@@ -1,12 +1,13 @@
 import ZKNavigationPlugin from "main";
-import { App, MarkdownRenderer, Modal, moment, TFile } from "obsidian";
+import { App, ExtraButtonComponent, MarkdownRenderer, Modal, moment, Notice, TFile } from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNode, ZK_NAVIGATION } from "src/view/indexView";
 
 export class tableModal extends Modal {
 
   plugin: ZKNavigationPlugin;
-  data:string = `|${t("note's ID")}|${t("note's title")}|${t("inlinks")}|${t("outlinks")}|${t("Time of creation")}|\n| --- | --- | --- | --- | --- |\n`;
+  headerStr:string = `|${t("note's ID")}|${t("note's title")}|${t("inlinks")}|${t("outlinks")}|${t("Time of creation")}|\n| --- | --- | --- | --- | --- |\n`;
+  tableStr:string = "";
   tableArr:ZKNode[];
 
   constructor(app: App, plugin:ZKNavigationPlugin, tableArr:ZKNode[]) {
@@ -18,13 +19,47 @@ export class tableModal extends Modal {
   onOpen() {
     let { contentEl } = this;
     this.modalEl.addClass("zk-table-container");
+
+    this.createToolBar(contentEl)
+    this.createTable(contentEl)
+
+  }
+
+  createToolBar(contentEl:HTMLElement){
+
+    const toolbarDiv = contentEl.createDiv("zk-table-toolbar");
+    toolbarDiv.empty();
+    const copyTableIcon = new ExtraButtonComponent(toolbarDiv);
+    copyTableIcon.setIcon("copy").setTooltip(t("Copy markdown table"));
+    copyTableIcon.onClick(async ()=>{
+        await this.copyTableStr();
+    })
+
+
+  }
+  createTable(contentEl:HTMLElement){
     const contentDiv =  contentEl.createDiv("zk-table-view");   
     contentDiv.id = "zk-table-view";
     this.appendTableLine();    
-    MarkdownRenderer.render(this.app, this.data, contentDiv, '', this.plugin);
+    MarkdownRenderer.render(this.app, this.tableStr, contentDiv, '', this.plugin);
     this.addLinkAndPreview();
+
   }
+
+  async copyTableStr(){
+
+    this.appendTableLine();
+
+    this.tableStr = this.tableStr.replace(/<ul><li>/g,"").replace(/<\/li><\/ul>/g,"").replace(/<\/li><li>/g,"<br>");
+    
+    await navigator.clipboard.writeText(this.tableStr);
+
+    new Notice(t("Copy markdown table"));
+
+  }
+
   appendTableLine(){
+    this.tableStr = this.headerStr;
     for(let node of this.tableArr){
         let inlinksStr:string = "";
         for(let inlink of this.getInlinks(node.file)){
@@ -36,15 +71,18 @@ export class tableModal extends Modal {
 
         let outlinkStr:string = "";
         
-        for(let outlink of this.getOutlinks(node.file)){
-            outlinkStr = outlinkStr + `<li> [[${outlink.basename}]]</li>`;
-        }
+        let outlinks = this.app.metadataCache.getFileCache(node.file)?.links
 
+        if(outlinks){
+            for(let outlink of outlinks){
+                outlinkStr = outlinkStr + `<li> ${outlink.original.replace(`|`,`\\|`)}</li>`;
+            }
+        }
         if(outlinkStr !== ""){
             outlinkStr = `<ul>${outlinkStr}</ul>`;
         }
 
-        this.data = this.data + `|[[${node.ID}]]|${node.title}|${inlinksStr}|${outlinkStr}|${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}|\n`
+        this.tableStr = this.tableStr + `|[[${node.ID}]]|${node.title}|${inlinksStr}|${outlinkStr}|${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}|\n`
     }
 }
 
@@ -66,28 +104,6 @@ getInlinks(currentFile: TFile) {
         }
     }
     return inlinkArr;
-}
-
-getOutlinks(currentFile: TFile) {
-
-
-    let outlinkArr: TFile[] = [];
-    const resolvedLinks = this.app.metadataCache.resolvedLinks;
-
-    let outlinks: string[] = Object.keys(resolvedLinks[currentFile.path]);
-
-    if(this.plugin.settings.FileExtension == "md"){
-        outlinks = outlinks.filter(link=>link.endsWith(".md"))
-    }
-
-    for (let outlink of outlinks) {
-        let outlinkFile = this.app.vault.getFileByPath(outlink);
-        if (outlinkFile !== null) {
-            outlinkArr.push(outlinkFile);
-        }
-    }
-    return outlinkArr;
-
 }
 
 addLinkAndPreview(){

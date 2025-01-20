@@ -98,6 +98,7 @@ export default {
     "play_des": "open the play controller",
     "Set color for nodes": "Set color for branch's nodes",
     "Set datetime format": "Set datetime format",
+    "Shorten the distance between adjacent nodes": "Shorten the distance between adjacent nodes",
 
     // indexView.ts
     "Display from : ": "From : ",
@@ -151,10 +152,11 @@ export default {
     "Index folder not set!": "❌Setting error: Index folder not set!",
     "No index can be found by path": "No index can be found by path",
 
-    //tableView.ts
+    //tableModal.ts
     "note's ID": "note's ID",
     "note's title": "note's title",
     "Time of creation": "Time of creation",
+    "Copy markdown table": "Copy markdown table",
 
     //addCommandModal.ts, chooseCutomNameModal.ts, chooseIconModal.ts
 	"choose a command to add": "choose a command to add",

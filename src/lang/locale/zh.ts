@@ -97,6 +97,7 @@ export default {
     "play_des": "打开底部居中的播放控制器",
     "Set color for nodes": "设置分支节点颜色",
     "Set datetime format": "设置日期时间格式",
+    "Shorten the distance between adjacent nodes": "缩短邻近节点的距离",
     
     // indexView.ts
     "Display from : ": "起点：",
@@ -149,10 +150,11 @@ export default {
     "Index folder not set!": "❌设置错误: 关键词文件夹没有设置!",
     "No index can be found by path": "指定文件夹找不到任何关键词：",
     
-    //tableView.ts
+    //tableModal.ts
     "note's ID": "笔记编号(ID)",
     "note's title": "笔记标题",
     "Time of creation": "创建时间",
+    "Copy markdown table": "复制 markdown 表格",
 
     //addCommandModal.ts
     "choose a command to add": "选择一个命令并添加",

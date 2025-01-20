@@ -294,21 +294,35 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 .onChange((value) => {
                     this.plugin.settings.graphType = value;
                     this.plugin.RefreshIndexViewFlag = true;
-                    branchSectionDiv.addClass("zk-hidden");
+                    structureSettingDiv.addClass("zk-hidden");
+                    roadmapSettingDiv.addClass("zk-hidden");
                 })
             )
             .addExtraButton((cb)=>{
                 cb.setIcon("settings")
                 .onClick(()=>{
                     if(this.plugin.settings.graphType === "structure"){
-                        this.hideDiv(branchSectionDiv);
+                        this.hideDiv(structureSettingDiv);
+                    }else if(this.plugin.settings.graphType === "roadmap"){
+                        this.hideDiv(roadmapSettingDiv);
                     }                    
                 })
             })
         
-        const branchSectionDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
+        const roadmapSettingDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
+
+        new Setting(roadmapSettingDiv)
+            .setName(t("Shorten the distance between adjacent nodes"))      
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.nodeClose)
+            .onChange((value) => {
+                this.plugin.settings.nodeClose = value;
+                this.plugin.RefreshIndexViewFlag = true;
+            })
+        );
+            
+        const structureSettingDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
        
-        new Setting(branchSectionDiv)
+        new Setting(structureSettingDiv)
         .setName(t("direction of graph"))
         .addDropdown(options => options
             .addOption("LR", t('"LR": feft to right'))
@@ -322,7 +336,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             })
         );
 
-        new Setting(branchSectionDiv)
+        new Setting(structureSettingDiv)
             .setName(t("siblings order"))
             .setDesc(t("siblings order description"))
             .addDropdown(options => options
@@ -335,7 +349,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             );
 
-        new Setting(branchSectionDiv)
+        new Setting(structureSettingDiv)
             .setName(t("same width for siblings"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.siblingLenToggle)
                 .onChange((value) => {
@@ -344,7 +358,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             );
 
-        new Setting(branchSectionDiv)
+        new Setting(structureSettingDiv)
             .setName(t("Set red dash line for nodes with ID ends with letter"))
             .setDesc(t("In order to distinguish nodes which ID ends with letter and number"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.RedDashLine)
@@ -354,7 +368,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             );
 
-        new Setting(branchSectionDiv)
+        new Setting(structureSettingDiv)
             .setName(t("display created time"))
             .setDesc(t("Set datetime format"))
             .addText((cb)=>{
@@ -376,7 +390,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
             );
 
-        new Setting(branchSectionDiv)
+        new Setting(structureSettingDiv)
             .setName(t("Fold node toggle"))
             .setDesc(t("Open the fold icon(🟡🟢)"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.FoldToggle)
@@ -385,7 +399,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.RefreshIndexViewFlag = true;
                 })
             );
-        new Setting(branchSectionDiv)
+        new Setting(structureSettingDiv)
             .setName(t("Set color for nodes"))
             .addColorPicker(color => color.setValue(this.plugin.settings.nodeColor)
                 .onChange((value)=>{
