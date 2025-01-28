@@ -1,10 +1,18 @@
 # [Obsidian Zettelkasten Navigation](https://github.com/terrychenzw/obsidian-zettelkasten-navigation)
 This plugin provides 2 customViews for navigating a zettelkasten using Luhmann-style IDs and key word indexes.
+<<<<<<< HEAD
 
 [中文说明](https://pkmer.cn/show/20240506222202)
 
 ![Demo](https://github.com/terrychenzw/obsidian-zettelkasten-navigation/blob/35981ab539718b3248afd5d7c9e844d987dfa209/attachments/Demo.gif)
 
+=======
+
+[中文说明](https://pkmer.cn/show/20240506222202)
+
+![Demo](attachments/Demo.gif)
+
+>>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
 ## Main functionalities
 1. zk-index-graph-view
 2. zk-local-graph-view
@@ -70,4 +78,8 @@ Below ID field options are supported by this plugin. You have to choose 1 option
 >
 > If you find this plugin useful and wish to support its development, you can do so through the following methods: WeChat, Alipay. Any amount of support is appreciated. Thank you!
 > 
+<<<<<<< HEAD
 > ![](attachments/payQRcode.png)
+=======
+> ![](attachments/payQRcode.png)
+>>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
