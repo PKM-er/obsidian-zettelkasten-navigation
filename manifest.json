@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 {
 	"id": "zettelkasten-navigation",
 	"name": "zettelkasten navigation",
@@ -9,15 +8,3 @@
 	"authorUrl": "https://github.com/terrychenzw",
 	"isDesktopOnly": false
 }
-=======
-{
-	"id": "zettelkasten-navigation",
-	"name": "zettelkasten navigation",
-	"version": "1.0.9",
-	"minAppVersion": "1.5.7",
-	"description": "Visualize a Luhmann-style zettelkasten.",
-	"author": "terrychenzw",
-	"authorUrl": "https://github.com/terrychenzw",
-	"isDesktopOnly": false
-}
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
