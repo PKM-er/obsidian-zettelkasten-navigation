@@ -50,10 +50,6 @@ export interface NodeCommand {
 interface ZKNavigationSettings {
     FolderOfMainNotes: string;
     FolderOfIndexes: string;
-<<<<<<< HEAD
-=======
-    SelectIndex: string;
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
     StartingPoint: string;
     DisplayLevel: string;
     NodeText: string;
@@ -68,7 +64,6 @@ interface ZKNavigationSettings {
     IndexButtonText: string;
     SuggestMode: string;
     FoldToggle: boolean;
-<<<<<<< HEAD
     FoldNodeArr: FoldNode[];
     RedDashLine: boolean;
     zoomPanScaleArr:ZoomPanScale[];
@@ -114,26 +109,15 @@ interface ZKNavigationSettings {
     datetimeFormat: string;
     graphType: string;
     nodeClose: boolean;
-=======
-    FoldNodeArr: string[];
-    RedDashLine: boolean;
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
 }
 
 //Default value for setting field
 const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FolderOfMainNotes: '',
     FolderOfIndexes: '',
-<<<<<<< HEAD
     StartingPoint: 'parent',
     DisplayLevel: 'end',
     NodeText: "both",
-=======
-    SelectIndex: '',
-    StartingPoint: 'father',
-    DisplayLevel: 'end',
-    NodeText: "id",
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
     FamilyGraphToggle: true,
     InlinksGraphToggle: true,
     OutlinksGraphToggle: true,
@@ -141,18 +125,12 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     IDFieldOption: '1',
     TitleField: '',
     IDField: '',
-<<<<<<< HEAD
     Separator: ' ',
     IndexButtonText: t('📖index'),
-=======
-    Separator: '',
-    IndexButtonText: '📖index',
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
     SuggestMode: 'fuzzySuggest',
     FoldToggle: false,
     FoldNodeArr: [],
     RedDashLine:false,
-<<<<<<< HEAD
     zoomPanScaleArr:[],
     CustomCreatedTime: '',
     BranchTab: 0,
@@ -196,8 +174,6 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     datetimeFormat: "yyyy-MM-DD HH:mm",
     graphType: "structure",
     nodeClose: false,
-=======
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
 }
 
 export default class ZKNavigationPlugin extends Plugin {
@@ -225,7 +201,6 @@ export default class ZKNavigationPlugin extends Plugin {
     async onload() {
 
         await this.loadSettings();
-<<<<<<< HEAD
         
         this.registerObsidianProtocolHandler("zk-navigation",async (para)=>{
 
@@ -323,15 +298,12 @@ export default class ZKNavigationPlugin extends Plugin {
                 });
             })
         );
-=======
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
 
         this.addSettingTab(new ZKNavigationSettngTab(this.app, this));
 
         this.registerView(ZK_INDEX_TYPE, (leaf) => new ZKIndexView(leaf, this));
 
         this.registerView(ZK_GRAPH_TYPE, (leaf) => new ZKGraphView(leaf, this));
-<<<<<<< HEAD
 
         this.registerView(ZK_OUTLINE_TYPE, (leaf) => new ZKOutlineView(leaf, this));
 
@@ -498,53 +470,5 @@ export default class ZKNavigationPlugin extends Plugin {
 
     onunload() {
         this.saveData(this.settings);
-=======
-      
-        this.addRibbonIcon("ghost", "open zk-index-graph", () => {
-            if(this.app.workspace.getLeavesOfType(ZK_INDEX_TYPE).length === 0){                
-                this.openIndexView();
-            }
-            
-        })
-        this.addRibbonIcon("network", "open zk-local-graph", () => {
-            if(this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE).length === 0){
-                this.openGraphView();
-            }
-        });
-
-        this.registerHoverLinkSource(
-        ZK_NAVIGATION,
-        {
-            defaultMod:true,
-            display:"ZK Navigation"
-        });
-        
-    }
-
-    async openGraphView() {
-
-        let leaf = this.app.workspace.getRightLeaf(false);
-        if (leaf != null) {
-            await leaf.setViewState({
-                type: ZK_GRAPH_TYPE
-            })
-            this.app.workspace.revealLeaf(leaf);
-        }
-    }
-
-    async openIndexView() {
-
-        let leaf = this.app.workspace.getLeaf(false);
-        if (leaf != null) {
-            await leaf.setViewState({
-                type: ZK_INDEX_TYPE
-            })
-            this.app.workspace.revealLeaf(leaf);
-        }
-    }
-
-    onunload() {
-
->>>>>>> 89f7fe04157fc44ef1370b1add74380d3746c140
     }
 }
