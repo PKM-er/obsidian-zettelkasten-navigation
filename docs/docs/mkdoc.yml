@@ -1,0 +1,21 @@
+site_name: Zettelkasten-Navigation
+repo_url: https://github.com/terrychenzw/obsidian-zettelkasten-navigation
+edit_uri: edit/master/docs/docs/
+markdown_extensions:
+  - abbr
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.tasklist
+theme:
+  name: material
+  palette:
+    primary: deep purple
+  logo: assets/obsidian.png
+  favicon: assets/obsidian.png
+  custom_dir: overrides
+nav:
+  - Overview: 'index.md'
+plugins:
+  - search
