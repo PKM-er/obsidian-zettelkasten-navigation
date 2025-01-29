@@ -1,5 +1,5 @@
 site_name: Zettelkasten-Navigation
-repo_url: https://github.com/terrychenzw/obsidian-zettelkasten-navigation
+repo_url: https://pkm-er.github.io/obsidian-zettelkasten-navigation/
 edit_uri: edit/master/docs/docs/
 markdown_extensions:
   - abbr
@@ -17,5 +17,6 @@ theme:
   custom_dir: overrides
 nav:
   - Overview: 'index.md'
+  - Settings:
 plugins:
   - search
