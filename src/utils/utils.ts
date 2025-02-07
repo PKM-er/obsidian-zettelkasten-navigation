@@ -1,5 +1,5 @@
 import ZKNavigationPlugin, { ZoomPanScale } from "main";
-import { loadMermaid, moment, Notice, TFile } from "obsidian";
+import { loadMermaid, moment, TFile } from "obsidian";
 import { ZKNode } from "src/view/indexView";
 
 // formatting Luhmann style IDs
@@ -270,6 +270,8 @@ export async function addSvgPanZoom(
             
     zkGraph.insertAdjacentHTML('beforeend', svg);
     
+    zkGraph.children[0].removeAttribute('style');
+
     zkGraph.children[0].addClass("zk-full-width");
 
     zkGraph.children[0].setAttr('height', `${height}px`); 
@@ -304,8 +306,8 @@ export async function addSvgPanZoom(
         
         if(setSvg !== null){
             let a = setSvg.children[0].getAttr("style");
-            if(a){
-                let b = a.match(/\d([^\,]+)\d/g)
+            if(a){                
+                let b = a.match(/\d([^\,]+)\d/g)                
                 if(b !== null && Number(b[0]) > 1){
                     panZoomTiger.zoom(1/Number(b[0]))
                 }                        

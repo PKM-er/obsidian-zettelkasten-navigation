@@ -32,6 +32,9 @@ padding: 5px;
 }
 .zk-index-mermaid svg{
   margin-top: 30px;
+ } 
+ .theme-dark .edgePaths{
+  filter: invert(100%) hue-rotate(180deg) saturate(1.25);
  }
 .zk-index-link{
   position: fixed;
@@ -216,7 +219,6 @@ padding: 5px;
   display: flex;
 }
 
-
 .zk-play-controller > .clickable-icon {
   background-color: rgba(var(--color-blue-rgb), 0.2);
   margin: 1px;
@@ -231,3 +233,4 @@ padding: 5px;
 .zk-full-width{
   width: 100%;
 }
+

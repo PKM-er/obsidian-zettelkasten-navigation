@@ -99,6 +99,7 @@ export default {
     "Set color for nodes": "Set color for branch's nodes",
     "Set datetime format": "Set datetime format",
     "Shorten the distance between adjacent nodes": "Shorten the distance between adjacent nodes",
+    "⚠Required restart to take effect": "⚠Required restart to take effect",
 
     // indexView.ts
     "Display from : ": "From : ",
@@ -130,6 +131,9 @@ export default {
     "structure": "structure",
     "roadmap": "roadmap",
     "style : ": "style : ",
+    "playPrevious":"previous",
+    "playNext": "playNext",
+    "fullscreen": "fullscreen",
 
 
     // localView.ts

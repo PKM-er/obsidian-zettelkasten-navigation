@@ -312,7 +312,8 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         const roadmapSettingDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
 
         new Setting(roadmapSettingDiv)
-            .setName(t("Shorten the distance between adjacent nodes"))      
+            .setName(t("Shorten the distance between adjacent nodes"))   
+            .setDesc(t("⚠Required restart to take effect"))   
             .addToggle(toggle => toggle.setValue(this.plugin.settings.nodeClose)
             .onChange((value) => {
                 this.plugin.settings.nodeClose = value;

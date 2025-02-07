@@ -98,6 +98,7 @@ export default {
     "Set color for nodes": "设置分支节点颜色",
     "Set datetime format": "设置日期时间格式",
     "Shorten the distance between adjacent nodes": "缩短邻近节点的距离",
+    "⚠Required restart to take effect": "⚠需重新加载才能生效",
     
     // indexView.ts
     "Display from : ": "起点：",
@@ -128,7 +129,10 @@ export default {
     "growing animation": "播放分支生长动画",
     "structure": "结构图",
     "roadmap": "路线图",
-    "style : ": "风格: ",
+    "style : ": "风格: ",    
+    "playPrevious":"向后",
+    "playNext": "向前",
+    "fullscreen": "全屏",
 
     // localView.ts
     "close relative": "邻近",

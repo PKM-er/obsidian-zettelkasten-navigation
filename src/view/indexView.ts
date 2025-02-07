@@ -450,6 +450,7 @@ export class ZKIndexView extends ItemView {
                 const previousBtn = new ExtraButtonComponent(playControllerDiv);
                 previousBtn
                 .setIcon('arrow-left')
+                .setTooltip(t("playPrevious"))
                 .onClick(async ()=>{
                     this.playStatus.current = (this.playStatus.current - 1 + this.playStatus.total) % this.playStatus.total;
                     if(this.plugin.settings.graphType === "structure"){
@@ -463,6 +464,7 @@ export class ZKIndexView extends ItemView {
                 const nextBtn = new ExtraButtonComponent(playControllerDiv);
                 nextBtn
                 .setIcon('arrow-right')
+                .setTooltip(t("playNext"))
                 .onClick(async ()=>{
                     this.playStatus.current = (this.playStatus.current + 1) % this.playStatus.total;
                     if(this.plugin.settings.graphType === "structure"){
@@ -475,6 +477,7 @@ export class ZKIndexView extends ItemView {
                 const fullScreenBtn = new ExtraButtonComponent(playControllerDiv);
                 fullScreenBtn
                 .setIcon('fullscreen')
+                .setTooltip(t("fullscreen"))
                 .onClick(()=>{
                     
                     let toggleClassList:string[] = [
@@ -823,7 +826,7 @@ export class ZKIndexView extends ItemView {
                                 sourcePath: node.file.path,
                             })
                         });
-
+                        
                         if (this.plugin.settings.FoldToggle == true) {
 
                             let foldIcon = document.createElement("span")
@@ -889,14 +892,14 @@ export class ZKIndexView extends ItemView {
                             item.setAttr("style", "display:none");
                         })
 
-                        let hideLines = indexMermaid.querySelectorAll(`[id^='L-${hideNode.position}']`);
+                        let hideLines = indexMermaid.querySelectorAll(`[id^='L_${hideNode.position}']`);
 
                         hideLines.forEach((item) => {
                             item.setAttr("style", "display:none");
                         })
                     }
 
-                    let hideLines = indexMermaid.querySelectorAll(`[id^='L-${foldNode.position}']`);
+                    let hideLines = indexMermaid.querySelectorAll(`[id^='L_${foldNode.position}']`);
                     hideLines.forEach((item) => {
                         item.setAttr("style", "display:none");
                     })
@@ -917,7 +920,10 @@ export class ZKIndexView extends ItemView {
             
             let mermaidStr = await this.generateGitgraphStr(branchNodes, branchEntranceNodeArr[i], i);
             let zkGraph = indexMermaidDiv.createEl("div", { cls: "zk-index-mermaid" });
-            zkGraph.id = `zk-index-mermaid-${i}`;       
+            zkGraph.id = `zk-index-mermaid-${i}`;     
+            
+            zkGraph.setAttr('width', `${this.containerEl.offsetWidth - 100}px`); 
+            zkGraph.setAttr('height', `${this.containerEl.offsetHeight - 100}px`); 
 
             await addSvgPanZoom(zkGraph, indexMermaidDiv, i, this.plugin, mermaidStr, (this.containerEl.offsetHeight - 100));
                         
@@ -1028,10 +1034,10 @@ export class ZKIndexView extends ItemView {
                 current:-1,
                 total:this.plugin.tableArr.length,
                 nodeGArr: Array.from(branchMermaid.querySelectorAll("[id^='flowchart-']")),
-                lines: Array.from(branchMermaid.querySelectorAll(`[id^='L-']`)),
+                lines: Array.from(branchMermaid.querySelectorAll(`[id^='L_']`)),
                 labels:[],
             }
-    
+                
             this.playStatus.nodeGArr.forEach((item)=>{
                 item.removeClass("zk-hidden");
             })
@@ -1210,11 +1216,15 @@ export class ZKIndexView extends ItemView {
             const maxLength =  Math.max(...branchNodes.map(n=>n.IDArr.length));
             const minLength =  Math.min(...branchNodes.map(n=>n.IDArr.length));
     
+            let additionalWidth:number = 0;
+            if(this.plugin.settings.FoldToggle === true){
+                additionalWidth = 20
+            }
             for(let i=minLength;i<=maxLength;i++){
                 let layerNodes = branchNodes.filter(n=>n.IDArr.length === i);
                 let maxTextLen = Math.max(...layerNodes.map(n=>displayWidth(n.displayText)));
                 for(let node of layerNodes){
-                    node.fixWidth = 6 * maxTextLen;
+                    node.fixWidth = 6 * maxTextLen + additionalWidth;
                 }
             }
             
@@ -1378,14 +1388,14 @@ export class ZKIndexView extends ItemView {
     }
 
     async generateFlowchartStr(Nodes: ZKNode[], entranceNode: ZKNode, direction: string) {
-
-        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
-        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};\n`;
         
-        for (let node of Nodes) {
+        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'linear', 'wrappingWidth': '3000' },
+        'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};\n`;
 
-            if(this.plugin.settings.siblingLenToggle === true && this.plugin.settings.NodeText !== "id"){
-                mermaidStr = mermaidStr + `${node.position}("<p style='width:${node.fixWidth}px;margin:0px;'>${node.displayText}</p>");\n`;
+        for (let node of Nodes) {
+            
+            if(this.plugin.settings.siblingLenToggle === true){
+                mermaidStr = mermaidStr + `${node.position}("<p style='width:${node.fixWidth}px;'>${node.displayText}</p>");\n`;
             }else{
                 mermaidStr = mermaidStr + `${node.position}("${node.displayText}");`;
             }
@@ -1405,7 +1415,7 @@ export class ZKIndexView extends ItemView {
 
             for (let son of sonNodes) {
 
-                mermaidStr = mermaidStr + `${node.position} ---> ${son.position};\n`;
+                mermaidStr = mermaidStr + `${node.position} --> ${son.position};\n`;
 
             }
         }
@@ -1777,7 +1787,7 @@ export class ZKIndexView extends ItemView {
                 if(nodeG){
                     nodeG.removeClass('zk-hidden');
                 }
-                let line = this.playStatus.lines.find(n=>n.id.split('-')[2] == node.position.toString());
+                let line = this.playStatus.lines.find(n=>n.id.split('_')[2] == node.position.toString());
                 if(line){                
                     line.removeClass('zk-hidden');
                 }
@@ -1830,7 +1840,7 @@ export class ZKIndexView extends ItemView {
             if(nodeG){
                 nodeG.removeClass('zk-hidden');
             }
-            let line = this.playStatus.lines.find(n=>n.id.split('-')[2] == node.position.toString());
+            let line = this.playStatus.lines.find(n=>n.id.split('_')[2] == node.position.toString());
             if(line){                
                 line.removeClass('zk-hidden');
             }
@@ -1842,7 +1852,7 @@ export class ZKIndexView extends ItemView {
             if(nodeG){
                 nodeG.addClass('zk-hidden');
             }
-            let line = this.playStatus.lines.find(n=>n.id.split('-')[2] == node.position.toString());
+            let line = this.playStatus.lines.find(n=>n.id.split('_')[2] == node.position.toString());
             if(line){                
                 line.addClass('zk-hidden');
             }
