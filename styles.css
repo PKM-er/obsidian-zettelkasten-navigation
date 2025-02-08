@@ -234,3 +234,14 @@ padding: 5px;
   width: 100%;
 }
 
+.zk-fold-green{
+  fill: #3CB43C !important;
+  stroke:#333 !important;
+  stroke-width:1px !important;
+}
+
+.zk-fold-yellow{
+  fill: yellow !important;
+  stroke:#333 !important;
+  stroke-width:1px !important;
+}

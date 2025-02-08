@@ -1,8 +1,8 @@
 {
 	"id": "zettelkasten-navigation",
 	"name": "zettelkasten navigation",
-	"version": "1.0.10",
-	"minAppVersion": "1.5.7",
+	"version": "1.0.11",
+	"minAppVersion": "1.8.4",
 	"description": "Visualize a Luhmann-style zettelkasten.",
 	"author": "terrychenzw",
 	"authorUrl": "https://github.com/terrychenzw",

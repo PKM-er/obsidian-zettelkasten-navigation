@@ -826,57 +826,6 @@ export class ZKIndexView extends ItemView {
                                 sourcePath: node.file.path,
                             })
                         });
-                        
-                        if (this.plugin.settings.FoldToggle == true) {
-
-                            let foldIcon = document.createElement("span")
-                            nodeArr[i].parentNode?.insertAfter(foldIcon, nodeArr[i]);
-                            if (typeof this.plugin.settings.FoldNodeArr.find(n =>
-                                (n.nodeIDstr == node.IDStr) && (n.graphID == zkGraph.id)) === "undefined"
-                            ) {
-                                foldIcon.textContent = "🟡";
-                            } else {
-                                foldIcon.textContent = "🟢";
-                            }
-                      
-                            foldIcon.addEventListener("click", async (event) => {
-
-                                
-                                let foldNode: FoldNode = {
-                                    graphID: zkGraph.id,
-                                    nodeIDstr: node.IDStr,
-                                    position: node.position,
-                                };                         
-
-                                if ((this.plugin.settings.FoldNodeArr.length === 0)) {
-                                    if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
-                                        this.plugin.settings.FoldNodeArr.push(foldNode);
-                                    }
-                                } else {
-                                    if (typeof this.plugin.settings.FoldNodeArr.find(n =>
-                                        (n.nodeIDstr == node.IDStr) && (n.graphID = zkGraph.id)) === "undefined"
-                                    ) {
-                                        if (this.plugin.MainNotes.filter(n => n.IDStr.startsWith(node.IDStr)).length > 1) {
-                                            this.plugin.settings.FoldNodeArr.push(foldNode);
-                                        }
-                                    } else {
-                                        this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(n =>
-                                            !(n.graphID == foldNode.graphID && n.nodeIDstr == foldNode.nodeIDstr)
-                                        );
-                                    }
-                                }
-
-                                if(foldIcon.textContent === "🟢" && event.ctrlKey){
-                                    this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(
-                                        n=>!n.nodeIDstr.startsWith(foldNode.nodeIDstr)
-                                    )                       
-                                }                 
-                                event.stopPropagation();
-
-                                await this.refreshBranchMermaid();
-
-                            })
-                        }
                     }
                 }
                 for (let foldNode of this.plugin.settings.FoldNodeArr.filter(n => n.graphID == zkGraph.id)) {
@@ -905,6 +854,9 @@ export class ZKIndexView extends ItemView {
                     })
                         
                 }
+                if (this.plugin.settings.FoldToggle == true) {                    
+                    await this.addFoldIcon(indexMermaid);
+                }
 
             }
         }
@@ -922,9 +874,6 @@ export class ZKIndexView extends ItemView {
             let zkGraph = indexMermaidDiv.createEl("div", { cls: "zk-index-mermaid" });
             zkGraph.id = `zk-index-mermaid-${i}`;     
             
-            zkGraph.setAttr('width', `${this.containerEl.offsetWidth - 100}px`); 
-            zkGraph.setAttr('height', `${this.containerEl.offsetHeight - 100}px`); 
-
             await addSvgPanZoom(zkGraph, indexMermaidDiv, i, this.plugin, mermaidStr, (this.containerEl.offsetHeight - 100));
                         
             const indexMermaid = document.getElementById(zkGraph.id)
@@ -1216,16 +1165,17 @@ export class ZKIndexView extends ItemView {
             const maxLength =  Math.max(...branchNodes.map(n=>n.IDArr.length));
             const minLength =  Math.min(...branchNodes.map(n=>n.IDArr.length));
     
-            let additionalWidth:number = 0;
-            if(this.plugin.settings.FoldToggle === true){
-                additionalWidth = 20
-            }
             for(let i=minLength;i<=maxLength;i++){
                 let layerNodes = branchNodes.filter(n=>n.IDArr.length === i);
-                let maxTextLen = Math.max(...layerNodes.map(n=>displayWidth(n.displayText)));
-                for(let node of layerNodes){
-                    node.fixWidth = 6 * maxTextLen + additionalWidth;
+                if(layerNodes.length > 1){
+                    let maxTextLen = Math.max(...layerNodes.map(n=>displayWidth(n.displayText)));
+                    for(let node of layerNodes){
+                        node.fixWidth = 6 * maxTextLen + 6;
+                    }
+                }else{
+                    layerNodes[0].fixWidth = 0;
                 }
+                
             }
             
         }
@@ -1394,7 +1344,7 @@ export class ZKIndexView extends ItemView {
 
         for (let node of Nodes) {
             
-            if(this.plugin.settings.siblingLenToggle === true){
+            if(this.plugin.settings.siblingLenToggle === true && node.fixWidth !== 0){
                 mermaidStr = mermaidStr + `${node.position}("<p style='width:${node.fixWidth}px;'>${node.displayText}</p>");\n`;
             }else{
                 mermaidStr = mermaidStr + `${node.position}("${node.displayText}");`;
@@ -1922,6 +1872,71 @@ export class ZKIndexView extends ItemView {
                 }                
             }
         }
+    }
+
+    async addFoldIcon(indexMermaid:HTMLElement){
+        const rects =  indexMermaid.getElementsByTagName('rect');
+        let rectArr:SVGRectElement[] = [];
+        Array.from(rects).forEach(item=>{
+            if(item.classList.contains("label-container")){
+                rectArr.push(item)
+            }
+        })
+        
+        rectArr.forEach(item=>{
+            const circleX = Number(item.getAttr("x")) + Number(item.getAttr("width"));
+            const circleY = Number(item.getAttr("y")) + Number(item.getAttr("height"))/2;
+            const newCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            newCircle.setAttr('cx', circleX);
+            newCircle.setAttr('cy', circleY);
+            newCircle.setAttr('r', 8); 
+            
+            if(item.parentElement){
+
+                let nodePosStr = item.parentElement.id.split('-')[1];
+                let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
+                            
+                if(this.plugin.settings.FoldNodeArr.filter(n =>
+                    (n.nodeIDstr == node.IDStr) && (n.graphID = indexMermaid.id)).length === 0)
+                    {
+                        newCircle.addClass('zk-fold-yellow');
+                    }else{
+                        newCircle.addClass('zk-fold-green');
+                    }
+                
+                item.parentElement.insertAfter(newCircle, item.nextSibling);
+
+                newCircle.addEventListener("click", async(event)=>{
+                    
+                    const clickNode: FoldNode = {
+                        graphID: indexMermaid.id,
+                        nodeIDstr: node.IDStr,
+                        position: node.position,
+                    }; 
+                    
+                    if(this.plugin.settings.FoldNodeArr.filter(n =>
+                        (n.nodeIDstr == node.IDStr) && (n.graphID = indexMermaid.id)).length === 0)
+                        {
+                            this.plugin.settings.FoldNodeArr.push(clickNode);
+                        }else{
+                            let index = this.plugin.settings.FoldNodeArr.findIndex(
+                                item => (item.graphID === clickNode.graphID) && (item.nodeIDstr === clickNode.nodeIDstr));
+                            if(index !== -1){
+                                this.plugin.settings.FoldNodeArr.splice(index, 1);
+                            }
+                        }
+
+                    if(event.ctrlKey && newCircle.hasClass('zk-fold-green')){
+                        this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(
+                            n=>!n.nodeIDstr.startsWith(clickNode.nodeIDstr)
+                        )                       
+                    }  
+                    event.stopPropagation();     
+                    await this.refreshBranchMermaid();           
+                })
+            }
+
+        })
     }
 
     async onClose() {
