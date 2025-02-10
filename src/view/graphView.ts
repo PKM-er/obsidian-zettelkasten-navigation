@@ -254,6 +254,7 @@ export class ZKGraphView extends ItemView {
                         familyTreeDiv.id = "zk-family-tree";                    
                         let { svg } = await mermaid.render(`${familyTreeDiv.id}-svg`, `${familyMermaidStr}`);
                         familyTreeDiv.insertAdjacentHTML('beforeend', svg);
+                        familyTreeDiv.children[0].removeAttribute('style');
                         familyTreeDiv.children[0].addClass("zk-full-width");
                         familyTreeDiv.children[0].setAttribute('height', `${this.graphHeight}px`);    
                         graphMermaidDiv.appendChild(familyTreeDiv);
@@ -647,10 +648,15 @@ export class ZKGraphView extends ItemView {
     
             for(let i=minLength;i<=maxLength;i++){
                 let layerNodes = this.familyNodeArr.filter(n=>n.IDArr.length === i);
-                let maxTextLen = Math.max(...layerNodes.map(n=>displayWidth(n.displayText)));
-                for(let node of layerNodes){
-                    node.fixWidth = 6 * maxTextLen;
+                if(layerNodes.length > 1){
+                    let maxTextLen = Math.max(...layerNodes.map(n=>displayWidth(n.displayText)));
+                    for(let node of layerNodes){
+                        node.fixWidth = 6 * maxTextLen + 6;
+                    }
+                }else{
+                    layerNodes[0].fixWidth = 0;
                 }
+                
             }
             
         }
@@ -703,7 +709,7 @@ export class ZKGraphView extends ItemView {
 
     async genericLinksMermaidStr(currentFile: TFile, linkArr: TFile[], direction1: string = 'in', direction2: string) {
 
-        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
+        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis', 'wrappingWidth': '3000' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction2};\n`
 
         let currentNode: ZKNode[] = [];
@@ -743,12 +749,12 @@ export class ZKGraphView extends ItemView {
     }
 
     async genericFamilyMermaidStr(currentFile: TFile, direction:string) {
-        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis' },
+        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'basis', 'wrappingWidth': '3000' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};`;
 
         for (let node of this.familyNodeArr) {
 
-            if(this.plugin.settings.siblingLenToggle === true && this.plugin.settings.NodeText !== "id"){
+            if(this.plugin.settings.siblingLenToggle === true && node.fixWidth !== 0){
                 mermaidStr = mermaidStr + `${node.position}("<p style='width:${node.fixWidth}px;margin:0px;'>${node.displayText}</p>");\n`;
             }else{
                 mermaidStr = mermaidStr + `${node.position}("${node.displayText}");\n`;

@@ -1339,7 +1339,7 @@ export class ZKIndexView extends ItemView {
 
     async generateFlowchartStr(Nodes: ZKNode[], entranceNode: ZKNode, direction: string) {
         
-        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'linear', 'wrappingWidth': '3000' },
+        let mermaidStr: string = `%%{ init: { 'flowchart': { 'curve': 'base', 'wrappingWidth': '3000' },
         'themeVariables':{ 'fontSize': '12px'}}}%% flowchart ${direction};\n`;
 
         for (let node of Nodes) {

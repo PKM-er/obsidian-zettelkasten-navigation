@@ -270,8 +270,10 @@ export async function addSvgPanZoom(
             
     zkGraph.insertAdjacentHTML('beforeend', svg);
     
-    zkGraph.children[0].removeAttribute('style');
-
+    if(plugin.settings.graphType === "roadmap"){
+        zkGraph.children[0].removeAttribute('style');
+    }
+    
     zkGraph.children[0].addClass("zk-full-width");
 
     zkGraph.children[0].setAttr('height', `${height}px`); 
