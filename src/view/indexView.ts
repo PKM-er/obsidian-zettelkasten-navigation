@@ -1941,7 +1941,7 @@ export class ZKIndexView extends ItemView {
                     await this.refreshBranchMermaid();           
                 })
                 
-                newCircle.addEventListener("touchend", async()=>{
+                newCircle.addEventListener("touchend", async(event)=>{
                     
                     const clickNode: FoldNode = {
                         graphID: indexMermaid.id,
@@ -1961,6 +1961,7 @@ export class ZKIndexView extends ItemView {
                             }
                         }
     
+                    event.stopPropagation();
                     await this.refreshBranchMermaid();           
                 })
             }
