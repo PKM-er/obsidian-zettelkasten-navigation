@@ -815,6 +815,9 @@ export class ZKIndexView extends ItemView {
                                 this.app.workspace.openLinkText("", node.file.path)
                             }
                         })
+                        nodeGArr[i].addEventListener("touchend", () => { 
+                            this.app.workspace.openLinkText("", node.file.path)
+                        })
 
                         nodeGArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
                             this.app.workspace.trigger(`hover-link`, {
@@ -922,6 +925,9 @@ export class ZKIndexView extends ItemView {
                                 this.app.workspace.openLinkText("", node.file.path)
                             }
                             
+                        })
+                        circleNodes[j].addEventListener("touchend", () => { 
+                            this.app.workspace.openLinkText("", node.file.path)
                         })
                         circleNodes[j].addEventListener('contextmenu', (event: MouseEvent) => {
                                     
@@ -1932,6 +1938,29 @@ export class ZKIndexView extends ItemView {
                         )                       
                     }  
                     event.stopPropagation();     
+                    await this.refreshBranchMermaid();           
+                })
+                
+                newCircle.addEventListener("touchend", async()=>{
+                    
+                    const clickNode: FoldNode = {
+                        graphID: indexMermaid.id,
+                        nodeIDstr: node.IDStr,
+                        position: node.position,
+                    }; 
+                    
+                    if(this.plugin.settings.FoldNodeArr.filter(n =>
+                        (n.nodeIDstr == node.IDStr) && (n.graphID = indexMermaid.id)).length === 0)
+                        {
+                            this.plugin.settings.FoldNodeArr.push(clickNode);
+                        }else{
+                            let index = this.plugin.settings.FoldNodeArr.findIndex(
+                                item => (item.graphID === clickNode.graphID) && (item.nodeIDstr === clickNode.nodeIDstr));
+                            if(index !== -1){
+                                this.plugin.settings.FoldNodeArr.splice(index, 1);
+                            }
+                        }
+    
                     await this.refreshBranchMermaid();           
                 })
             }
