@@ -221,7 +221,9 @@ export class ZKGraphView extends ItemView {
                                     this.app.workspace.openLinkText("",node.file.path)
                                 }
                             })
-
+                            nodeGArr[i].addEventListener("touchend", () => {
+                                this.app.workspace.openLinkText("",node.file.path)
+                            })
                             nodeGArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
                                 this.app.workspace.trigger(`hover-link`, {
                                     event,
@@ -325,6 +327,9 @@ export class ZKGraphView extends ItemView {
                                         this.app.workspace.openLinkText("", node.file.path)
                                     }
                                     
+                                })
+                                circleNodes[j].addEventListener("touchend", () => {
+                                    this.app.workspace.openLinkText("",node.file.path)
                                 })
                                 circleNodes[j].addEventListener(`mouseover`, (event: MouseEvent) => {
                                     this.app.workspace.trigger(`hover-link`, {
@@ -454,6 +459,9 @@ export class ZKGraphView extends ItemView {
                             this.app.workspace.openLinkText("", node.path);
                         }
                     })
+                    nodeGArr[i].addEventListener("touchend", () => {
+                        this.app.workspace.openLinkText("",node.path)
+                    })
 
                     nodeGArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
                         this.app.workspace.trigger(`hover-link`, {
@@ -582,6 +590,9 @@ export class ZKGraphView extends ItemView {
                             this.app.workspace.openLinkText("", node.path);
                         }
                             
+                    })
+                    nodeGArr[i].addEventListener("touchend", () => {
+                        this.app.workspace.openLinkText("",node.path)
                     })
 
                     nodeGArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
