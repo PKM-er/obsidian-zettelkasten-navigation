@@ -302,6 +302,33 @@ export async function addSvgPanZoom(
         }
     })
 
+    const touchSvg = document.getElementById(`${zkGraph.id}-svg`);
+
+    if(touchSvg !== null){
+        let startDistance:number = 0;
+        let scale = panZoomTiger.getZoom();
+        let lastScale = scale;
+
+        touchSvg.addEventListener('touchstart', (event)=>{
+            if(event.touches.length === 2){
+                let touch1 = event.touches[0];
+                let touch2 = event.touches[1];
+                startDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);
+            }
+        })
+
+        touchSvg.addEventListener('touchmove', (event)=>{
+            if(event.touches.length === 2){
+                let touch1 = event.touches[0];
+                let touch2 = event.touches[1];
+                let currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);               
+                let newScale = currentDistance / startDistance;
+                scale = scale * newScale / lastScale;
+                panZoomTiger.zoom(scale);
+            }
+        })
+    }
+
     if(typeof plugin.settings.zoomPanScaleArr[i] === 'undefined'){
         
         const setSvg = document.getElementById(`${zkGraph.id}-svg`);
