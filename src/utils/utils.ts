@@ -323,7 +323,7 @@ export async function addSvgPanZoom(
                 let touch2 = event.touches[1];
                 let currentDistance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY);               
                 let newScale = currentDistance / startDistance;
-                scale = scale * newScale / lastScale * 0.2;
+                scale = scale * newScale / lastScale;
                 panZoomTiger.zoom(scale);
             }
         })
