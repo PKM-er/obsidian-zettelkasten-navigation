@@ -320,6 +320,15 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 this.plugin.RefreshIndexViewFlag = true;
             })
         );
+
+        new Setting(roadmapSettingDiv)
+            .setName(t("Branches uncrossing"))   
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.gitUncrossing)
+            .onChange((value) => {
+                this.plugin.settings.gitUncrossing = value;
+                this.plugin.RefreshIndexViewFlag = true;
+            })
+        );
             
         const structureSettingDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
        

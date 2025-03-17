@@ -99,6 +99,7 @@ export default {
     "Set datetime format": "设置日期时间格式",
     "Shorten the distance between adjacent nodes": "缩短邻近节点的距离",
     "⚠Required restart to take effect": "⚠需重新加载才能生效",
+    "Branches uncrossing": "分支之间不交叉",
     
     // indexView.ts
     "Display from : ": "起点：",

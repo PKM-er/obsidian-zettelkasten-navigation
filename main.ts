@@ -109,6 +109,7 @@ interface ZKNavigationSettings {
     datetimeFormat: string;
     graphType: string;
     nodeClose: boolean;
+    gitUncrossing: boolean;
 }
 
 //Default value for setting field
@@ -174,6 +175,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     datetimeFormat: "yyyy-MM-DD HH:mm",
     graphType: "structure",
     nodeClose: false,
+    gitUncrossing: false,
 }
 
 export default class ZKNavigationPlugin extends Plugin {

@@ -1199,7 +1199,12 @@ export class ZKIndexView extends ItemView {
         this.gitBranches = this.gitBranches.filter(b=>b.branchName !== "main");
         
         if(temBranches.length > 0){
-            this.orderGitBranch(temBranches[0]);
+
+            if(this.plugin.settings.gitUncrossing === true){
+                this.orderGitBranch(temBranches[0]);
+            }else{
+                this.result = temBranches.concat(this.gitBranches);
+            }
             let git:AllGitBranch = {
                 branchTab: branchTab,
                 gitBranches: this.result,

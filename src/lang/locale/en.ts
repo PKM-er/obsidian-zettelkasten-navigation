@@ -100,6 +100,7 @@ export default {
     "Set datetime format": "Set datetime format",
     "Shorten the distance between adjacent nodes": "Shorten the distance between adjacent nodes",
     "⚠Required restart to take effect": "⚠Required restart to take effect",
+    "Branches uncrossing":"Branches uncrossing",
 
     // indexView.ts
     "Display from : ": "From : ",
