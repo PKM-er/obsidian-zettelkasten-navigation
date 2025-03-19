@@ -1299,7 +1299,7 @@ export class ZKIndexView extends ItemView {
                         nodes: numberSons,
                         currentPos: 0,
                         positionX: 0,
-                        order: 0,
+                        order: this.gitBranches.length,
                         active: false,
                     };
                     this.gitBranches.push(gitBranch);
@@ -1317,7 +1317,7 @@ export class ZKIndexView extends ItemView {
                         branchPoint: fatherNode,
                         nodes: letterSons,
                         currentPos: 0,
-                        order: 0,
+                        order: this.gitBranches.length,
                         positionX: 0,
                         active: false,
                     };
