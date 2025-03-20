@@ -1201,7 +1201,7 @@ export class ZKIndexView extends ItemView {
         if(temBranches.length > 0){
 
             if(this.plugin.settings.gitUncrossing === true){
-                this.orderGitBranch(temBranches[0]);
+                this.orderGitBranch_uncrossing(temBranches[0]);
             }else{
                 this.result = temBranches.concat(this.gitBranches);
             }
@@ -1290,48 +1290,47 @@ export class ZKIndexView extends ItemView {
         for(let i=minLength;i<maxLength;i++){
             let layerNodes = Nodes.filter(n=>n.IDArr.length === i);
 	        for(let fatherNode of layerNodes){
-                let numberSons = Nodes.filter(n=>n.IDArr.length === i+1 && /[0-9]/.test(n.ID.slice(-1)) && n.IDArr.slice(0,-1).toString() === fatherNode.IDStr);
-                if(numberSons.length>0){
-                    let branchName = `B${this.gitBranches.length}`;
-                    let gitBranch: GitBranch = {
-                        branchName: branchName,
-                        branchPoint: fatherNode,
-                        nodes: numberSons,
-                        currentPos: 0,
-                        positionX: 0,
-                        order: this.gitBranches.length,
-                        active: false,
-                    };
-                    this.gitBranches.push(gitBranch);
-                    for(let node of numberSons){
-                        let index = this.branchAllNodes[branchTab].branchNodes.indexOf(node);
-                        this.branchAllNodes[branchTab].branchNodes[index].branchName = branchName;							
-                    }	
+                let sons = Nodes.filter(n=>n.IDArr.length === i+1 && n.IDArr.slice(0,-1).toString() === fatherNode.IDStr);
+                if(sons.length > 0){
+                    let firstSon = sons.reduce((min,obj) =>{
+                        return min && min.ctime < obj.ctime? min:obj;
+                    }, sons[0]);
 
-                }
-                let letterSons = Nodes.filter(n=>n.IDArr.length === i+1 && /[a-zA-Z]/.test(n.ID.slice(-1)) && n.IDArr.slice(0,-1).toString() === fatherNode.IDStr);
-                if(letterSons.length>0){
-                    let branchName = `B${this.gitBranches.length}`;
-                    let gitBranch: GitBranch = {
-                        branchName: branchName,
-                        branchPoint: fatherNode,
-                        nodes: letterSons,
-                        currentPos: 0,
-                        order: this.gitBranches.length,
-                        positionX: 0,
-                        active: false,
-                    };
-                    this.gitBranches.push(gitBranch);
-                    for(let node of letterSons){
-                        let index = this.branchAllNodes[branchTab].branchNodes.indexOf(node);
-                        this.branchAllNodes[branchTab].branchNodes[index].branchName = branchName;							
-                    }	
+                    if(/[0-9]/.test(firstSon.ID.slice(-1))){
+                        this.distinguishSons(Nodes,fatherNode,branchTab,i, /[0-9]/);
+                        this.distinguishSons(Nodes,fatherNode,branchTab,i, /[a-zA-Z]/);
+                    }else{                        
+                        this.distinguishSons(Nodes,fatherNode,branchTab,i, /[a-zA-Z]/);
+                        this.distinguishSons(Nodes,fatherNode,branchTab,i, /[0-9]/);
+                    }
                 }
             }
         }
     }
 
-    orderGitBranch(current:GitBranch){
+    distinguishSons(Nodes: ZKNode[], fatherNode: ZKNode,branchTab:number, i:number, regExp:RegExp){
+        let sons = Nodes.filter(n=>n.IDArr.length === i+1 && regExp.test(n.ID.slice(-1)) && n.IDArr.slice(0,-1).toString() === fatherNode.IDStr);
+        if(sons.length>0){
+            let branchName = `B${this.gitBranches.length}`;
+            let gitBranch: GitBranch = {
+                branchName: branchName,
+                branchPoint: fatherNode,
+                nodes: sons,
+                currentPos: 0,
+                positionX: 0,
+                order: this.gitBranches.length,
+                active: false,
+            };
+            this.gitBranches.push(gitBranch);
+            for(let node of sons){
+                let index = this.branchAllNodes[branchTab].branchNodes.indexOf(node);
+                this.branchAllNodes[branchTab].branchNodes[index].branchName = branchName;							
+            }	
+
+        }
+    }
+
+    orderGitBranch_uncrossing(current:GitBranch){
         
         current.order = this.order;
         this.result.push(current);
@@ -1342,7 +1341,7 @@ export class ZKIndexView extends ItemView {
             if(branches.length > 0){               
                 branches.sort((a, b) => a.nodes[0].ctime - b.nodes[0].ctime);
                 for(let next of branches){
-                    this.orderGitBranch(next);
+                    this.orderGitBranch_uncrossing(next);
                 }
             }
         }
@@ -1965,7 +1964,7 @@ export class ZKIndexView extends ItemView {
                                 this.plugin.settings.FoldNodeArr.splice(index, 1);
                             }
                         }
-    
+                            
                     event.stopPropagation();
                     await this.refreshBranchMermaid();           
                 })
