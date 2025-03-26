@@ -82,7 +82,7 @@ export class tableModal extends Modal {
             outlinkStr = `<ul>${outlinkStr}</ul>`;
         }
 
-        this.tableStr = this.tableStr + `|[[${node.ID}]]|${node.title}|${inlinksStr}|${outlinkStr}|${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}|\n`
+        this.tableStr = this.tableStr + `|[[${node.ID}]]|${node.title.replace(`|`,`\\|`)}|${inlinksStr}|${outlinkStr}|${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}|\n`
     }
 }
 
