@@ -100,6 +100,9 @@ export default {
     "Shorten the distance between adjacent nodes": "缩短邻近节点的距离",
     "⚠Required restart to take effect": "⚠需重新加载才能生效",
     "Branches uncrossing": "分支之间不交叉",
+    "Narrow to heading": "缩小至标题",
+    "Set color for cards": "设置卡片颜色",
+    "Set color for arrow": "设置连线颜色",
     
     // indexView.ts
     "Display from : ": "起点：",

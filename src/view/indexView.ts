@@ -338,11 +338,13 @@ export class ZKIndexView extends ItemView {
         let branchEntranceNodeArr:ZKNode[] = [];
         let indexFile:any;
 
-        const indexLinkDiv = indexMermaidDiv.createDiv("zk-index-link");
+        const graphTopContainer = indexMermaidDiv.createDiv("zk-graph-top");
+
+        const indexLinkDiv = graphTopContainer.createDiv("zk-index-link");
         indexLinkDiv.empty();
         
         if(this.plugin.settings.BranchToolbra == true){
-            const toolButtonsDiv = indexMermaidDiv.createDiv("zk-tool-buttons"); 
+            const toolButtonsDiv = graphTopContainer.createDiv("zk-tool-buttons"); 
             toolButtonsDiv.empty();
             if(this.plugin.settings.settingIcon == true){
                 const settingBtn = new ExtraButtonComponent(toolButtonsDiv);
@@ -1517,10 +1519,10 @@ export class ZKIndexView extends ItemView {
             let positionY:number = nodes[i].height;
             if(direction === "LR" || direction === "RL"){
                 canvasNodeStr = canvasNodeStr + `
-                {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"},`
+                {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"${this.getCanvasCardSetting()}},`
             }else{
                 canvasNodeStr = canvasNodeStr + `
-                {"id":"${nodes[i].randomId}","x":${positionY},"y":${positionX},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"},`
+                {"id":"${nodes[i].randomId}","x":${positionY},"y":${positionX},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"${this.getCanvasCardSetting()}},`
 
             }
             let IDStr = nodes[i].IDStr;
@@ -1530,7 +1532,7 @@ export class ZKIndexView extends ItemView {
                         
             for(let son of sonNodes){
                 canvasEdgeStr = canvasEdgeStr + `
-                {"id":"${random(16)}","fromNode":"${nodes[i].randomId}","fromSide":"${fromSide}","toNode":"${son.randomId}","toSide":"${toSide}"},`
+                {"id":"${random(16)}","fromNode":"${nodes[i].randomId}","fromSide":"${fromSide}","toNode":"${son.randomId}","toSide":"${toSide}"${this.getCanvasArrowSetting()}},`
             }
 
         }
@@ -1675,17 +1677,17 @@ export class ZKIndexView extends ItemView {
     
             for(let i=0;i<branch.nodes.length;i++){                
                 canvasNodeStr = canvasNodeStr + `
-                {"id":"${branch.nodes[i].randomId}","x":${branch.positionX + (cardWidth+intervalX)*i},"y":${(cardHeight+intervalY)*branch.order},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${branch.nodes[i].file.path}"},`
+                {"id":"${branch.nodes[i].randomId}","x":${branch.positionX + (cardWidth+intervalX)*i},"y":${(cardHeight+intervalY)*branch.order},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${branch.nodes[i].file.path}"${this.getCanvasCardSetting()}},`
             }
 
             for(let i=1;i<branch.nodes.length;i++){
                 canvasEdgeStr = canvasEdgeStr + `
-                {"id":"${random(16)}","fromNode":"${branch.nodes[i-1].randomId}","fromSide":"right","toNode":"${branch.nodes[i].randomId}","toSide":"left"},`
+                {"id":"${random(16)}","fromNode":"${branch.nodes[i-1].randomId}","fromSide":"right","toNode":"${branch.nodes[i].randomId}","toSide":"left"${this.getCanvasArrowSetting()}},`
             }
 
             if(gitBranches.indexOf(branch) > 0){
                 canvasEdgeStr = canvasEdgeStr + `
-                {"id":"${random(16)}","fromNode":"${branch.branchPoint.randomId}","fromSide":"bottom","toNode":"${branch.nodes[0].randomId}","toSide":"left"},`
+                {"id":"${random(16)}","fromNode":"${branch.branchPoint.randomId}","fromSide":"bottom","toNode":"${branch.nodes[0].randomId}","toSide":"left"${this.getCanvasArrowSetting()}},`
             }        
         }
         if(canvasNodeStr.length > 0 ){
@@ -1964,13 +1966,35 @@ export class ZKIndexView extends ItemView {
                                 this.plugin.settings.FoldNodeArr.splice(index, 1);
                             }
                         }
-                            
+    
                     event.stopPropagation();
                     await this.refreshBranchMermaid();           
                 })
             }
 
         })
+    }
+
+    getCanvasCardSetting(){
+        
+        let cardSetting:string = ",";
+        if(this.plugin.settings.canvasSubpath !== ""){
+            cardSetting = cardSetting + `"subpath":"#${this.plugin.settings.canvasSubpath}",`
+        }
+        if(this.plugin.settings.canvasCardColor !== "#C0C0C0"){
+            cardSetting = cardSetting + `"color":"${this.plugin.settings.canvasCardColor}",`
+        }
+
+        return cardSetting.slice(0,-1)
+    }
+
+    getCanvasArrowSetting(){
+
+        let arrowSetting:string = ","
+        if(this.plugin.settings.canvasArrowColor !== "#C0C0C0"){
+            arrowSetting = arrowSetting + `"color":"${this.plugin.settings.canvasArrowColor}",`
+        }
+        return arrowSetting.slice(0,-1)
     }
 
     async onClose() {

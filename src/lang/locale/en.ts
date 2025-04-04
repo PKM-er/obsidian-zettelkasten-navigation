@@ -101,6 +101,9 @@ export default {
     "Shorten the distance between adjacent nodes": "Shorten the distance between adjacent nodes",
     "⚠Required restart to take effect": "⚠Required restart to take effect",
     "Branches uncrossing":"Branches uncrossing",
+    "Narrow to heading": "Narrow to heading",
+    "Set color for cards": "Set color for cards",
+    "Set color for arrow": "Set color for arrow",
 
     // indexView.ts
     "Display from : ": "From : ",

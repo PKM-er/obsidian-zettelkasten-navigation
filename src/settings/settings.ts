@@ -330,94 +330,9 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             })
         );
             
-        const structureSettingDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
-       
-        new Setting(structureSettingDiv)
-        .setName(t("direction of graph"))
-        .addDropdown(options => options
-            .addOption("LR", t('"LR": feft to right'))
-            .addOption("RL", t('"RL": right to left'))
-            .addOption("TB", t('"TB": top to bottom'))
-            .addOption("BT", t('"BT": bottom to top'))
-            .setValue(this.plugin.settings.DirectionOfBranchGraph)
-            .onChange((value) => {
-                this.plugin.settings.DirectionOfBranchGraph = value;
-                this.plugin.RefreshIndexViewFlag = true;
-            })
-        );
+        const structureSettingDiv = indexGraphView.createDiv("zk-local-section zk-hidden")       
 
-        new Setting(structureSettingDiv)
-            .setName(t("siblings order"))
-            .setDesc(t("siblings order description"))
-            .addDropdown(options => options
-                .addOption("number", t('number first'))
-                .addOption("letter", t('letter first'))
-                .setValue(this.plugin.settings.siblingsOrder)
-                .onChange((value) => {
-                    this.plugin.settings.siblingsOrder = value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                })
-            );
-
-        new Setting(structureSettingDiv)
-            .setName(t("same width for siblings"))
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.siblingLenToggle)
-                .onChange((value) => {
-                    this.plugin.settings.siblingLenToggle = value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                })
-            );
-
-        new Setting(structureSettingDiv)
-            .setName(t("Set red dash line for nodes with ID ends with letter"))
-            .setDesc(t("In order to distinguish nodes which ID ends with letter and number"))
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.RedDashLine)
-                .onChange((value) => {
-                    this.plugin.settings.RedDashLine = value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                })
-            );
-
-        new Setting(structureSettingDiv)
-            .setName(t("display created time"))
-            .setDesc(t("Set datetime format"))
-            .addText((cb)=>{
-                cb.inputEl.placeholder = "yyyy-MM-DD HH:mm";
-                cb.setValue(this.plugin.settings.datetimeFormat)
-                    .onChange((value) =>{
-                        if(value === ""){
-                            this.plugin.settings.datetimeFormat = "yyyy-MM-DD HH:mm";
-                        }else{
-                            this.plugin.settings.datetimeFormat = value;
-                            this.plugin.RefreshIndexViewFlag = true;
-                        }
-                    })
-            })
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.displayTimeToggle)
-                .onChange((value) => {
-                    this.plugin.settings.displayTimeToggle = value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                })
-            );
-
-        new Setting(structureSettingDiv)
-            .setName(t("Fold node toggle"))
-            .setDesc(t("Open the fold icon(🟡🟢)"))
-            .addToggle(toggle => toggle.setValue(this.plugin.settings.FoldToggle)
-                .onChange((value) => {
-                    this.plugin.settings.FoldToggle = value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                })
-            );
-        new Setting(structureSettingDiv)
-            .setName(t("Set color for nodes"))
-            .addColorPicker(color => color.setValue(this.plugin.settings.nodeColor)
-                .onChange((value)=>{
-                    this.plugin.settings.nodeColor =  value;
-                    this.plugin.RefreshIndexViewFlag = true;
-                })
-            );
-
+        await this.updateSructureSettings(structureSettingDiv);
         
         new Setting(indexGraphView)
             .setName(t("Toolbar"))
@@ -435,11 +350,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             })        
         
         const branchToolbarDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
-        /*
-        new Setting(branchToolbarDiv)
-        .setName(t("settings"))
-        */
-
+ 
         new Setting(branchToolbarDiv)
                 .setName(t("settings"))
                 .then((setting)=>{
@@ -483,51 +394,8 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             )
         
         const canvasAdditionSection = branchToolbarDiv.createDiv("zk-local-section zk-hidden")
-        new Setting(canvasAdditionSection)
-            .setName(t("set the fixed path for exported canvas file"))
-            .setDesc(t("if empty, it will create a new canvas file every time"))
-                .addSearch((cb) =>{
-                    new FileSuggest(this.app, cb.inputEl);
-                    cb.setPlaceholder(t("Example: folder/filename.canvas"))
-                    .setValue(this.plugin.settings.canvasFilePath)
-                    .onChange((value) => {
-                        if(value.endsWith(".canvas")){
-                            this.plugin.settings.canvasFilePath = value;
-                        }else{
-                            this.plugin.settings.canvasFilePath = "";
-                        }
-                    })
-                }
-        )
-        new Setting(canvasAdditionSection)
-            .setName(t("set default width and height for cards"))
-            .addText((cb) => {
 
-                cb.inputEl.placeholder = t("card width");
-                cb.setValue(this.plugin.settings.cardWidth.toString())
-                    .onChange((value) => {
-                        if(/^[1-9]\d*$/.test(value)){
-                            this.plugin.settings.cardWidth = Number(value);
-                        }else{
-                            this.plugin.settings.cardWidth = 400;                        
-                        }
-                        
-                    })
-                }
-            )
-            .addText((cb) => {
-                cb.inputEl.placeholder = t("card height");
-                cb.setValue(this.plugin.settings.cardHeight.toString())
-                    .onChange((value) => {
-                        if(/^[1-9]\d*$/.test(value)){
-                            this.plugin.settings.cardHeight = Number(value);
-                        }else{
-                            this.plugin.settings.cardHeight = 240;                        
-                        }
-                        
-                    })
-                }
-            )
+        await this.updateCanvasAddSettings(canvasAdditionSection);
 
         if(this.plugin.settings.MainNoteButton == true){
             new Setting(branchToolbarDiv)
@@ -942,6 +810,194 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 this.updateNodeMenu(nodeMenuDiv);   
             })
         }
+    }
+
+    async updateCanvasAddSettings(canvasAdditionSection:HTMLDivElement){
+        canvasAdditionSection.empty();
+        new Setting(canvasAdditionSection)
+            .setName(t("set the fixed path for exported canvas file"))
+            .setDesc(t("if empty, it will create a new canvas file every time"))
+                .addSearch((cb) =>{
+                    new FileSuggest(this.app, cb.inputEl);
+                    cb.setPlaceholder(t("Example: folder/filename.canvas"))
+                    .setValue(this.plugin.settings.canvasFilePath)
+                    .onChange((value) => {
+                        if(value.endsWith(".canvas")){
+                            this.plugin.settings.canvasFilePath = value;
+                        }else{
+                            this.plugin.settings.canvasFilePath = "";
+                        }
+                    })
+                }
+        )
+        new Setting(canvasAdditionSection)
+            .setName(t("set default width and height for cards"))
+            .addText((cb) => {
+
+                cb.inputEl.placeholder = t("card width");
+                cb.setValue(this.plugin.settings.cardWidth.toString())
+                    .onChange((value) => {
+                        if(/^[1-9]\d*$/.test(value)){
+                            this.plugin.settings.cardWidth = Number(value);
+                        }else{
+                            this.plugin.settings.cardWidth = 400;                        
+                        }
+                        
+                    })
+                }
+            )
+            .addText((cb) => {
+                cb.inputEl.placeholder = t("card height");
+                cb.setValue(this.plugin.settings.cardHeight.toString())
+                    .onChange((value) => {
+                        if(/^[1-9]\d*$/.test(value)){
+                            this.plugin.settings.cardHeight = Number(value);
+                        }else{
+                            this.plugin.settings.cardHeight = 240;                        
+                        }
+                        
+                    })
+                }
+            )
+        
+        new Setting(canvasAdditionSection)
+            .setName(t("Narrow to heading"))
+            .addText((cb) => {
+                cb.setValue(this.plugin.settings.canvasSubpath.toString())
+                    .onChange((value) => {
+                        this.plugin.settings.canvasSubpath = value;                        
+                    })
+                }
+            )
+            
+        new Setting(canvasAdditionSection)
+            .setName(t("Set color for cards"))
+            .addExtraButton((cb)=>{
+                cb.setIcon("rotate-ccw")
+                .onClick(async ()=>{
+                    this.plugin.settings.canvasCardColor = "#C0C0C0";  
+                    await this.updateCanvasAddSettings(canvasAdditionSection);
+                })
+            })
+            .addColorPicker(color => color.setValue(this.plugin.settings.canvasCardColor)
+                .onChange((value)=>{
+                    this.plugin.settings.canvasCardColor =  value;
+                })
+            )
+            
+        new Setting(canvasAdditionSection)
+            .setName(t("Set color for arrow"))
+            .addExtraButton((cb)=>{
+                cb.setIcon("rotate-ccw")
+                .onClick(async()=>{
+                    this.plugin.settings.canvasArrowColor = "#C0C0C0";   
+                    await this.updateCanvasAddSettings(canvasAdditionSection);
+                })
+            })
+            .addColorPicker(color => color.setValue(this.plugin.settings.canvasArrowColor)
+                .onChange((value)=>{
+                    this.plugin.settings.canvasArrowColor =  value;
+                })
+            )
+
+    }
+
+    async updateSructureSettings(structureSettingDiv:HTMLDivElement){
+
+        structureSettingDiv.empty();
+        new Setting(structureSettingDiv)
+        .setName(t("direction of graph"))
+        .addDropdown(options => options
+            .addOption("LR", t('"LR": feft to right'))
+            .addOption("RL", t('"RL": right to left'))
+            .addOption("TB", t('"TB": top to bottom'))
+            .addOption("BT", t('"BT": bottom to top'))
+            .setValue(this.plugin.settings.DirectionOfBranchGraph)
+            .onChange((value) => {
+                this.plugin.settings.DirectionOfBranchGraph = value;
+                this.plugin.RefreshIndexViewFlag = true;
+            })
+        );
+
+        new Setting(structureSettingDiv)
+            .setName(t("siblings order"))
+            .setDesc(t("siblings order description"))
+            .addDropdown(options => options
+                .addOption("number", t('number first'))
+                .addOption("letter", t('letter first'))
+                .setValue(this.plugin.settings.siblingsOrder)
+                .onChange((value) => {
+                    this.plugin.settings.siblingsOrder = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+
+        new Setting(structureSettingDiv)
+            .setName(t("same width for siblings"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.siblingLenToggle)
+                .onChange((value) => {
+                    this.plugin.settings.siblingLenToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+
+        new Setting(structureSettingDiv)
+            .setName(t("Set red dash line for nodes with ID ends with letter"))
+            .setDesc(t("In order to distinguish nodes which ID ends with letter and number"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.RedDashLine)
+                .onChange((value) => {
+                    this.plugin.settings.RedDashLine = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+
+        new Setting(structureSettingDiv)
+            .setName(t("display created time"))
+            .setDesc(t("Set datetime format"))
+            .addText((cb)=>{
+                cb.inputEl.placeholder = "yyyy-MM-DD HH:mm";
+                cb.setValue(this.plugin.settings.datetimeFormat)
+                    .onChange((value) =>{
+                        if(value === ""){
+                            this.plugin.settings.datetimeFormat = "yyyy-MM-DD HH:mm";
+                        }else{
+                            this.plugin.settings.datetimeFormat = value;
+                            this.plugin.RefreshIndexViewFlag = true;
+                        }
+                    })
+            })
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.displayTimeToggle)
+                .onChange((value) => {
+                    this.plugin.settings.displayTimeToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+
+        new Setting(structureSettingDiv)
+            .setName(t("Fold node toggle"))
+            .setDesc(t("Open the fold icon(🟡🟢)"))
+            .addToggle(toggle => toggle.setValue(this.plugin.settings.FoldToggle)
+                .onChange((value) => {
+                    this.plugin.settings.FoldToggle = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+        new Setting(structureSettingDiv)
+            .setName(t("Set color for nodes"))
+            .addExtraButton((cb)=>{
+                cb.setIcon("rotate-ccw")
+                .onClick(async()=>{
+                    this.plugin.settings.nodeColor = "#FFFFAA";   
+                    await this.updateSructureSettings(structureSettingDiv);
+                })
+            })
+            .addColorPicker(color => color.setValue(this.plugin.settings.nodeColor)
+                .onChange((value)=>{
+                    this.plugin.settings.nodeColor =  value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                })
+            );
+
     }
 
     async hide() {

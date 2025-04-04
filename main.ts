@@ -110,6 +110,9 @@ interface ZKNavigationSettings {
     graphType: string;
     nodeClose: boolean;
     gitUncrossing: boolean;
+    canvasSubpath: string;
+    canvasCardColor: string;
+    canvasArrowColor: string
 }
 
 //Default value for setting field
@@ -176,6 +179,9 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     graphType: "structure",
     nodeClose: false,
     gitUncrossing: false,
+    canvasSubpath: "",
+    canvasCardColor: "#C0C0C0",
+    canvasArrowColor: "#C0C0C0",
 }
 
 export default class ZKNavigationPlugin extends Plugin {
