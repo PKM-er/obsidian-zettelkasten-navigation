@@ -57,9 +57,16 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
         mainNoteFiles = mainNoteFiles.filter(
             file => {
-                return this.app.metadataCache.getFileCache(file)?.frontmatter?.tags?.includes(
-                    plugin.settings.TagOfMainNotes.substring(1)
-                );
+                const tags = this.app.metadataCache.getFileCache(file)?.frontmatter?.tags
+                if(tags){
+                    if(Array.isArray(tags)){
+                        return tags.some(tags => tags === plugin.settings.TagOfMainNotes.substring(1) || tags.startsWith(`${plugin.settings.TagOfMainNotes.substring(1)}/`))
+                    }else{
+                        return tags === plugin.settings.TagOfMainNotes.substring(1) || tags.startsWith(`${plugin.settings.TagOfMainNotes.substring(1)}/`)
+                    }
+                }else{
+                    return false;
+                }
             }
         )
     }
