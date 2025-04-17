@@ -99,7 +99,6 @@ export class ZKIndexView extends ItemView {
             
             if (this.plugin.indexViewOffsetHeight !== this.containerEl.offsetHeight ||
                 this.plugin.indexViewOffsetWidth !== this.containerEl.offsetWidth){
-                
                 this.app.workspace.trigger("zk-navigation:refresh-index-graph");
 
             }       
@@ -261,7 +260,7 @@ export class ZKIndexView extends ItemView {
         this.registerEvent(this.app.workspace.on("active-leaf-change", async(leaf)=>{ 
             
             if(leaf?.view.getViewType() == ZK_INDEX_TYPE){
-                if(this.plugin.RefreshIndexViewFlag == true){  
+                if(this.plugin.RefreshIndexViewFlag === true){ 
                     await this.IndexViewInterfaceInit();
                 }
             }             
@@ -269,12 +268,6 @@ export class ZKIndexView extends ItemView {
 
         this.registerEvent(this.app.vault.on("rename", async ()=>{
             this.plugin.RefreshIndexViewFlag = true; 
-            this.app.workspace.trigger("zk-navigation:refresh-index-graph");
-        }));
-
-        this.registerEvent(this.app.vault.on("modify", async ()=>{
-            this.plugin.RefreshIndexViewFlag = true;  
-            this.app.workspace.trigger("zk-navigation:refresh-index-graph");
         }));
 
         this.registerEvent(this.app.vault.on("create", async ()=>{
@@ -283,10 +276,9 @@ export class ZKIndexView extends ItemView {
 
         this.registerEvent(this.app.vault.on("delete", async ()=>{
             this.plugin.RefreshIndexViewFlag = true;
-            this.app.workspace.trigger("zk-navigation:refresh-index-graph");
         }));      
         
-        this.registerEvent(this.app.metadataCache.on("changed", async()=>{            
+        this.registerEvent(this.app.metadataCache.on("changed", async()=>{  
             this.plugin.RefreshIndexViewFlag = true;
         }));
 
@@ -326,7 +318,8 @@ export class ZKIndexView extends ItemView {
     }
 
     async refreshBranchMermaid() {
-
+        
+        this.plugin.RefreshIndexViewFlag = false;
         const indexMermaidDiv = document.getElementById("zk-index-mermaid-container");
 
         if(!indexMermaidDiv) return;
