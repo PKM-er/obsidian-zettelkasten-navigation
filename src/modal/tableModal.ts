@@ -18,6 +18,7 @@ export class tableModal extends Modal {
 
   onOpen() {
     let { contentEl } = this;
+    this.containerEl.addClass("zk-modal-container");
     this.modalEl.addClass("zk-table-container");
 
     this.createToolBar(contentEl)

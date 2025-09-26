@@ -112,7 +112,7 @@ interface ZKNavigationSettings {
     gitUncrossing: boolean;
     canvasSubpath: string;
     canvasCardColor: string;
-    canvasArrowColor: string
+    canvasArrowColor: string;
 }
 
 //Default value for setting field

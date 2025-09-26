@@ -248,7 +248,7 @@ export class ZKGraphView extends ItemView {
                         let expandBtn = new ExtraButtonComponent(graphIconDiv);
                         expandBtn.setIcon("expand").setTooltip(t("expand graph"));
                         expandBtn.onClick(()=>{              
-                            new expandGraphModal(this.app,this.plugin, this.familyNodeArr, [], familyMermaidStr).open();
+                            new expandGraphModal(this.app,this.plugin, this.familyNodeArr, [], familyMermaidStr, 'gitGraph').open();
                         })
 
                         const familyTreeDiv = familyGraphContainer.createEl("div", { cls: "zk-graph-mermaid" });
@@ -288,7 +288,6 @@ export class ZKGraphView extends ItemView {
                         const gElements = familyTreeDiv.querySelectorAll('g.commit-bullets');
                         
                         
-                        let temNode = gElements[1];
                         const circles = gElements[1].querySelectorAll("circle.commit")
                         const circleNodes = Array.from(circles);
                         gElements[1].textContent = "";
@@ -296,11 +295,9 @@ export class ZKGraphView extends ItemView {
                         for(let j=0;j<circleNodes.length;j++){
                             let link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
                             link.appendChild(circleNodes[j]);
-                            gElements[1].appendChild(link);
-                            
-                            let nodes = this.familyNodeArr;
+                            gElements[1].appendChild(link);                            
     
-                            let nodeArr = nodes.filter(n=>n.gitNodePos === j);
+                            let nodeArr = this.familyNodeArr.filter(n=>n.gitNodePos === j);
                             if(nodeArr.length > 0){
                                 let node = nodeArr[0];
                                 circleNodes[j].addEventListener("click", async (event: MouseEvent) => {  

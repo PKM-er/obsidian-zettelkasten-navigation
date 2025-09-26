@@ -120,7 +120,6 @@ export default {
     "Current index: ": "Index:",
     "random index": "random keyword",
     "random main note": "random main note",
-    "❌Setting error: no folder or tag specified for main notes!": "❌Setting error: no folder or tag specified for main notes!",
     "❌Setting error: no folder specified for index!": "❌Setting error: no folder specified for index!",
     "Index: ": "Index: ",
     "has no valid main note outlinks": "has no valid main note outlinks",

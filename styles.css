@@ -172,6 +172,9 @@ padding: 5px;
   height: 100%;
 }
 
+.zk-modal-container{
+  z-index: 20;
+}
 .zk-expand-modal{
   width: 100%;
   height: 100%;

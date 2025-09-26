@@ -119,7 +119,6 @@ export default {
     "Current index: ": "当前关键词:",
     "random index": "随机关键词",
     "random main note": "随机主笔记",
-    "❌Setting error: no folder or tag specified for main notes!": "❌设置错误: 没有为主笔记指定文件夹或标签!",
     "❌Setting error: no folder specified for index!": "❌设置错误: 没有为关键词指定文件夹!",
     "Index: ": "关键词: ",
     "has no valid main note outlinks": "没有包含有效主笔记链接",

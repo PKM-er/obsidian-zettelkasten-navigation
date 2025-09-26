@@ -997,7 +997,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.RefreshIndexViewFlag = true;
                 })
             );
-
     }
 
     async hide() {

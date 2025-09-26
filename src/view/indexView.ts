@@ -305,16 +305,9 @@ export class ZKIndexView extends ItemView {
     }
 
     refreshIndexLayout = async() => {
-        
-        if (this.plugin.settings.FolderOfMainNotes == '' && this.plugin.settings.TagOfMainNotes == '') {
 
-            new Notice(t("❌Setting error: no folder or tag specified for main notes!"));
-            return;
+        await this.IndexViewInterfaceInit();
 
-        } else {        
-            await this.IndexViewInterfaceInit();
-
-        }
     }
 
     async refreshBranchMermaid() {
@@ -369,25 +362,21 @@ export class ZKIndexView extends ItemView {
 
                 const randomBtn = new ExtraButtonComponent(toolButtonsDiv);
                 randomBtn.setIcon("dice-3").setTooltip(t("random main note"));
-                randomBtn.onClick(async ()=>{
-                    
-                    if(this.plugin.settings.FolderOfMainNotes == '' && this.plugin.settings.TagOfMainNotes == ''){
-                        new Notice(t("❌Setting error: no folder or tag specified for main notes!"));
-                        return;
-                    }else{              
-                        let randomMainNoteNode = this.plugin.MainNotes[Math.floor(Math.random()*this.plugin.MainNotes.length)];                          
-                            
-                        this.plugin.settings.lastRetrival = {
-                            type: 'main',
-                            ID: randomMainNoteNode.ID,
-                            displayText: randomMainNoteNode.displayText,
-                            filePath: randomMainNoteNode.file.path,
-                            openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                randomBtn.onClick(async ()=>{                    
+          
+                    let randomMainNoteNode = this.plugin.MainNotes[Math.floor(Math.random()*this.plugin.MainNotes.length)];                          
                         
-                        }                 
-                        await this.plugin.clearShowingSettings();
-                        await this.IndexViewInterfaceInit();                                    
-                    }
+                    this.plugin.settings.lastRetrival = {
+                        type: 'main',
+                        ID: randomMainNoteNode.ID,
+                        displayText: randomMainNoteNode.displayText,
+                        filePath: randomMainNoteNode.file.path,
+                        openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    
+                    }                 
+                    await this.plugin.clearShowingSettings();
+                    await this.IndexViewInterfaceInit();                                    
+
                 })
             }
 
@@ -396,27 +385,23 @@ export class ZKIndexView extends ItemView {
                 const randomBtn = new ExtraButtonComponent(toolButtonsDiv);
                 randomBtn.setIcon("dices").setTooltip(t("random index"));
                 randomBtn.onClick(async ()=>{
-                    
-                    if(this.plugin.settings.FolderOfIndexes == ''){
-                        new Notice(t("❌Setting error: no folder specified for index!"));
-                        return;
-                    }else{
-                        const indexFiles = this.app.vault.getMarkdownFiles()
-                        .filter(f => f.path.startsWith(this.plugin.settings.FolderOfIndexes + '/'));  
-                        
-                        let randomIndex = indexFiles[Math.floor(Math.random()*indexFiles.length)];
 
-                        this.plugin.settings.lastRetrival = {
-                            type: 'index',
-                            ID: '',
-                            displayText: randomIndex.name,
-                            filePath: randomIndex.path,
-                            openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
-                        
-                        }          
-                        await this.plugin.clearShowingSettings();
-                        await this.IndexViewInterfaceInit();                                    
-                    }
+                    const indexFiles = this.app.vault.getMarkdownFiles()
+                    .filter(f => f.path.startsWith(this.plugin.settings.FolderOfIndexes + '/'));  
+                    
+                    let randomIndex = indexFiles[Math.floor(Math.random()*indexFiles.length)];
+
+                    this.plugin.settings.lastRetrival = {
+                        type: 'index',
+                        ID: '',
+                        displayText: randomIndex.name,
+                        filePath: randomIndex.path,
+                        openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    
+                    }          
+                    await this.plugin.clearShowingSettings();
+                    await this.IndexViewInterfaceInit();                                    
+                    
                 })
             }
 
@@ -705,7 +690,7 @@ export class ZKIndexView extends ItemView {
 
     async generateFlowchart(branchEntranceNodeArr:ZKNode[], indexMermaidDiv:HTMLElement){
         this.branchAllNodes = [];
-        for (let i = 0; i < branchEntranceNodeArr.length; i++) {
+        for (let i = 0; i < branchEntranceNodeArr.length; i++) {            
 
             const branchNodes = await this.getBranchNodes(branchEntranceNodeArr[i]);
             this.branchAllNodes.push({branchTab:i,branchNodes:branchNodes});
@@ -1233,9 +1218,9 @@ export class ZKIndexView extends ItemView {
                 nextBranch.active = true;
             }
             gitStr = gitStr + `checkout ${nextBranch.branchName}
-            commit id: "${nextNode?.displayText}"`
+            commit id: "${nextNode.displayText}"`
             
-            if(nextNode?.ID === entranceNode.ID){	
+            if(nextNode.ID === entranceNode.ID){	
                 gitStr = gitStr + `tag: "index🌿"`// `type: HIGHLIGHT`
             }
             
@@ -1245,14 +1230,14 @@ export class ZKIndexView extends ItemView {
             if(temBranches[branchIndex].nodes.length === temBranches[branchIndex].currentPos){
                 temBranches.splice(branchIndex,1);
             }
-            let newBranches = this.gitBranches.filter(n=>n.branchPoint.ID == nextNode?.ID);
+            let newBranches = this.gitBranches.filter(n=>n.branchPoint.ID == nextNode.ID);
             // 必须先声明分支
             for(let branch of newBranches){
                 temBranches.push(branch);
                 gitStr = gitStr + `branch ${branch.branchName} order: ${branch.order}\n`
             }
-        }
-            
+        }	    
+
         let mermaidStr: string = `%%{init: { 'logLevel': 'debug', 'theme': 'base', 'gitGraph': {'showBranches': false, 'parallelCommits': ${this.plugin.settings.nodeClose}, 'rotateCommitLabel': true}} }%%
                                 gitGraph
                                 ${gitStr}
@@ -1349,10 +1334,13 @@ export class ZKIndexView extends ItemView {
 
         for (let node of Nodes) {
             
-            if(this.plugin.settings.siblingLenToggle === true && node.fixWidth !== 0){
-                mermaidStr = mermaidStr + `${node.position}("<p style='width:${node.fixWidth}px;'>${node.displayText}</p>");\n`;
+            let nodeText = node.displayText;
+            let fixWidth = node.fixWidth;
+            
+            if(this.plugin.settings.siblingLenToggle === true && node.fixWidth > 0){
+                mermaidStr = mermaidStr + `${node.position}("<p style='width:${fixWidth}px;'>${nodeText}</p>");\n`;
             }else{
-                mermaidStr = mermaidStr + `${node.position}("${node.displayText}");`;
+                mermaidStr = mermaidStr + `${node.position}("${nodeText}");`;
             }
             
             if (node.IDStr.startsWith(entranceNode.IDStr)) {
@@ -1902,7 +1890,7 @@ export class ZKIndexView extends ItemView {
                 let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
                             
                 if(this.plugin.settings.FoldNodeArr.filter(n =>
-                    (n.nodeIDstr == node.IDStr) && (n.graphID = indexMermaid.id)).length === 0)
+                    (n.nodeIDstr == node.IDStr) && (n.graphID == indexMermaid.id)).length === 0)
                     {
                         newCircle.addClass('zk-fold-yellow');
                     }else{
@@ -1920,7 +1908,7 @@ export class ZKIndexView extends ItemView {
                     }; 
                     
                     if(this.plugin.settings.FoldNodeArr.filter(n =>
-                        (n.nodeIDstr == node.IDStr) && (n.graphID = indexMermaid.id)).length === 0)
+                        (n.nodeIDstr == node.IDStr) && (n.graphID == indexMermaid.id)).length === 0)
                         {
                             this.plugin.settings.FoldNodeArr.push(clickNode);
                         }else{
@@ -1930,11 +1918,12 @@ export class ZKIndexView extends ItemView {
                                 this.plugin.settings.FoldNodeArr.splice(index, 1);
                             }
                         }
-
+                    
                     if(event.ctrlKey && newCircle.hasClass('zk-fold-green')){
+                        
                         this.plugin.settings.FoldNodeArr = this.plugin.settings.FoldNodeArr.filter(
-                            n=>!n.nodeIDstr.startsWith(clickNode.nodeIDstr)
-                        )                       
+                            n=>!(n.nodeIDstr.startsWith(clickNode.nodeIDstr) && (n.graphID == clickNode.graphID))
+                        )   
                     }  
                     event.stopPropagation();     
                     await this.refreshBranchMermaid();           

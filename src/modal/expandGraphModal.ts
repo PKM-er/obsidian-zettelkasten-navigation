@@ -8,17 +8,20 @@ export class expandGraphModal extends Modal {
   mainNotes: ZKNode[];
   mermaidStr:string;
   files:TFile[]
+  graphType:string;
 
-  constructor(app: App, plugin:ZKNavigationPlugin, mainNotes:ZKNode[], files:TFile[], mermaidStr:string) {
+  constructor(app: App, plugin:ZKNavigationPlugin, mainNotes:ZKNode[], files:TFile[], mermaidStr:string, graphType:string='flowchart') {
     super(app);
     this.plugin = plugin;
     this.mainNotes = mainNotes;
     this.mermaidStr = mermaidStr;
     this.files = files;
+    this.graphType=graphType;
   }
 
   async onOpen() {
     let { contentEl } = this;
+    this.containerEl.addClass("zk-modal-container");
     this.modalEl.addClass("zk-expand-modal");
     const mermaid = await loadMermaid();
     
@@ -57,66 +60,73 @@ export class expandGraphModal extends Modal {
         }
     }
 
-    let nodeGArr = svgGraph.querySelectorAll("[id^='flowchart-']");
-    let nodeArr = svgGraph.getElementsByClassName("nodeLabel");
+    if(this.graphType==='flowchart'){
 
-    for (let i = 0; i < nodeArr.length; i++) {
-        let link = document.createElement('a');
-        link.addClass("internal-link");
-        let nodePosStr = nodeGArr[i].id.split('-')[1];
-        let path:string = '';
-        if(this.files.length == 0){
-            path = this.mainNotes.filter(n=>n.position == Number(nodePosStr))[0].file.path;
-        }else{
-            path = this.files[Number(nodePosStr)].path;
-        }
-        
-        link.textContent = nodeArr[i].getText();
-        nodeArr[i].textContent = "";
-        nodeArr[i].appendChild(link);
-        nodeGArr[i].addEventListener("click", (event: MouseEvent) => {
-            if(event.ctrlKey){
-                this.app.workspace.openLinkText("", path, 'tab');                
-            }else if(event.shiftKey){
-                //this.plugin.FileforLocaLgraph = path;
-                this.plugin.retrivalforLocaLgraph = {
-                    type: '1',
-                    ID: '',
-                    filePath: path,  
-                }; 
-                this.plugin.openGraphView();
-            }else if(event.altKey){
-                let mainNotes = this.plugin.MainNotes.filter(n=>n.file.path == path);
-                
-                if(mainNotes.length > 0){
-                    this.plugin.clearShowingSettings();
-                    //this.plugin.settings.SelectMainNote = mainNote.file.path;
-                    this.plugin.settings.lastRetrival = {
-                        type: 'main',
-                        ID: mainNotes[0].ID,
-                        displayText: mainNotes[0].displayText,
-                        filePath: mainNotes[0].file.path,
-                        openTime: '',                        
-                    }
-                    this.plugin.RefreshIndexViewFlag = true;
-                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
-                }
+        let nodeGArr = svgGraph.querySelectorAll("[id^='flowchart-']");
+        let nodeArr = svgGraph.getElementsByClassName("nodeLabel");
 
+        for (let i = 0; i < nodeArr.length; i++) {
+            let link = document.createElement('a');
+            link.addClass("internal-link");
+            let nodePosStr = nodeGArr[i].id.split('-')[1];
+            let path:string = '';
+            if(this.files.length == 0){
+                path = this.mainNotes.filter(n=>n.position == Number(nodePosStr))[0].file.path;
             }else{
-                this.app.workspace.openLinkText("",path)
+                path = this.files[Number(nodePosStr)].path;
             }
-        })
-
-        nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
-            this.app.workspace.trigger(`hover-link`, {
-                event,
-                source: ZK_NAVIGATION,
-                hoverParent: this,
-                linktext: "",
-                targetEl: link,
-                sourcePath: path,
+            
+            link.textContent = nodeArr[i].getText();
+            nodeArr[i].textContent = "";
+            nodeArr[i].appendChild(link);
+            nodeGArr[i].addEventListener("click", (event: MouseEvent) => {
+                this.app.workspace.openLinkText("", path, 'tab');                
             })
-        });
+
+            nodeArr[i].addEventListener(`mouseover`, (event: MouseEvent) => {
+                this.app.workspace.trigger(`hover-link`, {
+                    event,
+                    source: ZK_NAVIGATION,
+                    hoverParent: this,
+                    linktext: "",
+                    targetEl: link,
+                    sourcePath: path,
+                })
+            });
+        }
+    }else{
+
+        const gElements = svgGraph.querySelectorAll('g.commit-bullets');        
+        
+        const circles = gElements[1].querySelectorAll("circle.commit"); 
+        const circleNodes = Array.from(circles);
+        gElements[1].textContent = "";
+
+        for(let j=0;j<circleNodes.length;j++){
+            let link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+            link.appendChild(circleNodes[j]);
+            gElements[1].appendChild(link);            
+            
+            let nodeArr = this.mainNotes.filter(n=>n.gitNodePos === j);
+            
+            if(nodeArr.length > 0){
+                let node = nodeArr[0];
+                circleNodes[j].addEventListener("click", async (event: MouseEvent) => {  
+                    this.app.workspace.openLinkText("", node.file.path, 'tab');                   
+                })
+                
+                circleNodes[j].addEventListener(`mouseover`, (event: MouseEvent) => {
+                    this.app.workspace.trigger(`hover-link`, {
+                        event,
+                        source: ZK_NAVIGATION,
+                        hoverParent: this,
+                        linktext: node.file.basename,
+                        targetEl: circleNodes[j],
+                        sourcePath: node.file.path,
+                    })
+                });                            
+            }  
+        }
     }
 
   }

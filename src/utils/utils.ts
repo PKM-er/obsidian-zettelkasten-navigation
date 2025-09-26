@@ -1,5 +1,5 @@
 import ZKNavigationPlugin, { ZoomPanScale } from "main";
-import { loadMermaid, moment, TFile } from "obsidian";
+import { loadMermaid, moment, Notice, TFile } from "obsidian";
 import { ZKNode } from "src/view/indexView";
 
 // formatting Luhmann style IDs
@@ -54,20 +54,9 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
     }
 
     if (plugin.settings.TagOfMainNotes !== '') {
-
+        
         mainNoteFiles = mainNoteFiles.filter(
-            file => {
-                const tags = this.app.metadataCache.getFileCache(file)?.frontmatter?.tags
-                if(tags){
-                    if(Array.isArray(tags)){
-                        return tags.some(tags => tags === plugin.settings.TagOfMainNotes.substring(1) || tags.startsWith(`${plugin.settings.TagOfMainNotes.substring(1)}/`))
-                    }else{
-                        return tags === plugin.settings.TagOfMainNotes.substring(1) || tags.startsWith(`${plugin.settings.TagOfMainNotes.substring(1)}/`)
-                    }
-                }else{
-                    return false;
-                }
-            }
+            file => getfileTags(file).includes(plugin.settings.TagOfMainNotes)
         )
     }
 
@@ -170,6 +159,8 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
         plugin.MainNotes.push(node);
     }
+
+    plugin.MainNotes = plugin.MainNotes.filter(n=>n.IDArr.length > 0);
 
     if(plugin.settings.multiIDToggle == true && plugin.settings.multiIDField != ''){
         
@@ -362,4 +353,43 @@ export async function addSvgPanZoom(
         panZoomTiger.pan(plugin.settings.zoomPanScaleArr[i].pan); 
                 
     }  
+}
+
+function getfileTags(file:TFile){
+    let fileTags:string[] = [];
+    let fmTags = this.app.metadataCache.getFileCache(file)?.frontmatter?.tags;
+    	if(fmTags){
+		if(Array.isArray(fmTags)){
+		
+			for(let tag of fmTags){
+				splitNestedTags("#" + tag, fileTags);
+			}
+			
+		}else if(typeof fmTags == "string"){
+			splitNestedTags(fmTags, fileTags);			
+		}else{
+		}
+	}
+
+    let tags = this.app.metadataCache.getFileCache(file)?.tags
+	
+	if(tags && Array.isArray(tags)){
+
+		for(let tag of tags){
+			splitNestedTags(tag.tag, fileTags);
+		}
+	}
+
+    return fileTags;
+}
+
+function splitNestedTags(nestTag:string, arr:string[]){
+	let words = nestTag.split("/");
+	let tagStr = "";
+	for(let word of words){
+		tagStr = tagStr.concat(word);
+		arr.push(tagStr);
+		tagStr = tagStr.concat("/");
+	}
+	return arr
 }
