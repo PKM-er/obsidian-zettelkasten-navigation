@@ -366,7 +366,7 @@ function getfileTags(file:TFile){
 			}
 			
 		}else if(typeof fmTags == "string"){
-			splitNestedTags(fmTags, fileTags);			
+			splitNestedTags("#" + fmTags, fileTags);			
 		}else{
 		}
 	}
