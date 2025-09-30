@@ -623,7 +623,7 @@ export class ZKIndexView extends ItemView {
                     event,
                     source: ZK_NAVIGATION,
                     hoverParent: link,
-                    linktext: indexFile.basename,
+                    linktext: "",
                     targetEl: link,
                     sourcePath: indexFile.path,
                 })
@@ -804,7 +804,7 @@ export class ZKIndexView extends ItemView {
                                 event,
                                 source: ZK_NAVIGATION,
                                 hoverParent: this,
-                                linktext: node.file.basename,
+                                linktext: "",
                                 targetEl: link,
                                 sourcePath: node.file.path,
                             })
@@ -871,7 +871,7 @@ export class ZKIndexView extends ItemView {
                 gElements[1].textContent = "";
                 for(let j=0;j<circleNodes.length;j++){
 
-                    let link = document.createElementNS('http://www.w3.org/2000/svg', 'a');
+                    let link = document.createElementNS('http://www.w3.org/2000/svg', "a");
                     link.appendChild(circleNodes[j]);
                     gElements[1].appendChild(link);
                     
@@ -945,8 +945,8 @@ export class ZKIndexView extends ItemView {
                             this.app.workspace.trigger(`hover-link`, {
                                 event,
                                 source: ZK_NAVIGATION,
-                                hoverParent: circleNodes[j],
-                                linktext: node.file.basename,
+                                hoverParent: "",
+                                linktext: "",
                                 targetEl: circleNodes[j],
                                 sourcePath: node.file.path,
                             })

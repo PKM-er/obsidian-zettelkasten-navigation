@@ -157,6 +157,18 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 })
         );
 
+        new Setting(mainNotesDiv)
+        .setName(t("Detect file extensions"))
+        .addDropdown(options => options
+            .addOption("all", t("all file extension"))
+            .addOption("md", t(".md only"))
+            .setValue(this.plugin.settings.MainNoteExt)
+            .onChange((value) => {
+                this.plugin.settings.MainNoteExt = value;
+                this.plugin.RefreshIndexViewFlag = true;
+            })
+        )
+
         const retrievalDiv = settingTabDiv.createDiv("zk-setting-section");
         
         new Setting(retrievalDiv)

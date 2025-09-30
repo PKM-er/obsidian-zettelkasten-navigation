@@ -325,19 +325,16 @@ export class ZKGraphView extends ItemView {
                                     }
                                     
                                 })
-                                circleNodes[j].addEventListener("touchend", () => {
-                                    this.app.workspace.openLinkText("",node.file.path)
-                                })
                                 circleNodes[j].addEventListener(`mouseover`, (event: MouseEvent) => {
                                     this.app.workspace.trigger(`hover-link`, {
                                         event,
                                         source: ZK_NAVIGATION,
                                         hoverParent: circleNodes[j],
-                                        linktext: node.file.basename,
+                                        linktext: "",
                                         targetEl: circleNodes[j],
                                         sourcePath: node.file.path,
                                     })
-                                });                            
+                                });                        
                             }  
                         }
                     }

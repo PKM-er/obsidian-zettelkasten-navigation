@@ -50,6 +50,7 @@ export interface NodeCommand {
 interface ZKNavigationSettings {
     FolderOfMainNotes: string;
     FolderOfIndexes: string;
+    MainNoteExt: string; // "all" or ".md only"
     StartingPoint: string;
     DisplayLevel: string;
     NodeText: string;
@@ -119,6 +120,7 @@ interface ZKNavigationSettings {
 const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FolderOfMainNotes: '',
     FolderOfIndexes: '',
+    MainNoteExt:"md",
     StartingPoint: 'parent',
     DisplayLevel: 'end',
     NodeText: "both",
@@ -435,11 +437,11 @@ export default class ZKNavigationPlugin extends Plugin {
         
         let filePath = this.app.workspace.getActiveViewOfType(FileView)?.file?.path
 
-        if(filePath && filePath.endsWith(".md")){
+        if(filePath){
 
             let indexFlag:boolean = false;
 
-            if(this.settings.FolderOfIndexes !== ""){
+            if(this.settings.FolderOfIndexes !== "" && filePath.endsWith(".md")){
                 if(filePath.startsWith(this.settings.FolderOfIndexes)){
                     indexFlag = true;
                     

@@ -119,8 +119,8 @@ export class expandGraphModal extends Modal {
                     this.app.workspace.trigger(`hover-link`, {
                         event,
                         source: ZK_NAVIGATION,
-                        hoverParent: this,
-                        linktext: node.file.basename,
+                        hoverParent: circleNodes[j],
+                        linktext: "",
                         targetEl: circleNodes[j],
                         sourcePath: node.file.path,
                     })

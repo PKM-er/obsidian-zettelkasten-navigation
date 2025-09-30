@@ -42,11 +42,15 @@ export async function ID_formatting(id: string, arr: string[], siblingsOrder:str
 // translating different ID fields(filename/attribute/prefix of filename) into standard ZKNode array
 export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
-    let mainNoteFiles:TFile[] = this.app.vault.getMarkdownFiles();
-    
-    plugin.MainNotes = [];
+    let mainNoteFiles:TFile[] = this.app.vault.getFiles();
 
+    if(plugin.settings.MainNoteExt == 'md'){
+        mainNoteFiles = mainNoteFiles.filter(file=>file.extension == "md");
+    }
+
+    
     if (plugin.settings.FolderOfMainNotes !== '') {
+        
         mainNoteFiles = mainNoteFiles.filter(
             file => {
                 return file.path.replace(file.name, "").startsWith(plugin.settings.FolderOfMainNotes + '/');
@@ -55,10 +59,21 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
     if (plugin.settings.TagOfMainNotes !== '') {
         
-        mainNoteFiles = mainNoteFiles.filter(
-            file => getfileTags(file).includes(plugin.settings.TagOfMainNotes)
+        let mdMainNote:TFile[] = [];
+        let otherMainNote:TFile[]=[];
+
+        if(plugin.settings.MainNoteExt == 'all'){
+            otherMainNote =  mainNoteFiles.filter( file => file.extension !== "md");
+        }
+        
+        mdMainNote = mainNoteFiles.filter(
+            file => file.extension == 'md' && getfileTags(file).includes(plugin.settings.TagOfMainNotes)
         )
+        mainNoteFiles = mdMainNote.concat(otherMainNote);
     }
+
+
+    plugin.MainNotes = [];
 
     for (let note of mainNoteFiles) {
         let IDArr: string[] = [];
@@ -92,7 +107,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
                 node.IDStr = IDArr.toString();
 
-                if (nodeCache !== null) {
+                if (nodeCache !== null && node.file.extension == 'md') {
                     if (typeof nodeCache.frontmatter !== 'undefined' && plugin.settings.TitleField !== "") {
                         
                         let title = nodeCache.frontmatter[plugin.settings.TitleField]?.toString();
@@ -104,29 +119,31 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
                 break;
             case "2":
-                if (nodeCache !== null) {
-                    if (typeof nodeCache.frontmatter !== 'undefined' && plugin.settings.IDField !== "") {
-                        let id = nodeCache.frontmatter[plugin.settings.IDField];
-                        if(Array.isArray(id)){
-                            node.ID = id[0].toString();
-                            node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
-                            node.IDStr = node.IDArr.toString();
-                            node.title = note.basename;
-                        }else if (typeof id == "string") {
-                            node.ID = id;
-                            node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
-                            node.IDStr = node.IDArr.toString();
-                            node.title = note.basename;
-                        }else if(typeof id == 'number'){
-                            node.ID = id.toString();
-                            node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
-                            node.IDStr = node.IDArr.toString();
-                            node.title = note.basename;
+                if(node.file.extension == 'md'){
+                    if (nodeCache !== null) {
+                        if (typeof nodeCache.frontmatter !== 'undefined' && plugin.settings.IDField !== "") {
+                            let id = nodeCache.frontmatter[plugin.settings.IDField];
+                            if(Array.isArray(id)){
+                                node.ID = id[0].toString();
+                                node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
+                                node.IDStr = node.IDArr.toString();
+                                node.title = note.basename;
+                            }else if (typeof id == "string") {
+                                node.ID = id;
+                                node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
+                                node.IDStr = node.IDArr.toString();
+                                node.title = note.basename;
+                            }else if(typeof id == 'number'){
+                                node.ID = id.toString();
+                                node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
+                                node.IDStr = node.IDArr.toString();
+                                node.title = note.basename;
+                            }
                         }
                     }
-                }
-                if (node.ID == '') {
-                    continue;
+                    if (node.ID == '') {
+                        continue;
+                    }
                 }
                 break;
             case "3":
@@ -141,7 +158,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
             // do nothing
         }
         
-        if (plugin.settings.CustomCreatedTime.length > 0) {
+        if (plugin.settings.CustomCreatedTime.length > 0 && node.file.extension == 'md') {
             
            let ctime = nodeCache?.frontmatter?.[plugin.settings.CustomCreatedTime];
 
@@ -168,25 +185,27 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
 
         for (let i = 0; i < plugin.MainNotes.length; i++) {
             let node = plugin.MainNotes[i];
-            let fm = await this.app.metadataCache.getFileCache(node.file).frontmatter;
-            if(fm){
-                let IDs = fm[plugin.settings.multiIDField];
-                if(Array.isArray(IDs)){
-                    for(let j = 0; j < IDs.length; j++){
+            if(node.file.extension == 'md'){
+                let fm = await this.app.metadataCache.getFileCache(node.file).frontmatter;
+                if(fm){
+                    let IDs = fm[plugin.settings.multiIDField];
+                    if(Array.isArray(IDs)){
+                        for(let j = 0; j < IDs.length; j++){
+                            let nodeDup =  Object.assign({}, node);
+                            nodeDup.ID = IDs[j].toString();
+                            nodeDup.IDArr = await ID_formatting(nodeDup.ID, [], plugin.settings.siblingsOrder);
+                            nodeDup.IDStr = nodeDup.IDArr.toString();
+                            nodeDup.randomId = random(16);
+                            duplicateNodes.push(nodeDup)
+                        }
+                    }else if(typeof IDs == "string"){
                         let nodeDup =  Object.assign({}, node);
-                        nodeDup.ID = IDs[j].toString();
+                        nodeDup.ID = IDs;
                         nodeDup.IDArr = await ID_formatting(nodeDup.ID, [], plugin.settings.siblingsOrder);
                         nodeDup.IDStr = nodeDup.IDArr.toString();
                         nodeDup.randomId = random(16);
                         duplicateNodes.push(nodeDup)
                     }
-                }else if(typeof IDs == "string"){
-                    let nodeDup =  Object.assign({}, node);
-                    nodeDup.ID = IDs;
-                    nodeDup.IDArr = await ID_formatting(nodeDup.ID, [], plugin.settings.siblingsOrder);
-                    nodeDup.IDStr = nodeDup.IDArr.toString();
-                    nodeDup.randomId = random(16);
-                    duplicateNodes.push(nodeDup)
                 }
             }
         }
