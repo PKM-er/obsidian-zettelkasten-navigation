@@ -1,11 +1,11 @@
 export default {
     // settings.ts
     "ZK main notes": "主笔记",
-    "Main notes folder location": "⚠主笔记文件存放位置",
+    "Main notes folder location": "主笔记文件存放位置",
     "Specify a folder location to identify main notes": "指定主笔记的文件夹",
     "Example: folder1/folder2": "比如: 文件夹/子文件夹",
     "Main notes tag": "主笔记标签",
-    "Specify a tag to identify main notes": "指定主笔记的标签（可选）",
+    "Specify a tag to identify main notes": "指定主笔记的标签",
     "Note ID field options": "⚠ID(笔记编号)字段选项",
     "Option 1: Filename is note ID": "选项1: 文件名作为ID",
     "Option 2: Metadata is note ID": "选项2: 笔记属性作为ID",
@@ -79,7 +79,7 @@ export default {
     "delete node": "删除节点",
     "custom command": "自选命令",
     'Open command palette': '打开命令面板',
-    "experimental": "⚠实验性功能",
+    "experimental": "实验性功能",
     "multiple IDs for main notes": "允许主笔记有多个ID",
     "multiple IDs description": "通过给主笔记分配额外的ID将其添加到其它分支",
     "Specify a frontmatter field(list) for multiple IDs":"指定一个类型为列表的属性名称来存放多个ID",

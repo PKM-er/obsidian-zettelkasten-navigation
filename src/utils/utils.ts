@@ -51,11 +51,18 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
     
     if (plugin.settings.FolderOfMainNotes !== '') {
         
-        mainNoteFiles = mainNoteFiles.filter(
-            file => {
-                return file.path.replace(file.name, "").startsWith(plugin.settings.FolderOfMainNotes + '/');
-            })
+        if(plugin.settings.FolderOfMainNotes === '/'){
+
+            mainNoteFiles = mainNoteFiles.filter(file => file.parent && file.parent.name === "");
+
+        }else{
+            mainNoteFiles = mainNoteFiles.filter(
+                file => {
+                    return file.path.replace(file.name, "").startsWith(plugin.settings.FolderOfMainNotes + '/');
+                })
+        }
     }
+
 
     if (plugin.settings.TagOfMainNotes !== '') {
         
@@ -71,7 +78,6 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
         )
         mainNoteFiles = mdMainNote.concat(otherMainNote);
     }
-
 
     plugin.MainNotes = [];
 
