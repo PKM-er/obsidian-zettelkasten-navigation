@@ -319,7 +319,7 @@ export default class ZKNavigationPlugin extends Plugin {
 
         this.registerView(ZK_RECENT_TYPE, (leaf) => new ZKRecentView(leaf, this));
               
-        this.addRibbonIcon("ghost", t("open zk-index-graph"), async () => {
+        this.addRibbonIcon("list-tree", t("open zk-index-graph"), async () => {
             
             this.openIndexView();
             
