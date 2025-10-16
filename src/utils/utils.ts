@@ -130,6 +130,9 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
                         if (typeof nodeCache.frontmatter !== 'undefined' && plugin.settings.IDField !== "") {
                             let id = nodeCache.frontmatter[plugin.settings.IDField];
                             if(Array.isArray(id)){
+                                if (id[0] === null) {
+                                    continue;
+                                }
                                 node.ID = id[0].toString();
                                 node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
                                 node.IDStr = node.IDArr.toString();
@@ -197,6 +200,9 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
                     let IDs = fm[plugin.settings.multiIDField];
                     if(Array.isArray(IDs)){
                         for(let j = 0; j < IDs.length; j++){
+                            if (IDs[j] === null) {
+                                continue;
+                            }
                             let nodeDup =  Object.assign({}, node);
                             nodeDup.ID = IDs[j].toString();
                             nodeDup.IDArr = await ID_formatting(nodeDup.ID, [], plugin.settings.siblingsOrder);
