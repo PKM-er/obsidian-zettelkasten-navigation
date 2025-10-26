@@ -1500,10 +1500,10 @@ export class ZKIndexView extends ItemView {
             let positionY:number = nodes[i].height;
             if(direction === "LR" || direction === "RL"){
                 canvasNodeStr = canvasNodeStr + `
-                {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"${this.getCanvasCardSetting()}},`
+                {"id":"${nodes[i].randomId}","x":${positionX},"y":${positionY},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"${this.getCanvasCardSetting(nodes[i].file)}},`
             }else{
                 canvasNodeStr = canvasNodeStr + `
-                {"id":"${nodes[i].randomId}","x":${positionY},"y":${positionX},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"${this.getCanvasCardSetting()}},`
+                {"id":"${nodes[i].randomId}","x":${positionY},"y":${positionX},"width":${Math.abs(cardWidth)},"height":${Math.abs(cardHeight)},"type":"file","file":"${nodes[i].file.path}"${this.getCanvasCardSetting(nodes[i].file)}},`
 
             }
             let IDStr = nodes[i].IDStr;
@@ -1658,7 +1658,7 @@ export class ZKIndexView extends ItemView {
     
             for(let i=0;i<branch.nodes.length;i++){                
                 canvasNodeStr = canvasNodeStr + `
-                {"id":"${branch.nodes[i].randomId}","x":${branch.positionX + (cardWidth+intervalX)*i},"y":${(cardHeight+intervalY)*branch.order},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${branch.nodes[i].file.path}"${this.getCanvasCardSetting()}},`
+                {"id":"${branch.nodes[i].randomId}","x":${branch.positionX + (cardWidth+intervalX)*i},"y":${(cardHeight+intervalY)*branch.order},"width":${cardWidth},"height":${cardHeight},"type":"file","file":"${branch.nodes[i].file.path}"${this.getCanvasCardSetting(branch.nodes[i].file)}},`
             }
 
             for(let i=1;i<branch.nodes.length;i++){
@@ -1957,11 +1957,18 @@ export class ZKIndexView extends ItemView {
         })
     }
 
-    getCanvasCardSetting(){
+    getCanvasCardSetting(file:TFile){
         
         let cardSetting:string = ",";
-        if(this.plugin.settings.canvasSubpath !== ""){
-            cardSetting = cardSetting + `"subpath":"#${this.plugin.settings.canvasSubpath}",`
+        let subpath = this.plugin.settings.canvasSubpath;
+        if(subpath !== "" && file.extension === "md"){
+            let headings = this.app.metadataCache.getFileCache(file)?.headings
+            if(headings){
+                let heading = headings.find(h => h.heading === subpath) || headings.find(h => h.heading.includes(subpath));
+                if(heading){
+                    cardSetting = cardSetting + `"subpath":"#${heading.heading}",`
+                }
+            }            
         }
         if(this.plugin.settings.canvasCardColor !== "#C0C0C0"){
             cardSetting = cardSetting + `"color":"${this.plugin.settings.canvasCardColor}",`
