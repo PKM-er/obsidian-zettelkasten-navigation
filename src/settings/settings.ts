@@ -67,7 +67,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         //new Setting(settingTabDiv).setName(t("ZK main notes")).setHeading();
         new Setting(mainNotesDiv)
             .setName(t("Main notes folder location"))
-            .setDesc(t("Specify a folder location to identify main notes"))
+            .setDesc(t("Main notes folder des"))
             .addSearch((cb) => {
                 new FolderSuggest(this.app, cb.inputEl);
                 cb.setPlaceholder(t("Example: folder1/folder2"))
@@ -80,7 +80,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
 
         new Setting(mainNotesDiv)
             .setName(t("Main notes tag"))
-            .setDesc(t("Specify a tag to identify main notes"))
+            .setDesc(t("Main notes tag des"))
             .addSearch((cb) => {
                 new TagSuggest(this.app, cb.inputEl);
                 cb.setValue(this.plugin.settings.TagOfMainNotes)
@@ -879,8 +879,16 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     .onChange((value) => {
                         this.plugin.settings.canvasSubpath = value;                        
                     })
-                }
-            )
+                })
+                .addDropdown(options => options
+                    .addOption("string",t("string match"))
+                    .addOption("regex", t("regex match"))
+                    .setValue(this.plugin.settings.headingMatchMode)
+                    .onChange((value)=>{
+                        this.plugin.settings.headingMatchMode = value;
+                    })
+                );
+            
             
         new Setting(canvasAdditionSection)
             .setName(t("Set color for cards"))

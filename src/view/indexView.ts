@@ -1,5 +1,5 @@
 import ZKNavigationPlugin, { FoldNode, Retrival } from "main";
-import { ButtonComponent, DropdownComponent, ExtraButtonComponent, ItemView, Menu, Notice, TFile, WorkspaceLeaf, debounce, moment, setTooltip } from "obsidian";
+import { ButtonComponent, DropdownComponent, ExtraButtonComponent, HeadingCache, ItemView, Menu, Notice, TFile, WorkspaceLeaf, debounce, moment, setTooltip } from "obsidian";
 import { t } from "src/lang/helper";
 import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
 import { mainNoteFuzzyModal, mainNoteModal } from "src/modal/mainNoteModal";
@@ -1964,7 +1964,18 @@ export class ZKIndexView extends ItemView {
         if(subpath !== "" && file.extension === "md"){
             let headings = this.app.metadataCache.getFileCache(file)?.headings
             if(headings){
-                let heading = headings.find(h => h.heading === subpath) || headings.find(h => h.heading.includes(subpath));
+                let heading:HeadingCache|undefined = undefined;
+                if(this.plugin.settings.headingMatchMode === 'regex'){
+                    try {
+                        const pattern = new RegExp(subpath);
+                        heading = headings.find(h => pattern.test(h.heading));
+                    } catch (error) {
+                        
+                    }
+                }else{
+                    heading = headings.find(h => h.heading === subpath) || headings.find(h => h.heading.includes(subpath));
+                }
+                
                 if(heading){
                     cardSetting = cardSetting + `"subpath":"#${heading.heading}",`
                 }

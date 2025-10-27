@@ -2,10 +2,10 @@ export default {
     // settings.ts
     "ZK main notes": "主笔记",
     "Main notes folder location": "主笔记文件存放位置",
-    "Specify a folder location to identify main notes": "指定主笔记的文件夹",
+    "Main notes folder des": "该文件夹的文件都可以作为主笔记",
     "Example: folder1/folder2": "比如: 文件夹/子文件夹",
     "Main notes tag": "主笔记标签",
-    "Specify a tag to identify main notes": "指定主笔记的标签",
+    "Main notes tag des": "带有该标签的文件都可以作为主笔记",
     "Note ID field options": "⚠ID(笔记编号)字段选项",
     "Option 1: Filename is note ID": "选项1: 文件名作为ID",
     "Option 2: Metadata is note ID": "选项2: 笔记属性作为ID",
@@ -103,7 +103,9 @@ export default {
     "Narrow to heading": "缩小至标题",
     "Set color for cards": "设置卡片颜色",
     "Set color for arrow": "设置连线颜色",
-    
+    "string match": "字符串匹配",
+    "regex match": "正则匹配",
+
     // indexView.ts
     "Display from : ": "起点：",
     "To : ": "终点：",

@@ -114,6 +114,7 @@ interface ZKNavigationSettings {
     canvasSubpath: string;
     canvasCardColor: string;
     canvasArrowColor: string;
+    headingMatchMode: string; // "string" or "regex"
 }
 
 //Default value for setting field
@@ -184,6 +185,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     canvasSubpath: "",
     canvasCardColor: "#C0C0C0",
     canvasArrowColor: "#C0C0C0",
+    headingMatchMode: "string" 
 }
 
 export default class ZKNavigationPlugin extends Plugin {

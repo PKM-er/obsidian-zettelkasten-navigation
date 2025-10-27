@@ -2,10 +2,10 @@ export default {
     // settings.ts
     "ZK main notes": "Main notes",
     "Main notes folder location": "Main notes folder location",
-    "Specify a folder location to identify main notes": "Specify a folder location to identify main notes",
+    "Main notes folder des": "Files in this folder will be available as main notes",
     "Example: folder1/folder2": "Example: folder1/folder2",
     "Main notes tag": "Main notes tag",
-    "Specify a tag to identify main notes": "Specify a tag to identify main notes",
+    "Main notes tag des": "Files with this tag will be available as main notes",
     "Note ID field options": "⚠Note ID field options",
     "Option 1: Filename is note ID": "Option 1: Filename is note ID",
     "Option 2: Metadata is note ID": "Option 2: Metadata is note ID",
@@ -104,6 +104,8 @@ export default {
     "Narrow to heading": "Narrow to heading",
     "Set color for cards": "Set color for cards",
     "Set color for arrow": "Set color for arrow",
+    "string match": "string match",
+    "regex match": "regex match",
 
     // indexView.ts
     "Display from : ": "From : ",
