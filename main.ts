@@ -49,6 +49,7 @@ export interface NodeCommand {
 //settings fields
 interface ZKNavigationSettings {
     FolderOfMainNotes: string;
+    FolderList:string[];
     FolderOfIndexes: string;
     MainNoteExt: string; // "all" or ".md only"
     StartingPoint: string;
@@ -57,7 +58,7 @@ interface ZKNavigationSettings {
     FamilyGraphToggle: boolean;
     InlinksGraphToggle: boolean;
     OutlinksGraphToggle: boolean;
-    TagOfMainNotes: string;
+    TagOfMainNotes: string; 
     IDFieldOption: string; // 3 options for ID field
     TitleField: string; // ID field option 1, specify a frontmatter field as note title
     IDField: string;    // ID field option 2, specify a frontmatter field as note ID
@@ -120,6 +121,7 @@ interface ZKNavigationSettings {
 //Default value for setting field
 const DEFAULT_SETTINGS: ZKNavigationSettings = {
     FolderOfMainNotes: '',
+    FolderList: [],
     FolderOfIndexes: '',
     MainNoteExt:"md",
     StartingPoint: 'parent',

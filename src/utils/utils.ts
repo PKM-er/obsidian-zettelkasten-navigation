@@ -48,21 +48,32 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
         mainNoteFiles = mainNoteFiles.filter(file=>file.extension == "md");
     }
 
-    
-    if (plugin.settings.FolderOfMainNotes !== '') {
-        
-        if(plugin.settings.FolderOfMainNotes === '/'){
-
-            mainNoteFiles = mainNoteFiles.filter(file => file.parent && file.parent.name === "");
-
-        }else{
-            mainNoteFiles = mainNoteFiles.filter(
-                file => {
-                    return file.path.replace(file.name, "").startsWith(plugin.settings.FolderOfMainNotes + '/');
-                })
-        }
+    //clear our folder field
+    if(plugin.settings.FolderOfMainNotes !== "" ){
+        plugin.settings.FolderList.push(plugin.settings.FolderOfMainNotes);
+        plugin.settings.FolderOfMainNotes = "";
     }
 
+    if(plugin.settings.FolderList.length > 0){
+
+        let validFolders = [...new Set(plugin.settings.FolderList)].filter(folder => folder !== "");
+
+        let tempMainNoteFiles:TFile[] = [];
+
+        for(let i=0;i<validFolders.length;i++){
+
+            if(validFolders[i] === '/'){
+                tempMainNoteFiles.push(...mainNoteFiles.filter(file => file.parent && file.parent.name === ""))
+
+            }else{
+                tempMainNoteFiles.push(...mainNoteFiles.filter(
+                    file => {
+                        return file.path.replace(file.name, "").startsWith(validFolders[i] + '/');
+                    }))
+            }
+        }
+        mainNoteFiles = uniqueByTFile(tempMainNoteFiles);
+    }
 
     if (plugin.settings.TagOfMainNotes !== '') {
         
@@ -223,7 +234,7 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
         }
         if(duplicateNodes.length > 0){
             plugin.MainNotes.push(...duplicateNodes);
-            plugin.MainNotes = uniqueBy(plugin.MainNotes);
+            plugin.MainNotes = uniqueByZKNote(plugin.MainNotes);
         }
     }
 
@@ -265,7 +276,7 @@ export const random = (e: number) => {
 };
 
 
-function uniqueBy(arr: ZKNode[]) {
+function uniqueByZKNote(arr: ZKNode[]) {
     const map = new Map();
     const result = [];
     for (const item of arr) {
@@ -277,6 +288,20 @@ function uniqueBy(arr: ZKNode[]) {
     }
     return result;
 }
+
+function uniqueByTFile(arr: TFile[]) {
+    const map = new Map();
+    const result = [];
+    for (const item of arr) {
+      const compoundKey = item.path;
+      if (!map.has(compoundKey)) {
+        map.set(compoundKey, true);
+        result.push(item);
+      }
+    }
+    return result;
+}
+
 
 export function displayWidth(str:string){
     let length = 0;

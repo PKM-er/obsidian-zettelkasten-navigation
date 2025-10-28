@@ -251,3 +251,7 @@ padding: 5px;
   stroke:#333 !important;
   stroke-width:1px !important;
 }
+
+.zk-full-search {
+    width: calc(100% - 20px);
+}

@@ -64,19 +64,44 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         })
 
         const mainNotesDiv = settingTabDiv.createDiv("zk-setting-section");
-        //new Setting(settingTabDiv).setName(t("ZK main notes")).setHeading();
+     
+
+        new Setting(mainNotesDiv)
+        .setName(t("Detect file extensions"))
+        .addDropdown(options => options
+            .addOption("all", t("all file extension"))
+            .addOption("md", t(".md only"))
+            .setValue(this.plugin.settings.MainNoteExt)
+            .onChange((value) => {
+                this.plugin.settings.MainNoteExt = value;
+                this.plugin.RefreshIndexViewFlag = true;
+            })
+        )
+
         new Setting(mainNotesDiv)
             .setName(t("Main notes folder location"))
-            .setDesc(t("Main notes folder des"))
-            .addSearch((cb) => {
-                new FolderSuggest(this.app, cb.inputEl);
-                cb.setPlaceholder(t("Example: folder1/folder2"))
-                    .setValue(this.plugin.settings.FolderOfMainNotes)
-                    .onChange((value) => {
-                        this.plugin.settings.FolderOfMainNotes = value;
-                        this.plugin.RefreshIndexViewFlag = true;
-                    })
-            });
+            .setDesc(t("Main notes folder des"))            
+            .addExtraButton((cb)=>{
+                cb.setIcon("settings")
+                .onClick(()=>{
+                    this.hideDiv(foldersDiv);                    
+                })
+            })
+
+        const foldersDiv = mainNotesDiv.createDiv("zk-local-section zk-hidden");
+        const folderListDiv = foldersDiv.createDiv();
+        this.udpateFolderList(folderListDiv);
+        
+        
+        const addFolderBtnDiv = foldersDiv.createDiv("zk-center-button setting-item");
+        const addFolderBtn = new ButtonComponent(addFolderBtnDiv);
+        addFolderBtn
+        .setButtonText(t("Add folder"))
+        .setCta()
+        .onClick(async()=>{
+            this.plugin.settings.FolderList.push("");
+            this.udpateFolderList(folderListDiv);
+        })
 
         new Setting(mainNotesDiv)
             .setName(t("Main notes tag"))
@@ -156,18 +181,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     this.plugin.RefreshIndexViewFlag = true;
                 })
         );
-
-        new Setting(mainNotesDiv)
-        .setName(t("Detect file extensions"))
-        .addDropdown(options => options
-            .addOption("all", t("all file extension"))
-            .addOption("md", t(".md only"))
-            .setValue(this.plugin.settings.MainNoteExt)
-            .onChange((value) => {
-                this.plugin.settings.MainNoteExt = value;
-                this.plugin.RefreshIndexViewFlag = true;
-            })
-        )
 
         const retrievalDiv = settingTabDiv.createDiv("zk-setting-section");
         
@@ -824,6 +837,35 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         }
     }
 
+    async udpateFolderList(folderListDiv:HTMLDivElement){
+        folderListDiv.empty();
+
+        for(let i=0;i<this.plugin.settings.FolderList.length;i++){
+            let folder = this.plugin.settings.FolderList[i];
+            let folderDiv = folderListDiv.createEl('div');
+            new Setting(folderDiv)
+            .addSearch((cb) => {
+                new FolderSuggest(this.app, cb.inputEl);
+                cb.setPlaceholder(t("Example: folder1/folder2"))
+                    .setValue(folder)
+                    .onChange((value) => {
+                        this.plugin.settings.FolderList[i] = value;
+                        this.plugin.RefreshIndexViewFlag = true;
+                    });
+                    // @ts-ignore
+                    cb.containerEl.addClass("zk-full-search");
+
+            })
+            .addExtraButton((cb)=>{
+                cb.setIcon("trash")
+                .onClick(async()=>{
+                    this.plugin.settings.FolderList.splice(i,1);
+                    await this.udpateFolderList(folderListDiv);
+                })
+            })
+        }
+    }
+
     async updateCanvasAddSettings(canvasAdditionSection:HTMLDivElement){
         canvasAdditionSection.empty();
         new Setting(canvasAdditionSection)
@@ -1025,4 +1067,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         }
         this.plugin.saveData(this.plugin.settings);
     }
+
+    
 }

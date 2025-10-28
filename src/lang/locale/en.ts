@@ -2,7 +2,7 @@ export default {
     // settings.ts
     "ZK main notes": "Main notes",
     "Main notes folder location": "Main notes folder location",
-    "Main notes folder des": "Files in this folder will be available as main notes",
+    "Main notes folder des": "Files in the specified folder(s) will be available as main notes",
     "Example: folder1/folder2": "Example: folder1/folder2",
     "Main notes tag": "Main notes tag",
     "Main notes tag des": "Files with this tag will be available as main notes",
@@ -106,6 +106,7 @@ export default {
     "Set color for arrow": "Set color for arrow",
     "string match": "string match",
     "regex match": "regex match",
+    "Add folder": "Add folder",
 
     // indexView.ts
     "Display from : ": "From : ",

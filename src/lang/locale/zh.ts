@@ -2,7 +2,7 @@ export default {
     // settings.ts
     "ZK main notes": "主笔记",
     "Main notes folder location": "主笔记文件存放位置",
-    "Main notes folder des": "该文件夹的文件都可以作为主笔记",
+    "Main notes folder des": "指定主笔记文件的文件夹路径（支持多个）",
     "Example: folder1/folder2": "比如: 文件夹/子文件夹",
     "Main notes tag": "主笔记标签",
     "Main notes tag des": "带有该标签的文件都可以作为主笔记",
@@ -104,7 +104,8 @@ export default {
     "Set color for cards": "设置卡片颜色",
     "Set color for arrow": "设置连线颜色",
     "string match": "字符串匹配",
-    "regex match": "正则匹配",
+    "regex match": "正则匹配",    
+    "Add folder": "添加文件夹",
 
     // indexView.ts
     "Display from : ": "起点：",
