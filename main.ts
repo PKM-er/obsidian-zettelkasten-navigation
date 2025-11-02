@@ -1,3 +1,4 @@
+import { active } from "d3";
 import { FileView, Notice, Plugin, TFile} from "obsidian";
 import { t } from "src/lang/helper";
 import { ZKNavigationSettngTab } from "src/settings/settings";
@@ -6,6 +7,7 @@ import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
 import { ZKIndexView, ZKNode, ZK_INDEX_TYPE, ZK_NAVIGATION } from "src/view/indexView";
 import { ZK_OUTLINE_TYPE, ZKOutlineView } from "src/view/outlineView";
 import { ZK_RECENT_TYPE, ZKRecentView } from "src/view/recentView";
+import { ZK_TABLE_TYPE, ZKTableView } from "src/view/tableView";
 
 export interface FoldNode{
     graphID: string;
@@ -63,6 +65,7 @@ interface ZKNavigationSettings {
     TitleField: string; // ID field option 1, specify a frontmatter field as note title
     IDField: string;    // ID field option 2, specify a frontmatter field as note ID
     Separator: string;  // ID field option 3, specify a separator to split filename
+    OtherSeparator: string;
     IndexButtonText: string;
     SuggestMode: string;
     FoldToggle: boolean;
@@ -135,6 +138,7 @@ const DEFAULT_SETTINGS: ZKNavigationSettings = {
     TitleField: '',
     IDField: '',
     Separator: ' ',
+    OtherSeparator: "",
     IndexButtonText: t('📖index'),
     SuggestMode: 'fuzzySuggest',
     FoldToggle: false,
@@ -322,6 +326,8 @@ export default class ZKNavigationPlugin extends Plugin {
         this.registerView(ZK_OUTLINE_TYPE, (leaf) => new ZKOutlineView(leaf, this));
 
         this.registerView(ZK_RECENT_TYPE, (leaf) => new ZKRecentView(leaf, this));
+
+        this.registerView(ZK_TABLE_TYPE, (leaf) => new ZKTableView(leaf, this, this.tableArr));
               
         this.addRibbonIcon("ghost", t("open zk-index-graph"), async () => {
             
@@ -401,6 +407,21 @@ export default class ZKNavigationPlugin extends Plugin {
         this.app.workspace.getLeavesOfType(ZK_GRAPH_TYPE)[0]
        );
        this.app.workspace.trigger("zk-navigation:refresh-local-graph");
+    }
+
+    async openTableView() {
+
+        if(this.app.workspace.getLeavesOfType(ZK_TABLE_TYPE).length === 0){
+            await this.app.workspace.getLeaf('split','horizontal')?.setViewState({
+                type:ZK_TABLE_TYPE,
+                active: true,
+            })
+        }
+        this.app.workspace.revealLeaf(
+            this.app.workspace.getLeavesOfType(ZK_TABLE_TYPE)[0]
+        );
+        this.app.workspace.trigger("zk-navigation:refresh-table-view");
+
     }
 
     async openOutlineView() {

@@ -167,11 +167,17 @@ export async function mainNoteInit(plugin:ZKNavigationPlugin){
                 }
                 break;
             case "3":
-                node.ID = note.basename.split(plugin.settings.Separator)[0];
+                let temLen:number = 1;
+                if(plugin.settings.Separator === "other"){
+                    node.ID = note.basename.split(plugin.settings.OtherSeparator)[0];
+                    temLen = plugin.settings.OtherSeparator.length;
+                }else{
+                    node.ID = note.basename.split(plugin.settings.Separator)[0];
+                }
                 node.IDArr = await ID_formatting(node.ID, node.IDArr, plugin.settings.siblingsOrder);
                 node.IDStr = IDArr.toString();
                 if (node.ID.length < note.basename.length - 1) {
-                    node.title = note.basename.substring(node.ID.length + 1);
+                    node.title = note.basename.substring(node.ID.length + temLen);
                 }
                 break;
             default:

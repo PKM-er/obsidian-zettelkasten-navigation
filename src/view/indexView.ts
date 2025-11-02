@@ -500,7 +500,9 @@ export class ZKIndexView extends ItemView {
                 tableBtn.setIcon("table").setTooltip(t("table view"))
                 tableBtn.onClick(async ()=>{
                     this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
-                    new tableModal(this.app, this.plugin, this.plugin.tableArr).open();
+                    //new tableModal(this.app, this.plugin, this.plugin.tableArr).open();
+                    await this.plugin.openTableView();                    
+                    this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
                 })
             }   
 
@@ -648,12 +650,18 @@ export class ZKIndexView extends ItemView {
         }
 
         if(this.plugin.settings.ListTree === true){
-            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
             this.app.workspace.trigger("zk-navigation:refresh-outline-view");
         }
         
         if(this.plugin.settings.HistoryToggle === true){ 
             this.app.workspace.trigger("zk-navigation:refresh-recent-view");
+        }
+
+        
+        if(this.plugin.settings.TableView === true){ 
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
+            this.app.workspace.trigger("zk-navigation:refresh-table-view");
         }
 
         if(this.plugin.settings.playControllerToggle === true){
@@ -1050,8 +1058,13 @@ export class ZKIndexView extends ItemView {
         branchTabs[tabNo].addClass("zk-branch-tab-select");
 
         if(this.plugin.settings.ListTree === true){
-            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
             this.app.workspace.trigger("zk-navigation:refresh-outline-view");
+        }
+
+        if(this.plugin.settings.TableView === true){
+            this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes;
+            this.app.workspace.trigger("zk-navigation:refresh-table-view");
         }
         
     }

@@ -16,6 +16,8 @@ export default {
     '" "(blank)': '" "(blank)',
     '"-"(hyphen)': '"-"(hyphen)',
     '"_"(underscore)': '"_"(underscore)',
+    'other':'other separator',
+    "enter your separator": "type your separator",
     "Retrieval": "Retrieval",
     "Indexes folder location": "⚠Keyword files folder location",
     "index_description": "A vaild keyword index is a .md file includes a few main note links",

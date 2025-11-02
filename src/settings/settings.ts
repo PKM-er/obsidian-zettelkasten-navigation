@@ -159,15 +159,30 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         .addOption(" ", t('" "(blank)'))
                         .addOption("-", t('"-"(hyphen)'))
                         .addOption("_", t('"_"(underscore)'))
+                        .addOption("other", t('other'))
                         .setValue(this.plugin.settings.Separator)
                         .onChange((value) => {
                             this.plugin.settings.Separator = value;
                             this.plugin.RefreshIndexViewFlag = true;
+                            this.display();
                         })
                     );
                 break
             default:
             //do nothing.
+        }
+
+        if(this.plugin.settings.IDFieldOption === '3' && this.plugin.settings.Separator === 'other'){
+            new Setting(mainNotesDiv)
+            .setName(t("enter your separator"))
+            .addText((cb) =>
+            cb.setValue(this.plugin.settings.OtherSeparator)
+                .onChange((value) => {
+                    this.plugin.settings.OtherSeparator = value;
+                    this.plugin.RefreshIndexViewFlag = true;
+                    this.display();
+                })
+            )
         }
 
         

@@ -16,6 +16,8 @@ export default {
     '" "(blank)': '" "(空格)',
     '"-"(hyphen)': '"-"(横线)',
     '"_"(underscore)': '"_"(下划线)',
+    'other':'其它字符',
+    "enter your separator":"输入其它分隔符",
     "Retrieval": "检索设置",
     "Indexes folder location": "⚠关键词文件存放位置",
     "index_description": "关键词文件是指以关键词为文件名，内容包含少量主笔记出链的.md文件.",

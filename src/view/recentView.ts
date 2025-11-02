@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "main";
-import { debounce,  ExtraButtonComponent,  IconName, ItemView, moment, WorkspaceLeaf } from "obsidian"
+import { debounce,  ExtraButtonComponent,  IconName, ItemView, moment, Notice, WorkspaceLeaf } from "obsidian"
 import { t } from "src/lang/helper"
 import { ZK_NAVIGATION } from "./indexView";
 
@@ -39,7 +39,7 @@ export class ZKRecentView extends ItemView {
     }
 
     refreshRecentView = async ()=>{
-
+        
         let { containerEl } = this;
         containerEl.empty();
         const historyListDiv = this.containerEl.createDiv("view-content node-insert-event");
