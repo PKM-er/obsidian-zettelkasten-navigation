@@ -22,7 +22,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl("h1", {text: "Zettelkasten Navigation"});
+        containerEl.createEl("h1", {text: t("Zettelkasten Navigation")});
         
         const settingTabDiv = containerEl.createDiv("zk-setting-tab");
 

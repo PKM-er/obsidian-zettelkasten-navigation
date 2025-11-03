@@ -1,5 +1,6 @@
 export default {
     // settings.ts
+    "Zettelkasten Navigation": "卡片盒导航",
     "ZK main notes": "主笔记",
     "Main notes folder location": "主笔记文件存放位置",
     "Main notes folder des": "指定主笔记文件的文件夹路径（支持多个）",
