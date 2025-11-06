@@ -166,8 +166,8 @@ export default {
     "No index can be found by path": "No index can be found by path",
 
     //tableModal.ts
-    "note's ID": "note's ID",
-    "note's title": "note's title",
+    "note's ID": "ID",
+    "note's title": "title",
     "Time of creation": "Time of creation",
     "Copy markdown table": "Copy markdown table",
 

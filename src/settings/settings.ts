@@ -93,7 +93,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         this.udpateFolderList(folderListDiv);
         
         
-        const addFolderBtnDiv = foldersDiv.createDiv("zk-center-button setting-item");
+        const addFolderBtnDiv = foldersDiv.createDiv("zk-center-button");
         const addFolderBtn = new ButtonComponent(addFolderBtnDiv);
         addFolderBtn
         .setButtonText(t("Add folder"))

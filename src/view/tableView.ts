@@ -129,16 +129,29 @@ export class ZKTableView extends ItemView{
         if(tableDiv !== null){
             let links = tableDiv.getElementsByTagName("a");
             for(let i=0;i<links.length;i++){
-                let linkStr = links[i].getAttribute("href");
-                if(typeof linkStr == 'string'){
-                    links[i].addEventListener('click', ()=>{
-                        this.app.workspace.openLinkText(linkStr?linkStr:"","",'tab');
+                let href = links[i].getAttribute("href");
+                if(href){
+                    let linkStr:string = href;
+
+                    let node = this.tableArr.find(n=>n.ID == linkStr)
+
+                    if(node){
+                        linkStr =  node.file.basename;
+                    }
+
+                    links[i].addEventListener('click', (event:MouseEvent)=>{
+                        if(event.ctrlKey){
+                            this.app.workspace.openLinkText(linkStr,"",'tab');              
+                        }else{
+                            this.app.workspace.openLinkText(linkStr,"");
+                        }
+                        
                     })
                     links[i].addEventListener(`mouseover`, (event: MouseEvent) => {
                         this.app.workspace.trigger(`hover-link`,{
                             event,
                             source: ZK_NAVIGATION,
-                            hoverParent: links[i],
+                            hoverParent: tableDiv,
                             linktext: linkStr,
                             targetEl: links[i],
                             sourcePath: "",
