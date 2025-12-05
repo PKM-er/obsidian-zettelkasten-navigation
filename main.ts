@@ -1,6 +1,7 @@
-import { active } from "d3";
-import { FileView, Notice, Plugin, TFile} from "obsidian";
+import { FileView, loadMermaid, moment, Notice, Plugin, TFile} from "obsidian";
 import { t } from "src/lang/helper";
+import { indexFuzzyModal, indexModal } from "src/modal/indexModal";
+import { mainNoteFuzzyModal, mainNoteModal } from "src/modal/mainNoteModal";
 import { ZKNavigationSettngTab } from "src/settings/settings";
 import { mainNoteInit } from "src/utils/utils";
 import { ZKGraphView, ZK_GRAPH_TYPE } from "src/view/graphView";
@@ -207,6 +208,8 @@ export default class ZKNavigationPlugin extends Plugin {
     indexViewOffsetWidth: number = 0;
     indexViewOffsetHeight: number = 0;
     RefreshIndexViewFlag: boolean = false;
+    mainNoteModal: boolean = false;
+    indexModal: boolean = false;
 
     async loadSettings() {
         this.settings = Object.assign(
@@ -366,6 +369,27 @@ export default class ZKNavigationPlugin extends Plugin {
             }
         })
 
+
+        this.addCommand({
+            id: "zk-mainnote-modal",
+            name: t("select a main note"),
+            callback: async ()=>{
+                this.mainNoteModal = true;
+                await this.openIndexView();
+            }
+        })
+
+
+        this.addCommand({
+            id: "zk-index-modal",
+            name: t("select an index"),
+            callback: async ()=>{
+                this.indexModal = true;
+                await this.openIndexView();
+            }
+        })
+
+
         this.registerHoverLinkSource(
         ZK_NAVIGATION,
         {
@@ -392,6 +416,73 @@ export default class ZKNavigationPlugin extends Plugin {
         if(this.RefreshIndexViewFlag === true){
             this.app.workspace.trigger("zk-navigation:refresh-index-graph");
         }
+
+        if(this.mainNoteModal === true){
+
+            if (this.settings.MainNoteSuggestMode === "IDOrder") {
+                new mainNoteModal(this.app, this, this.MainNotes, (selectZKNode) =>{
+                    this.settings.lastRetrival = {
+                        type: 'main',
+                        ID: selectZKNode.ID,
+                        displayText: selectZKNode.displayText,
+                        filePath: selectZKNode.file.path,
+                        openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    
+                    }
+                    this.clearShowingSettings();
+                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+                }).open();
+            }else {
+                new mainNoteFuzzyModal(this.app, this, this.MainNotes, (selectZKNode) =>{
+                    this.settings.lastRetrival = {
+                        type: 'main',
+                        ID: selectZKNode.ID,
+                        displayText: selectZKNode.displayText,
+                        filePath: selectZKNode.file.path,
+                        openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    
+                    }
+                    this.clearShowingSettings();
+                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+                }).open()
+            }
+
+            this.mainNoteModal = false;
+        }
+
+        if(this.indexModal === true){
+
+            if (this.settings.SuggestMode === "keywordOrder") {
+                new indexModal(this.app, this, this.MainNotes, (index) => {
+                    this.settings.lastRetrival = {
+                        type: 'index',
+                        ID: '',
+                        displayText: index.keyword,
+                        filePath: index.path,
+                        openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    
+                    }
+                    this.clearShowingSettings();
+                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+                }).open();
+            } else {
+                new indexFuzzyModal(this.app, this, this.MainNotes, (index) => {
+                    this.settings.lastRetrival = {
+                        type: 'index',
+                        ID: '',
+                        displayText: index.keyword,
+                        filePath: index.path,
+                        openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
+                    
+                    }
+                    this.clearShowingSettings();
+                    this.app.workspace.trigger("zk-navigation:refresh-index-graph");
+                }).open();
+            }
+
+            this.indexModal = false;
+        }
+
     }
 
     async openGraphView() {
