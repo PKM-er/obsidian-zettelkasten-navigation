@@ -1,6 +1,7 @@
 import ZKNavigationPlugin from "@/main";
-import { App, Modal, Notice, TFile, loadMermaid } from "obsidian";
+import { App, Modal, TFile } from "obsidian";
 import { ZKNode, ZK_NAVIGATION } from "@/src//view/indexView";
+import mermaid from "mermaid";
 
 export class expandGraphModal extends Modal {
 
@@ -23,7 +24,6 @@ export class expandGraphModal extends Modal {
     let { contentEl } = this;
     this.containerEl.addClass("zk-modal-container");
     this.modalEl.addClass("zk-expand-modal");
-    const mermaid = await loadMermaid();
     
     const svgGraph = contentEl.createEl("div", {cls: "zk-expand-graph"});
     svgGraph.id = "zk-expand-graph";
@@ -63,13 +63,13 @@ export class expandGraphModal extends Modal {
 
     if(this.graphType==='flowchart'){
 
-        let nodeGArr = svgGraph.querySelectorAll("[id^='flowchart-']");
+        let nodeGArr = svgGraph.querySelectorAll(`[id^='${svgGraph.id}-svg-flowchart-']`);
         let nodeArr = svgGraph.getElementsByClassName("nodeLabel");
 
         for (let i = 0; i < nodeArr.length; i++) {
             let link = document.createElement('a');
             link.addClass("internal-link");
-            let nodePosStr = nodeGArr[i].id.split('-')[1];
+            let nodePosStr = nodeGArr[i].id.split('-').at(-2);
             let path:string = '';
             if(this.files.length == 0){
                 path = this.mainNotes.filter(n=>n.position == Number(nodePosStr))[0].file.path;
@@ -83,8 +83,8 @@ export class expandGraphModal extends Modal {
             
             const element = nodeGArr[i] as HTMLElement;
 
-            element.addEventListener("click", (event: MouseEvent) => {
-                this.app.workspace.openLinkText("", path, 'tab');                
+            element.addEventListener("click", async (event: MouseEvent) => {
+                await this.app.workspace.openLinkText("", path, 'tab');                
             })
 
             element.addEventListener(`mouseover`, (event: MouseEvent) => {
@@ -117,7 +117,7 @@ export class expandGraphModal extends Modal {
                 let node = nodeArr[0];
                 const element = circleNodes[j] as HTMLElement;
                 element.addEventListener("click", async (event: MouseEvent) => {  
-                    this.app.workspace.openLinkText("", node.file.path, 'tab');                   
+                    await this.app.workspace.openLinkText("", node.file.path, 'tab');                   
                 })
                 
                 element.addEventListener(`mouseover`, (event: MouseEvent) => {

@@ -1,9 +1,10 @@
 import ZKNavigationPlugin from "@/main";
-import { App, ExtraButtonComponent, FileView, ItemView, Notice, TFile, WorkspaceLeaf, debounce, loadMermaid } from "obsidian";
+import { App, ExtraButtonComponent, FileView, ItemView, Notice, TFile, WorkspaceLeaf, debounce } from "obsidian";
 import { GitBranch, ZKNode, ZK_NAVIGATION } from "./indexView";
 import { t } from "@/src/lang/helper";
 import { displayWidth, mainNoteInit } from "@/src/utils/utils";
 import { expandGraphModal } from "@/src/modal/expandGraphModal";
+import mermaid from "mermaid";
 
 export const ZK_GRAPH_TYPE: string = "zk-graph-type"
 export const ZK_GRAPH_VIEW: string = t("zk-local-graph")
@@ -48,7 +49,7 @@ export class ZKGraphView extends ItemView {
     }
 
     async onOpen() {
-        this.refreshLocalGraph();        
+        await this.refreshLocalGraph();        
     }
 
     onload() {
@@ -130,7 +131,6 @@ export class ZKGraphView extends ItemView {
 
         if (this.currentFile !== null) {
 
-            const mermaid = await loadMermaid();
             const svgPanZoom = require("svg-pan-zoom");
             if (this.plugin.settings.FamilyGraphToggle == true) {
 
@@ -189,31 +189,31 @@ export class ZKGraphView extends ItemView {
                             }
                         }
                         
-                        let nodeGArr = familyTreeDiv.querySelectorAll("[id^='flowchart-']");
+                        let nodeGArr = familyTreeDiv.querySelectorAll(`[id^='${familyTreeDiv.id}-svg-flowchart-']`);
                         let nodeArr = familyTreeDiv.getElementsByClassName("nodeLabel");
 
                         for (let i = 0; i < nodeArr.length; i++) {
                             let link = document.createElement('a');
                             link.addClass("internal-link");
-                            let nodePosStr = nodeGArr[i].id.split('-')[1];
+                            let nodePosStr = nodeGArr[i].id.split('-').at(-2);
                             let node = this.familyNodeArr.filter(n=>n.position == Number(nodePosStr))[0];
                             link.textContent = nodeArr[i].getText();
                             nodeArr[i].textContent = "";
                             nodeArr[i].appendChild(link);
                             const element = nodeGArr[i] as HTMLElement;
 
-                            element.addEventListener("click", (event: MouseEvent) => {
+                            element.addEventListener("click", async (event: MouseEvent) => {
                                 if(event.ctrlKey){
-                                    this.app.workspace.openLinkText("", node.file.path, 'tab');
+                                   await this.app.workspace.openLinkText("", node.file.path, 'tab');
                                 }else if(event.shiftKey){
                                     this.plugin.retrivalforLocaLgraph = {
                                         type: '1',
                                         ID: node.ID,
                                         filePath: node.file.path,  
                                     }; 
-                                    this.plugin.openGraphView();
+                                    await this.plugin.openGraphView();
                                 }else if(event.altKey){                 
-                                        this.plugin.clearShowingSettings();
+                                        await this.plugin.clearShowingSettings();
                                         this.plugin.settings.lastRetrival = {
                                             type: 'main',
                                             ID: node.ID,
@@ -222,13 +222,13 @@ export class ZKGraphView extends ItemView {
                                             openTime: '',                        
                                         }
                                         this.plugin.RefreshIndexViewFlag = true;
-                                        this.plugin.openIndexView();
+                                        await this.plugin.openIndexView();
                                 }else{
-                                    this.app.workspace.openLinkText("",node.file.path)
+                                    await this.app.workspace.openLinkText("",node.file.path)
                                 }
                             })
-                            element.addEventListener("touchend", () => {
-                                this.app.workspace.openLinkText("",node.file.path)
+                            element.addEventListener("touchend", async () => {
+                                await this.app.workspace.openLinkText("",node.file.path)
                             })
                             element.addEventListener(`mouseover`, (event: MouseEvent) => {
                                 this.app.workspace.trigger(`hover-link`, {
@@ -309,14 +309,14 @@ export class ZKGraphView extends ItemView {
                                 const element = circleNodes[j] as HTMLElement;
                                 element.addEventListener("click", async (event: MouseEvent) => {  
                                     if (event.ctrlKey) {
-                                        this.app.workspace.openLinkText("", node.file.path, 'tab');
+                                        await this.app.workspace.openLinkText("", node.file.path, 'tab');
                                     }else if(event.shiftKey){
                                         this.plugin.retrivalforLocaLgraph = {
                                             type: '1',
                                             ID: node.ID,
                                             filePath: node.file.path,  
                                         }; 
-                                        this.plugin.openGraphView();
+                                        await this.plugin.openGraphView();
                                     }else if(event.altKey){
                                         this.plugin.settings.lastRetrival = {
                                             type: 'main',
@@ -326,9 +326,9 @@ export class ZKGraphView extends ItemView {
                                             openTime: '',                        
                                         }
                                         this.plugin.RefreshIndexViewFlag = true;
-                                        this.plugin.openIndexView();
+                                        await this.plugin.openIndexView();
                                     }else{
-                                        this.app.workspace.openLinkText("", node.file.path)
+                                        await this.app.workspace.openLinkText("", node.file.path)
                                     }
                                     
                                 })
@@ -403,22 +403,22 @@ export class ZKGraphView extends ItemView {
                 }
                 
 
-                let nodeGArr = inlinksDiv.querySelectorAll("[id^='flowchart-']");
+                let nodeGArr = inlinksDiv.querySelectorAll(`[id^='${inlinksDiv.id}-svg-flowchart-']`);
                 let nodeArr = inlinksDiv.getElementsByClassName("nodeLabel");
 
                 inlinkArr.push(this.currentFile);
                 for (let i = 0; i < nodeArr.length; i++) {
                     let link = document.createElement('a');
                     link.addClass("internal-link");
-                    let nodePosStr = nodeGArr[i].id.split('-')[1];
+                    let nodePosStr = nodeGArr[i].id.split('-').at(-2);
                     let node = inlinkArr[Number(nodePosStr)];
                     link.textContent = nodeArr[i].getText();
                     nodeArr[i].textContent = "";
                     nodeArr[i].appendChild(link);
                     const element = nodeGArr[i] as HTMLElement;
-                    element.addEventListener("click", (event: MouseEvent) => {
+                    element.addEventListener("click", async (event: MouseEvent) => {
                         if(event.ctrlKey){
-                            this.app.workspace.openLinkText("", node.path, 'tab');
+                            await this.app.workspace.openLinkText("", node.path, 'tab');
                         }else if(event.shiftKey){
                             this.plugin.retrivalforLocaLgraph = {
                                 type: '1',
@@ -426,10 +426,10 @@ export class ZKGraphView extends ItemView {
                                 filePath: node.path,
             
                             }; 
-                            this.plugin.openGraphView();
+                            await this.plugin.openGraphView();
                         }else if(event.altKey){
                             if(this.plugin.settings.FolderOfIndexes !== '' && node.path.startsWith(this.plugin.settings.FolderOfIndexes)){
-                                this.plugin.clearShowingSettings(); 
+                                await this.plugin.clearShowingSettings(); 
                                 this.plugin.settings.lastRetrival = {
                                     type: 'index',
                                     ID: '',
@@ -438,13 +438,13 @@ export class ZKGraphView extends ItemView {
                                     openTime: '',                        
                                 }
                                 this.plugin.RefreshIndexViewFlag = true;
-                                this.plugin.openIndexView();
+                                await this.plugin.openIndexView();
                                 
                             }else{
                                 let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
                             
                                 if(mainNote){
-                                    this.plugin.clearShowingSettings();                               
+                                    await this.plugin.clearShowingSettings();                               
                                     this.plugin.settings.lastRetrival = {
                                         type: 'main',
                                         ID: mainNote.ID,
@@ -453,16 +453,16 @@ export class ZKGraphView extends ItemView {
                                         openTime: '',                        
                                     }
                                     this.plugin.RefreshIndexViewFlag = true;
-                                    this.plugin.openIndexView();
+                                    await this.plugin.openIndexView();
                                 }
                             }
 
                         }else{
-                            this.app.workspace.openLinkText("", node.path);
+                            await this.app.workspace.openLinkText("", node.path);
                         }
                     })
-                    element.addEventListener("touchend", () => {
-                        this.app.workspace.openLinkText("",node.path)
+                    element.addEventListener("touchend", async () => {
+                        await this.app.workspace.openLinkText("",node.path)
                     })
 
                     element.addEventListener(`mouseover`, (event: MouseEvent) => {
@@ -535,13 +535,13 @@ export class ZKGraphView extends ItemView {
                     }
                 }
                
-                let nodeGArr = outlinksDiv.querySelectorAll("[id^='flowchart-']");
+                let nodeGArr = outlinksDiv.querySelectorAll(`[id^='${outlinksDiv.id}-svg-flowchart-']`);
                 let nodeArr = outlinksDiv.getElementsByClassName("nodeLabel");
                 outlinkArr.push(this.currentFile);
                 for (let i = 0; i < nodeArr.length; i++) {
                     let link = document.createElement('a');
                     link.addClass("internal-link");
-                    let nodePosStr = nodeGArr[i].id.split('-')[1];
+                    let nodePosStr = nodeGArr[i].id.split('-').at(-2);
                     let node = outlinkArr[Number(nodePosStr)];
                     link.textContent = nodeArr[i].getText();
                     nodeArr[i].textContent = "";
@@ -549,7 +549,7 @@ export class ZKGraphView extends ItemView {
                     const element = nodeGArr[i] as HTMLElement;
                     element.addEventListener("click", async (event: MouseEvent) => {
                         if(event.ctrlKey){
-                            this.app.workspace.openLinkText("", node.path, 'tab');
+                            await this.app.workspace.openLinkText("", node.path, 'tab');
                         }else if(event.shiftKey){
                             
                             this.plugin.retrivalforLocaLgraph = {
@@ -558,10 +558,10 @@ export class ZKGraphView extends ItemView {
                                 filePath: node.path,
             
                             }; 
-                            this.plugin.openGraphView();
+                            await this.plugin.openGraphView();
                         }else if(event.altKey){
                             if(this.plugin.settings.FolderOfIndexes !== '' && node.path.startsWith(this.plugin.settings.FolderOfIndexes)){
-                                this.plugin.clearShowingSettings(); 
+                                await this.plugin.clearShowingSettings(); 
                                 this.plugin.settings.lastRetrival = {
                                     type: 'index',
                                     ID: '',
@@ -570,13 +570,13 @@ export class ZKGraphView extends ItemView {
                                     openTime: '',                        
                                 }
                                 this.plugin.RefreshIndexViewFlag = true;
-                                this.plugin.openIndexView();
+                                await this.plugin.openIndexView();
                                 
                             }else{
                                 let mainNote = this.plugin.MainNotes.find(n=>n.file.path == node.path);
                             
                                 if(mainNote){
-                                    this.plugin.clearShowingSettings();                               
+                                    await this.plugin.clearShowingSettings();                               
                                     this.plugin.settings.lastRetrival = {
                                         type: 'main',
                                         ID: mainNote.ID,
@@ -585,17 +585,17 @@ export class ZKGraphView extends ItemView {
                                         openTime: '',                        
                                     }
                                     this.plugin.RefreshIndexViewFlag = true;
-                                    this.plugin.openIndexView();
+                                    await this.plugin.openIndexView();
                                 }
                             }
 
                         }else{
-                            this.app.workspace.openLinkText("", node.path);
+                            await this.app.workspace.openLinkText("", node.path);
                         }
                             
                     })
-                    element.addEventListener("touchend", () => {
-                        this.app.workspace.openLinkText("",node.path)
+                    element.addEventListener("touchend", async () => {
+                        await this.app.workspace.openLinkText("",node.path)
                     })
 
                     element.addEventListener(`mouseover`, (event: MouseEvent) => {
@@ -972,5 +972,20 @@ export class ZKGraphView extends ItemView {
 
     async onClose() {
         
+    }
+
+    async processSvg(svg:string){
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svg, 'image/svg+xml');
+        const parseError = doc.querySelector('parsererror');
+        if (parseError) {
+            return;
+        }
+        const svgEl = doc.documentElement;
+        if (!svgEl || svgEl.tagName.toLowerCase() !== 'svg') {
+            return;
+        }
+        return document.importNode(svgEl, true);
     }
 }

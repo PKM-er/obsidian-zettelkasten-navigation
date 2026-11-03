@@ -335,13 +335,13 @@ export default class ZKNavigationPlugin extends Plugin {
               
         this.addRibbonIcon("ghost", t("open zk-index-graph"), async () => {
             
-            this.openIndexView();
+            await this.openIndexView();
             
         })
 
         this.addRibbonIcon("network", t("open zk-local-graph"), async () => {
             
-            this.openGraphView();
+            await this.openGraphView();
         });
 
         this.addCommand({
@@ -349,7 +349,7 @@ export default class ZKNavigationPlugin extends Plugin {
             name: t("open zk-index-graph"),
             callback:async ()=>{
                 
-                this.openIndexView();
+                await this.openIndexView();
             }
         });
 
@@ -358,7 +358,7 @@ export default class ZKNavigationPlugin extends Plugin {
             name: t("open zk-local-graph"),
             callback: async ()=>{
                 
-                this.openGraphView();
+                await this.openGraphView();
             }
         });
 
@@ -421,7 +421,7 @@ export default class ZKNavigationPlugin extends Plugin {
         if(this.mainNoteModal === true){
 
             if (this.settings.MainNoteSuggestMode === "IDOrder") {
-                new mainNoteModal(this.app, this, this.MainNotes, (selectZKNode) =>{
+                new mainNoteModal(this.app, this, this.MainNotes, async (selectZKNode) =>{
                     this.settings.lastRetrival = {
                         type: 'main',
                         ID: selectZKNode.ID,
@@ -430,11 +430,11 @@ export default class ZKNavigationPlugin extends Plugin {
                         openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
                     
                     }
-                    this.clearShowingSettings();
+                    await this.clearShowingSettings();
                     this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 }).open();
             }else {
-                new mainNoteFuzzyModal(this.app, this, this.MainNotes, (selectZKNode) =>{
+                new mainNoteFuzzyModal(this.app, this, this.MainNotes, async (selectZKNode) =>{
                     this.settings.lastRetrival = {
                         type: 'main',
                         ID: selectZKNode.ID,
@@ -443,7 +443,7 @@ export default class ZKNavigationPlugin extends Plugin {
                         openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
                     
                     }
-                    this.clearShowingSettings();
+                    await this.clearShowingSettings();
                     this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 }).open()
             }
@@ -467,7 +467,7 @@ export default class ZKNavigationPlugin extends Plugin {
                     this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 }).open();
             } else {
-                new indexFuzzyModal(this.app, this, this.MainNotes, (index) => {
+                new indexFuzzyModal(this.app, this, this.MainNotes, async (index) => {
                     this.settings.lastRetrival = {
                         type: 'index',
                         ID: '',
@@ -476,7 +476,7 @@ export default class ZKNavigationPlugin extends Plugin {
                         openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
                     
                     }
-                    this.clearShowingSettings();
+                    await this.clearShowingSettings();
                     this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 }).open();
             }
@@ -569,7 +569,7 @@ export default class ZKNavigationPlugin extends Plugin {
                         filePath: filePath,
                         openTime: '',  
                     };
-                    this.clearShowingSettings();
+                    await this.clearShowingSettings();
                     this.RefreshIndexViewFlag = true;
                     await this.openIndexView();
                     
@@ -587,7 +587,7 @@ export default class ZKNavigationPlugin extends Plugin {
                     filePath: filePath,
                     openTime: '',  
                 };
-                this.clearShowingSettings();
+                await this.clearShowingSettings();
                 this.RefreshIndexViewFlag = true;
                 await this.openIndexView();
             }
@@ -595,7 +595,7 @@ export default class ZKNavigationPlugin extends Plugin {
         }
     }
 
-    onunload() {
-        this.saveData(this.settings);
+    async onunload() {
+        await this.saveData(this.settings);
     }
 }

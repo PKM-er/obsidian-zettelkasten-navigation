@@ -29,6 +29,7 @@ padding: 5px;
 
 .zk-index-mermaid{
  border-radius: 5px;
+ width: 100%;
 }
 .zk-index-mermaid svg{
   margin-top: 30px;

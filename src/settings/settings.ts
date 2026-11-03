@@ -90,7 +90,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
 
         const foldersDiv = mainNotesDiv.createDiv("zk-local-section zk-hidden");
         const folderListDiv = foldersDiv.createDiv();
-        this.udpateFolderList(folderListDiv);
+        await this.udpateFolderList(folderListDiv);
         
         
         const addFolderBtnDiv = foldersDiv.createDiv("zk-center-button");
@@ -100,7 +100,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         .setCta()
         .onClick(async()=>{
             this.plugin.settings.FolderList.push("");
-            this.udpateFolderList(folderListDiv);
+            await this.udpateFolderList(folderListDiv);
         })
 
         new Setting(mainNotesDiv)
@@ -115,17 +115,17 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     })
             });
         
-        const IDOption = new Setting(mainNotesDiv)
+        new Setting(mainNotesDiv)
             .setName(t("Note ID field options"))
             .addDropdown(options => options
                 .addOption("1", t("Option 1: Filename is note ID"))
                 .addOption("2", t("Option 2: Metadata is note ID"))
                 .addOption("3", t("Option 3: Prefix of filename is note ID"))
                 .setValue(this.plugin.settings.IDFieldOption)
-                .onChange((value) => {
+                .onChange(async (value) => {
                     this.plugin.settings.IDFieldOption = value;
                     this.plugin.RefreshIndexViewFlag = true;
-                    this.display();
+                    await this.display();
                 })
             );
 
@@ -161,10 +161,10 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                         .addOption("_", t('"_"(underscore)'))
                         .addOption("other", t('other'))
                         .setValue(this.plugin.settings.Separator)
-                        .onChange((value) => {
+                        .onChange(async (value) => {
                             this.plugin.settings.Separator = value;
                             this.plugin.RefreshIndexViewFlag = true;
-                            this.display();
+                            await this.display();
                         })
                     );
                 break
@@ -177,10 +177,10 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setName(t("enter your separator"))
             .addText((cb) =>
             cb.setValue(this.plugin.settings.OtherSeparator)
-                .onChange((value) => {
+                .onChange(async (value) => {
                     this.plugin.settings.OtherSeparator = value;
                     this.plugin.RefreshIndexViewFlag = true;
-                    this.display();
+                    await this.display();
                 })
             )
         }
@@ -202,10 +202,10 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         new Setting(retrievalDiv)
             .setName(t("Main Notes button"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.MainNoteButton)
-                .onChange((value) => {
+                .onChange(async (value) => {
                     this.plugin.settings.MainNoteButton = value;
                     this.plugin.RefreshIndexViewFlag = true;
-                    this.display();
+                    await this.display();
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
@@ -258,10 +258,10 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         new Setting(retrievalDiv)
             .setName(t("Index button"))
             .addToggle(toggle => toggle.setValue(this.plugin.settings.IndexButton)
-                .onChange((value) => {
+                .onChange(async (value) => {
                     this.plugin.settings.IndexButton = value;
                     this.plugin.RefreshIndexViewFlag = true;
-                    this.display();
+                    await this.display();
                 })
             ).addExtraButton((cb)=>{
                 cb.setIcon("settings")
@@ -581,7 +581,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         const nodeMenuDiv = indexGraphView.createDiv("zk-local-section zk-hidden")
 
         const commandsDiv = nodeMenuDiv.createDiv();        
-        this.updateNodeMenu(commandsDiv);
+        await this.updateNodeMenu(commandsDiv);
         
         const addCommandBtnDiv = nodeMenuDiv.createDiv("zk-center-button setting-item");
         
@@ -604,7 +604,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                 active: true,
             }
             this.plugin.settings.NodeCommands.push(newCommand);
-            this.updateNodeMenu(commandsDiv);
+            await this.updateNodeMenu(commandsDiv);
         })
 
         const localGraphView = settingTabDiv.createDiv("zk-setting-section");
@@ -790,7 +790,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .onClick(async ()=>{
                 let icon = await new ChooseIconModal(this.app, this.plugin).awaitSelection();
                 command.icon = icon;
-                this.updateNodeMenu(nodeMenuDiv);
+                await this.updateNodeMenu(nodeMenuDiv);
             })
             
             commandDiv.createEl('div',{text:command.name,cls:'command-text'});
@@ -820,7 +820,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
             .setTooltip(t("auto-copy: ") + copyText)
             .onClick(async ()=>{
                 command.copyType = (command.copyType + 1) % 4;
-                this.updateNodeMenu(nodeMenuDiv);             
+                await this.updateNodeMenu(nodeMenuDiv);             
             })            
 
             new ExtraButtonComponent(commandDiv.createEl('div'))
@@ -830,7 +830,7 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     [this.plugin.settings.NodeCommands[i],this.plugin.settings.NodeCommands[(i+1)%commandsLen]] =                     
                     [this.plugin.settings.NodeCommands[(i+1)%commandsLen], this.plugin.settings.NodeCommands[i]]
                 }
-                this.updateNodeMenu(nodeMenuDiv);             
+                await this.updateNodeMenu(nodeMenuDiv);             
             })
 
             new ExtraButtonComponent(commandDiv.createEl('div'))
@@ -840,15 +840,15 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
                     [this.plugin.settings.NodeCommands[i],this.plugin.settings.NodeCommands[(i-1+commandsLen)%commandsLen]] =                     
                     [this.plugin.settings.NodeCommands[(i-1+commandsLen)%commandsLen], this.plugin.settings.NodeCommands[i]]
                 }
-                this.updateNodeMenu(nodeMenuDiv);                      
+                await this.updateNodeMenu(nodeMenuDiv);                      
             })
 
             new ButtonComponent(commandDiv)
             .setIcon('trash').setCta()
             .setClass('mod-warning')
-            .onClick(()=>{
+            .onClick(async ()=>{
                 this.plugin.settings.NodeCommands.splice(i,1);
-                this.updateNodeMenu(nodeMenuDiv);   
+                await this.updateNodeMenu(nodeMenuDiv);   
             })
         }
     }
@@ -1081,8 +1081,6 @@ export class ZKNavigationSettngTab extends PluginSettingTab {
         if(this.plugin.RefreshIndexViewFlag === true){
             this.app.workspace.trigger("zk-navigation:refresh-index-graph");
         }
-        this.plugin.saveData(this.plugin.settings);
+        await this.plugin.saveData(this.plugin.settings);
     }
-
-    
 }

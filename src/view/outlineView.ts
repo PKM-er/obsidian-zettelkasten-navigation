@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "@/main";
-import { App, debounce, ExtraButtonComponent, IconName, ItemView, Menu, Notice, SliderComponent, WorkspaceLeaf } from "obsidian"
+import { App, debounce, ExtraButtonComponent, IconName, ItemView, Notice, SliderComponent, WorkspaceLeaf } from "obsidian"
 import { t } from "@/src/lang/helper"
 import { ZK_NAVIGATION, ZKNode } from "./indexView";
 
@@ -39,7 +39,7 @@ export class ZKOutlineView extends ItemView {
     }
 
     async onOpen() {
-        this.refreshOutlineView()
+        await this.refreshOutlineView()
 
     }
 
@@ -63,9 +63,9 @@ export class ZKOutlineView extends ItemView {
         slider.setLimits(1,maxLayer,1)
         .setDynamicTooltip()
         .setValue(this.defautLength)
-        .onChange((value)=>{
+        .onChange(async (value)=>{
             this.plugin.settings.outlineLayer = value;
-            this.plugin.saveData(this.plugin.settings)
+            await this.plugin.saveData(this.plugin.settings)
             this.app.workspace.trigger("zk-navigation:refresh-outline-view");
         })
         
@@ -96,7 +96,7 @@ export class ZKOutlineView extends ItemView {
 
         treeItemSelf.addEventListener("click", async (event: MouseEvent) => {            
             if(event.ctrlKey){
-                navigator.clipboard.writeText(item.ID);
+                await navigator.clipboard.writeText(item.ID);
                 new Notice(item.ID + " copied");
             }else if(event.shiftKey){
                 this.plugin.settings.lastRetrival =  {
@@ -108,7 +108,7 @@ export class ZKOutlineView extends ItemView {
                 }
                 await this.plugin.clearShowingSettings();
                 this.plugin.RefreshIndexViewFlag = true;
-                this.plugin.openIndexView();
+                await this.plugin.openIndexView();
             }else if(event.altKey){
                 
                 this.plugin.retrivalforLocaLgraph = {
@@ -117,9 +117,9 @@ export class ZKOutlineView extends ItemView {
                     filePath: item.file.path,
 
                 }; 
-                this.plugin.openGraphView();
+                await this.plugin.openGraphView();
             }else{
-                this.app.workspace.openLinkText("", item.file.path);
+                await this.app.workspace.openLinkText("", item.file.path);
             }
         })
 

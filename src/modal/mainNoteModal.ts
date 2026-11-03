@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "@/main";
-import { App, FuzzySuggestModal, Notice, SuggestModal, renderMatches } from "obsidian";
+import { App, FuzzySuggestModal, SuggestModal, renderMatches } from "obsidian";
 import { t } from "@/src//lang/helper";
 import { ZKNode } from "@/src//view/indexView";
 

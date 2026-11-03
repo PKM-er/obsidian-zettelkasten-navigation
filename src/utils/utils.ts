@@ -1,7 +1,8 @@
 import ZKNavigationPlugin, { ZoomPanScale } from "@/main";
-import { App, loadMermaid, Notice, TFile } from "obsidian";
+import { App, Notice, TFile } from "obsidian";
 import { ZKNode } from "@/src/view/indexView";
 import moment from 'moment';
+import mermaid from "mermaid";
 
 // formatting Luhmann style IDs
 export async function ID_formatting(id: string, arr: string[], siblingsOrder:string): Promise<string[]> {
@@ -326,7 +327,6 @@ export async function addSvgPanZoom(
     plugin:ZKNavigationPlugin, 
     mermaidStr:string, height:number){
     
-    const mermaid = await loadMermaid();
     let { svg } = await mermaid.render(`${zkGraph.id}-svg`, mermaidStr);
             
     zkGraph.insertAdjacentHTML('beforeend', svg);
@@ -334,7 +334,7 @@ export async function addSvgPanZoom(
     if(plugin.settings.graphType === "roadmap"){
         zkGraph.children[0].removeAttribute('style');
     }
-    
+        
     zkGraph.children[0].addClass("zk-full-width");
 
     zkGraph.children[0].setAttr('height', `${height}px`); 
@@ -393,7 +393,7 @@ export async function addSvgPanZoom(
     if(typeof plugin.settings.zoomPanScaleArr[i] === 'undefined'){
         
         const setSvg = document.getElementById(`${zkGraph.id}-svg`);
-        
+                
         if(setSvg !== null){
             let a = setSvg.children[0].getAttr("style");
             if(a){                

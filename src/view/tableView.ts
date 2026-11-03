@@ -34,7 +34,7 @@ export class ZKTableView extends ItemView{
     }
     
     async onOpen() {
-        this.refreshTableView();
+        await this.refreshTableView();
     }
 
     onload() {
@@ -50,7 +50,7 @@ export class ZKTableView extends ItemView{
         const contentDiv =  contentEl.createDiv("zk-table-view");   
         contentDiv.id = "zk-table-view";
         this.appendTableLine();  
-        MarkdownRenderer.render(this.app, this.tableStr, contentDiv, '', this.plugin);
+        await MarkdownRenderer.render(this.app, this.tableStr, contentDiv, '', this.plugin);
         this.addLinkAndPreview();
 
     }
@@ -143,11 +143,11 @@ export class ZKTableView extends ItemView{
                         linkStr =  node.file.basename;
                     }
 
-                    links[i].addEventListener('click', (event:MouseEvent)=>{
+                    links[i].addEventListener('click', async (event:MouseEvent)=>{
                         if(event.ctrlKey){
-                            this.app.workspace.openLinkText(linkStr,"",'tab');              
+                            await this.app.workspace.openLinkText(linkStr,"",'tab');              
                         }else{
-                            this.app.workspace.openLinkText(linkStr,"");
+                            await this.app.workspace.openLinkText(linkStr,"");
                         }
                         
                     })
@@ -167,6 +167,6 @@ export class ZKTableView extends ItemView{
     }
 
     async onClose() {        
-        this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
+        await this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
     }
 }

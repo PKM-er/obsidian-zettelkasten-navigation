@@ -127,7 +127,7 @@ export class ZKIndexView extends ItemView {
             mainNoteButton.setCta();
             mainNoteButton.onClick(() => {
                 if (this.plugin.settings.MainNoteSuggestMode === "IDOrder") {
-                    new mainNoteModal(this.app, this.plugin, this.plugin.MainNotes, (selectZKNode) =>{
+                    new mainNoteModal(this.app, this.plugin, this.plugin.MainNotes, async (selectZKNode) =>{
                         this.plugin.settings.lastRetrival = {
                             type: 'main',
                             ID: selectZKNode.ID,
@@ -136,11 +136,11 @@ export class ZKIndexView extends ItemView {
                             openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
                         
                         }
-                        this.plugin.clearShowingSettings();
+                        await this.plugin.clearShowingSettings();
                         this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open();
                 }else {
-                    new mainNoteFuzzyModal(this.app, this.plugin, this.plugin.MainNotes, (selectZKNode) =>{
+                    new mainNoteFuzzyModal(this.app, this.plugin, this.plugin.MainNotes, async (selectZKNode) =>{
                         this.plugin.settings.lastRetrival = {
                             type: 'main',
                             ID: selectZKNode.ID,
@@ -149,7 +149,7 @@ export class ZKIndexView extends ItemView {
                             openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
                         
                         }
-                        this.plugin.clearShowingSettings();
+                        await this.plugin.clearShowingSettings();
                         this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open()
                 }
@@ -165,7 +165,7 @@ export class ZKIndexView extends ItemView {
             indexButton.setCta();
             indexButton.onClick(() => {
                 if (this.plugin.settings.SuggestMode === "keywordOrder") {
-                    new indexModal(this.app, this.plugin, this.plugin.MainNotes, (index) => {
+                    new indexModal(this.app, this.plugin, this.plugin.MainNotes, async (index) => {
                         this.plugin.settings.lastRetrival = {
                             type: 'index',
                             ID: '',
@@ -174,11 +174,11 @@ export class ZKIndexView extends ItemView {
                             openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
                         
                         }
-                        this.plugin.clearShowingSettings();
+                        await this.plugin.clearShowingSettings();
                         this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open();
                 } else {
-                    new indexFuzzyModal(this.app, this.plugin, this.plugin.MainNotes, (index) => {
+                    new indexFuzzyModal(this.app, this.plugin, this.plugin.MainNotes, async (index) => {
                         this.plugin.settings.lastRetrival = {
                             type: 'index',
                             ID: '',
@@ -187,7 +187,7 @@ export class ZKIndexView extends ItemView {
                             openTime: moment().format("YYYY-MM-DD HH:mm:ss"),
                         
                         }
-                        this.plugin.clearShowingSettings();
+                        await this.plugin.clearShowingSettings();
                         this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                     }).open();
                 }
@@ -205,9 +205,9 @@ export class ZKIndexView extends ItemView {
             .addOption("parent", t("parent"))
             .addOption("root", t("root"))
             .setValue(this.plugin.settings.StartingPoint)
-            .onChange((StartPoint) => {
+            .onChange(async (StartPoint) => {
                 this.plugin.settings.StartingPoint = StartPoint;
-                this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
+                await this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
                 this.app.workspace.trigger("zk-navigation:refresh-index-graph");
             });
 
@@ -219,9 +219,9 @@ export class ZKIndexView extends ItemView {
             .addOption("next", t("next"))
             .addOption("end", t("end"))
             .setValue(this.plugin.settings.DisplayLevel)
-            .onChange((DisplayLevel) => {
+            .onChange(async (DisplayLevel) => {
                 this.plugin.settings.DisplayLevel = DisplayLevel;
-                this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
+                await this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
                 this.app.workspace.trigger("zk-navigation:refresh-index-graph");
             });
 
@@ -247,9 +247,9 @@ export class ZKIndexView extends ItemView {
             .addOption("structure", t("structure"))
             .addOption("roadmap",t("roadmap"))
             .setValue(this.plugin.settings.graphType)
-            .onChange((graphType)=>{
+            .onChange(async (graphType)=>{
                 this.plugin.settings.graphType = graphType;
-                this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);   
+                await this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);   
                 this.app.workspace.trigger("zk-navigation:refresh-index-graph");
                 this.app.workspace.trigger("zk-navigation:refresh-local-graph");
             })
@@ -296,11 +296,11 @@ export class ZKIndexView extends ItemView {
         
         if(this.app.workspace.layoutReady){
 
-            this.refreshIndexLayout();
+            await this.refreshIndexLayout();
         }else{
-            this.app.workspace.onLayoutReady(()=>{
+            this.app.workspace.onLayoutReady(async ()=>{
                 
-                this.refreshIndexLayout();
+                await this.refreshIndexLayout();
                 
             });
         } 
@@ -504,7 +504,7 @@ export class ZKIndexView extends ItemView {
                     this.plugin.tableArr =  this.branchAllNodes[this.plugin.settings.BranchTab].branchNodes.sort((a, b) => a.IDStr.localeCompare(b.IDStr));
                     //new tableModal(this.app, this.plugin, this.plugin.tableArr).open();
                     await this.plugin.openTableView();                    
-                    this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
+                    await this.plugin.clearShowingSettings(this.plugin.settings.BranchTab);
                 })
             }   
 
@@ -523,7 +523,7 @@ export class ZKIndexView extends ItemView {
                 const historyBtn = new ExtraButtonComponent(toolButtonsDiv);
                 historyBtn.setIcon("history").setTooltip(t("History List"));
                 historyBtn.onClick(async ()=>{                    
-                   this.plugin.openRecentView();
+                   await this.plugin.openRecentView();
                 })
             } 
 
@@ -614,11 +614,11 @@ export class ZKIndexView extends ItemView {
             
             let link = indexLinkDiv.createEl('a', { text: `【${this.plugin.settings.lastRetrival.displayText}】` });
             
-            link.addEventListener("click", (event: MouseEvent) => {
+            link.addEventListener("click", async (event: MouseEvent) => {
                 if (event.ctrlKey) {
-                    this.app.workspace.openLinkText("", indexFile.path, 'tab');
+                    await this.app.workspace.openLinkText("", indexFile.path, 'tab');
                 } else {
-                    this.app.workspace.openLinkText("", indexFile.path);
+                    await this.app.workspace.openLinkText("", indexFile.path);
                 }
 
             });
@@ -709,12 +709,11 @@ export class ZKIndexView extends ItemView {
             await addSvgPanZoom(zkGraph, indexMermaidDiv, i, this.plugin, mermaidStr, (this.containerEl.offsetHeight - 100));
           
             const indexMermaid = document.getElementById(zkGraph.id)
-
+            
             if (indexMermaid !== null) {
-
-                let nodeGArr = indexMermaid.querySelectorAll("[id^='flowchart-']");
+                let nodeGArr = indexMermaid.querySelectorAll("[id*='-svg-flowchart-']");
                 let flowchartG = indexMermaid.querySelector("g.nodes");
-                
+                                
                 if (flowchartG !== null) {
 
                     let nodeArr = flowchartG.getElementsByClassName("nodeLabel");
@@ -723,7 +722,7 @@ export class ZKIndexView extends ItemView {
 
                         let link = document.createElement('a');
                         link.addClass("internal-link");
-                        let nodePosStr = nodeGArr[i].id.split('-')[1];
+                        let nodePosStr = nodeGArr[i].id.split('-').at(-2);
                         let node = this.plugin.MainNotes.filter(n => n.position == Number(nodePosStr))[0];
                         link.textContent = nodeArr[i].getText();
                         nodeArr[i].textContent = "";
@@ -770,17 +769,17 @@ export class ZKIndexView extends ItemView {
                                 setTooltip(nodeParent, `${t("created")}: ${moment(node.ctime).format(this.plugin.settings.datetimeFormat)}`)
                             }
                         }
-
+                            
                         element.addEventListener("click", async (event: MouseEvent) => {
                             if (event.ctrlKey) {
-                                this.app.workspace.openLinkText("", node.file.path, 'tab');
+                                await this.app.workspace.openLinkText("", node.file.path, 'tab');
                                 event.stopPropagation();
                             }
                         })                
 
                         element.addEventListener("click", async (event: MouseEvent) => {
                             if (event.ctrlKey) {
-                                navigator.clipboard.writeText(node.ID)
+                                await navigator.clipboard.writeText(node.ID)
                                 new Notice(node.ID + " copied")
                             }else if(event.shiftKey){
                                 this.plugin.settings.lastRetrival =  {
@@ -799,13 +798,13 @@ export class ZKIndexView extends ItemView {
                                     filePath: node.file.path,
             
                                 };       
-                                this.plugin.openGraphView();
+                                await this.plugin.openGraphView();
                             }else{
-                                this.app.workspace.openLinkText("", node.file.path)
+                                await this.app.workspace.openLinkText("", node.file.path)
                             }
                         })
-                        element.addEventListener("touchend", () => { 
-                            this.app.workspace.openLinkText("", node.file.path)
+                        element.addEventListener("touchend", async () => { 
+                            await this.app.workspace.openLinkText("", node.file.path)
                         })
 
                         element.addEventListener(`mouseover`, (event: MouseEvent) => {
@@ -825,15 +824,15 @@ export class ZKIndexView extends ItemView {
                     let hideNodes = this.plugin.MainNotes.filter(n =>
                         n.IDStr.startsWith(foldNode.nodeIDstr) && (n.IDStr !== foldNode.nodeIDstr)
                     );
-
+                    
                     for (let hideNode of hideNodes) {
-                        let hideNodeGArr = indexMermaid.querySelectorAll(`[id^='flowchart-${hideNode.position}']`);
-
+                        let hideNodeGArr = indexMermaid.querySelectorAll(`[data-id*='-svg-flowchart-${hideNode.position}']`);
+                        new Notice(hideNodeGArr.length.toString())
                         hideNodeGArr.forEach((item) => {
                             item.setAttr("style", "display:none");
                         })
 
-                        let hideLines = indexMermaid.querySelectorAll(`[id^='L_${hideNode.position}']`);
+                        let hideLines = indexMermaid.querySelectorAll(`[data-id^='L_${hideNode.position}']`);
 
                         hideLines.forEach((item) => {
                             item.setAttr("style", "display:none");
@@ -874,7 +873,6 @@ export class ZKIndexView extends ItemView {
 
                 const gElements = indexMermaid.querySelectorAll('g.commit-bullets');
 
-                let temNode = gElements[1];
                 const circles = gElements[1].querySelectorAll("circle.commit")
                 const circleNodes = Array.from(circles);
                 gElements[1].textContent = "";
@@ -892,7 +890,7 @@ export class ZKIndexView extends ItemView {
                         const element = circleNodes[j] as HTMLElement
                         element.addEventListener("click", async (event: MouseEvent) => {  
                             if (event.ctrlKey) {
-                                this.app.workspace.openLinkText("", node.file.path, 'tab');
+                                await this.app.workspace.openLinkText("", node.file.path, 'tab');
                             }else if(event.shiftKey){
                                 this.plugin.settings.lastRetrival =  {
                                     type: 'main',
@@ -910,14 +908,14 @@ export class ZKIndexView extends ItemView {
                                     filePath: node.file.path,
             
                                 };       
-                                this.plugin.openGraphView();
+                                await this.plugin.openGraphView();
                             }else{
-                                this.app.workspace.openLinkText("", node.file.path)
+                                await this.app.workspace.openLinkText("", node.file.path)
                             }
                             
                         })
-                        element.addEventListener("touchend", () => { 
-                            this.app.workspace.openLinkText("", node.file.path)
+                        element.addEventListener("touchend", async () => { 
+                            await this.app.workspace.openLinkText("", node.file.path)
                         })
                         element.addEventListener('contextmenu', (event: MouseEvent) => {
                                     
@@ -978,8 +976,8 @@ export class ZKIndexView extends ItemView {
             this.playStatus = {
                 current:-1,
                 total:this.plugin.tableArr.length,
-                nodeGArr: Array.from(branchMermaid.querySelectorAll("[id^='flowchart-']")),
-                lines: Array.from(branchMermaid.querySelectorAll(`[id^='L_']`)),
+                nodeGArr: Array.from(branchMermaid.querySelectorAll("[id*='-svg-flowchart-']")),
+                lines: Array.from(branchMermaid.querySelectorAll(`[data-id^='L_']`)),
                 labels:[],
             }
                 
@@ -1726,7 +1724,7 @@ export class ZKIndexView extends ItemView {
             if(leaf.length > 0){
                 this.app.workspace.revealLeaf(leaf[0]);
             }else{
-                this.app.workspace.openLinkText("",targetfile.path);
+                await this.app.workspace.openLinkText("",targetfile.path);
             }
         }
 
@@ -1741,7 +1739,7 @@ export class ZKIndexView extends ItemView {
         for(let node of this.plugin.tableArr){            
             
             setTimeout(() => {
-                let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
+                let nodeG = this.playStatus.nodeGArr.find(n=>n.id.includes(`-svg-flowchart-${node.position}`));
                 if(nodeG){
                     nodeG.removeClass('zk-hidden');
                 }
@@ -1763,9 +1761,9 @@ export class ZKIndexView extends ItemView {
         let sec:number= 500;
         for(let i=0;i<this.playStatus.nodeGArr.length;i++){            
             
-            setTimeout(() => {
+            setTimeout(async () => {
                 this.playStatus.current = i; 
-                this.branchPlayingGit()
+                await this.branchPlayingGit()
             }, sec);
 
             sec = sec + 500;
@@ -1794,7 +1792,7 @@ export class ZKIndexView extends ItemView {
         
         for(let node of showNodes){
             
-            let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
+            let nodeG = this.playStatus.nodeGArr.find(n=>n.id.includes(`-svg-flowchart-${node.position}`));
             if(nodeG){
                 nodeG.removeClass('zk-hidden');
             }
@@ -1806,7 +1804,7 @@ export class ZKIndexView extends ItemView {
         
         for(let node of hideNodes){
             
-            let nodeG = this.playStatus.nodeGArr.find(n=>n.id.startsWith(`flowchart-${node.position}`));
+            let nodeG = this.playStatus.nodeGArr.find(n=>n.id.includes(`-svg-flowchart-${node.position}`));
             if(nodeG){
                 nodeG.addClass('zk-hidden');
             }
@@ -1907,14 +1905,14 @@ export class ZKIndexView extends ItemView {
                 if(this.plugin.settings.FoldNodeArr.filter(n =>
                     (n.nodeIDstr == node.IDStr) && (n.graphID == indexMermaid.id)).length === 0)
                     {
-                        newCircle.addClass('zk-fold-yellow');
+                        newCircle.addClass('zk-fold-yellow'); 
                     }else{
                         newCircle.addClass('zk-fold-green');
                     }
                 
                 item.parentElement.insertAfter(newCircle, item.nextSibling);
-
-                newCircle.addEventListener("click", async(event)=>{
+                    
+                newCircle.addEventListener("click", async(event:MouseEvent)=>{
                     
                     const clickNode: FoldNode = {
                         graphID: indexMermaid.id,
@@ -1940,11 +1938,12 @@ export class ZKIndexView extends ItemView {
                             n=>!(n.nodeIDstr.startsWith(clickNode.nodeIDstr) && (n.graphID == clickNode.graphID))
                         )   
                     }  
+                    
                     event.stopPropagation();     
                     await this.refreshBranchMermaid();           
                 })
                 
-                newCircle.addEventListener("touchend", async(event)=>{
+                newCircle.addEventListener("touchend", async(event:TouchEvent)=>{
                     
                     const clickNode: FoldNode = {
                         graphID: indexMermaid.id,
@@ -1967,6 +1966,7 @@ export class ZKIndexView extends ItemView {
                     event.stopPropagation();
                     await this.refreshBranchMermaid();           
                 })
+                
             }
 
         })
@@ -1984,7 +1984,7 @@ export class ZKIndexView extends ItemView {
                     try {
                         const pattern = new RegExp(subpath);
                         heading = headings.find(h => pattern.test(h.heading));
-                    } catch (error) {
+                    } catch {
                         
                     }
                 }else{
@@ -2013,6 +2013,6 @@ export class ZKIndexView extends ItemView {
     }
 
     async onClose() {
-        this.plugin.saveData(this.plugin.settings);
+        await this.plugin.saveData(this.plugin.settings);
     }
 }

@@ -1,5 +1,5 @@
 import ZKNavigationPlugin from "@/main";
-import { App, debounce,  ExtraButtonComponent,  IconName, ItemView, Notice, WorkspaceLeaf } from "obsidian"
+import { App, debounce,  ExtraButtonComponent,  IconName, ItemView, WorkspaceLeaf } from "obsidian"
 import { t } from "@/src/lang/helper"
 import { ZK_NAVIGATION } from "./indexView";
 import moment from 'moment';
@@ -37,7 +37,7 @@ export class ZKRecentView extends ItemView {
     }
     
     async onOpen() {
-        this.refreshRecentView()
+        await this.refreshRecentView()
 
     }
 
@@ -76,7 +76,7 @@ export class ZKRecentView extends ItemView {
                 this.plugin.settings.FoldNodeArr = [];  
                 this.app.workspace.trigger("zk-navigation:refresh-recent-view");
                 this.plugin.RefreshIndexViewFlag = true;
-                this.plugin.openIndexView();
+                await this.plugin.openIndexView();
 
             })
 
